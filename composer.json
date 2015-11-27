@@ -1,0 +1,28 @@
+{
+    "name": "indibeast/r3pay",
+    "description": "Rype3 safe pay",
+    "authors": [
+        {
+            "name": "Indika Gunasekara",
+            "email": "indigun89@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "guzzlehttp/guzzle": "^6.1"
+    },
+    "require-dev": {
+
+    },
+    "autoload": {
+        "psr-4": {
+            "R3Pay\\": "src/"
+        }
+    },
+    "autoload-dev": {
+
+    },
+    "branch-alias": {
+        "dev-master": "0.0.x-dev"
+    }
+}
