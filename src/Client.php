@@ -23,18 +23,30 @@ class Client {
 
     public function getRedirectUri(array $data)
     {
-        $path   = self::$apipath.'/me';
+        $path   = self::$apipath.'/redirect';
         $output = $this->output($this->guzzleClient->request('POST',$path,['json' =>$data]));
-        if($output->status){
+        if($output['status']){
 
-            return new Response($output->result);
+            return new RedirectResponse($output['result']);
         }
 
-        throw new ClientException($output->errors->message);
+        throw new ClientException($output['errors']['message']);
+    }
+
+    public function getPaymentStatus($reqid)
+    {
+        $path   = self::$apipath.'/status/'.$reqid;
+        $output = $this->output($this->guzzleClient->request('POST',$path,['json' =>[]]));
+        if($output['status']){
+
+            return new PaymentStatusResponse($output['result']);
+        }
+
+        throw new ClientException($output['message']);
     }
 
     protected function output($response, $body=true)
     {
-        return $body ? json_decode($response->getBody()) : $response;
+        return $body ? json_decode($response->getBody(),true) : $response;
     }
 } 
