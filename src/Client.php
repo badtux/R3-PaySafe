@@ -1,6 +1,7 @@
 <?php
 namespace R3Pay;
 
+use R3Pay\Api\Transaction;
 use R3Pay\Exception\ClientException;
 
 class Client {
@@ -21,10 +22,10 @@ class Client {
         ]);
     }
 
-    public function getRedirectUri(array $data)
+    public function getRedirectUri(Transaction $transaction)
     {
         $path   = self::$apipath.'/redirect';
-        $output = $this->output($this->guzzleClient->request('POST',$path,['json' =>$data]));
+        $output = $this->output($this->guzzleClient->request('POST',$path,['json' =>$transaction->toArray()]));
         if($output['status']){
 
             return new RedirectResponse($output['result']);

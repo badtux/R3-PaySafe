@@ -6,6 +6,18 @@ class Transaction {
     protected $amount = 0;
 
     protected $currency = 'USD';
+    /**
+     * @var \R3Pay\Api\Customer
+     */
+    protected $customer;
+    /**
+     * @var \R3Pay\Api\Address
+     */
+    protected $address;
+    /**
+     * @var \R3Pay\Api\Invoice
+     */
+    protected $invoice;
 
     public function __construct()
     {
@@ -42,6 +54,46 @@ class Transaction {
     public function setCurrency($currency)
     {
         $this->currency = $currency;
+    }
+
+    public function setCustomer(Customer $customer)
+    {
+        $this->customer = $customer;
+        return $this;
+    }
+
+    public function setAddress(Address $address)
+    {
+        $this->address = $address;
+        return $this;
+    }
+
+    public function setInvoice(Invoice $invoice)
+    {
+        $this->invoice = $invoice;
+        return $this;
+    }
+
+    public function toArray()
+    {
+        return [
+           'transaction' => [
+               'amount' => $this->getAmount(),
+               'currency' => $this->getCurrency()
+           ],
+            'invoiceid' => $this->invoice->getId(),
+            'customer' => [
+               'name' => $this->customer->getName(),
+               'email' => $this->customer->getEmail()
+            ],
+            'address' => [
+               'street_address' => $this->address->getStreetAddress(),
+                'street_address_2' => $this->address->getStreetAddress2(),
+                'city' => $this->address->getCity(),
+                'state' => $this->address->getState(),
+                'country' => $this->address->getCountry()
+            ]
+        ];
     }
 
 

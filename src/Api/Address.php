@@ -11,6 +11,24 @@ class Address {
 
     protected $country = '';
 
+    protected $state = '';
+
+    /**
+     * @return string
+     */
+    public function getState()
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param string $state
+     */
+    public function setState($state)
+    {
+        $this->state = $state;
+    }
+
     /**
      * @return string
      */
@@ -74,5 +92,7 @@ class Address {
     {
         $this->streetAddress2 = $streetAddress2;
     }
+
+
 
 } 
