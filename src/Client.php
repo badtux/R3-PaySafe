@@ -6,7 +6,7 @@ use R3Pay\Exception\ClientException;
 class Client {
 
     static protected $baseUrl = 'http://{account}.rype3.net/';
-    static protected $apipath = 'pay/api/v1';
+    static protected $apipath = 'paysafe/api/v1';
 
     protected $guzzleClient;
 
