@@ -19,6 +19,24 @@ class Transaction {
      */
     protected $invoice;
 
+    protected $returnurl;
+
+    /**
+     * @return mixed
+     */
+    public function getReturnurl()
+    {
+        return $this->returnurl;
+    }
+
+    /**
+     * @param mixed $returnurl
+     */
+    public function setReturnurl($returnurl)
+    {
+        $this->returnurl = $returnurl;
+    }
+
     public function __construct()
     {
 
@@ -92,7 +110,8 @@ class Transaction {
                 'city' => $this->address->getCity(),
                 'state' => $this->address->getState(),
                 'country' => $this->address->getCountry()
-            ]
+            ],
+            'returnurl' => $this->getReturnurl()
         ];
     }
 
