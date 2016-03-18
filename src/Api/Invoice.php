@@ -5,6 +5,7 @@ class Invoice {
 
     protected $id;
 
+
     public function __construct()
     {
 
@@ -19,4 +20,6 @@ class Invoice {
     {
         return $this->id;
     }
+
+
 } 

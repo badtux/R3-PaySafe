@@ -15,6 +15,7 @@ class RedirectRequest {
             'name'  => '',
             'email' => ''
         ],
+        'itemlist'=>[],
         'address' => [
             'street_address' => '',
             'street_address_2' => '',
@@ -59,6 +60,7 @@ class RedirectRequest {
     {
         $this->data['returnurl'] = $url;
     }
+
 
     public function execute($domain)
     {

@@ -1,6 +1,8 @@
 <?php
 namespace R3Pay\Api;
 
+use R3Pay\Validator\NumericValidator;
+
 class Transaction {
 
     protected $amount = 0;
@@ -20,6 +22,11 @@ class Transaction {
     protected $invoice;
 
     protected $returnurl;
+
+    /**
+     * @var \R3Pay\Api\ItemList
+     */
+    protected $itemlist;
 
     /**
      * @return mixed
@@ -55,6 +62,7 @@ class Transaction {
      */
     public function setAmount($amount)
     {
+        NumericValidator::validate($amount,'Total Amount');
         $this->amount = $amount;
     }
 
@@ -100,6 +108,7 @@ class Transaction {
                'currency' => $this->getCurrency()
            ],
             'invoiceid' => $this->invoice->getId(),
+            'itemlist'=> $this->itemlist->toArray(),
             'customer' => [
                'name' => $this->customer->getName(),
                'email' => $this->customer->getEmail()
