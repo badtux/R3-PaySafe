@@ -25,7 +25,10 @@ class Client {
     public function getRedirectUri(Transaction $transaction)
     {
         $path   = self::$apipath.'/redirect';
-        $output = $this->output($this->guzzleClient->request('POST',$path,['json' =>$transaction->toArray()]));
+        $output = $this->output($this->guzzleClient->request('POST',$path,['json' =>$transaction->toArray(),
+            ['headers' =>[
+                'Origin' =>getenv('SERVER_NAME'),
+            ]]]));
         if($output['status']){
 
             return new RedirectResponse($output['result']);

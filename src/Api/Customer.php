@@ -26,6 +26,7 @@ class Customer {
     public function setEmail($email)
     {
         $this->email = $email;
+        return $this;
     }
 
     /**
@@ -42,6 +43,7 @@ class Customer {
     public function setName($name)
     {
         $this->name = $name;
+        return $this;
     }
 
 

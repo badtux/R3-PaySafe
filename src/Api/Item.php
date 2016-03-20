@@ -25,6 +25,7 @@ class Item {
     public function setCurrency($currency)
     {
         $this->currency = $currency;
+        return $this;
     }
 
     /**
@@ -41,6 +42,7 @@ class Item {
     public function setDescription($description)
     {
         $this->description = $description;
+        return $this;
     }
 
     /**
@@ -57,6 +59,7 @@ class Item {
     public function setName($name)
     {
         $this->name = $name;
+        return $this;
     }
 
     /**
@@ -74,6 +77,7 @@ class Item {
     {
         NumericValidator::validate($price,'Amount');
         $this->price = $price;
+        return $this;
     }
 
     /**
@@ -90,6 +94,7 @@ class Item {
     public function setQuantity($quantity)
     {
         $this->quantity = $quantity;
+        return $this;
     }
 
 } 

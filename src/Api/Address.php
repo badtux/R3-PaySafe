@@ -27,6 +27,7 @@ class Address {
     public function setState($state)
     {
         $this->state = $state;
+        return $this;
     }
 
     /**
@@ -43,6 +44,7 @@ class Address {
     public function setCity($city)
     {
         $this->city = $city;
+        return $this;
     }
 
     /**
@@ -59,6 +61,7 @@ class Address {
     public function setCountry($country)
     {
         $this->country = $country;
+        return $this;
     }
 
     /**
@@ -75,6 +78,7 @@ class Address {
     public function setStreetAddress($streetAddress)
     {
         $this->streetAddress = $streetAddress;
+        return $this;
     }
 
     /**
@@ -91,6 +95,7 @@ class Address {
     public function setStreetAddress2($streetAddress2)
     {
         $this->streetAddress2 = $streetAddress2;
+        return $this;
     }
 
 

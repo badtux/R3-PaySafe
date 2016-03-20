@@ -42,6 +42,7 @@ class Transaction {
     public function setReturnurl($returnurl)
     {
         $this->returnurl = $returnurl;
+        return $this;
     }
 
     public function __construct()
@@ -64,6 +65,7 @@ class Transaction {
     {
         NumericValidator::validate($amount,'Total Amount');
         $this->amount = $amount;
+        return $this;
     }
 
     /**
@@ -80,6 +82,7 @@ class Transaction {
     public function setCurrency($currency)
     {
         $this->currency = $currency;
+        return $this;
     }
 
     public function setCustomer(Customer $customer)
