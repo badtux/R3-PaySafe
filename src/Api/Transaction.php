@@ -103,6 +103,11 @@ class Transaction {
         return $this;
     }
 
+    public function setItemlist(ItemList $itemlist)
+    {
+        $this->itemlist = $itemlist;
+    }
+
     public function toArray()
     {
         return [

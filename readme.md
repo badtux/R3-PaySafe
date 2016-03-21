@@ -16,6 +16,15 @@
          $address->setState('western'); // State
          $address->setCountry('Sri lanka'); // Country
 
+         $item = new Item();
+         $item->setName('ItemName');
+              ->setQuantity(1);
+              ->setPrice(1000);
+              ->setCurrency('USD');
+              ->setDescription('blah blah');
+
+         $itemlist = new ItemList()
+         $itemlist->setItem($item);
 
          $transaction = new Transaction();
          $transaction->setAmount(50); // Transaction amount
@@ -23,6 +32,7 @@
          $transaction->setAddress($address); // Set the address
          $transaction->setCustomer($customer); // Set the Customer
          $transaction->setInvoice($invoice); // Set the Invoice
+         $transaction->setItemL
          $transaction->setReturnurl('http://malkey.rype3.dev/paysafe/test'); // Set redirect url
 
          $client->getRedirectUri($transaction) // Get the redirect url
