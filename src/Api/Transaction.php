@@ -117,6 +117,7 @@ class Transaction {
            ],
             'invoiceid' => $this->invoice->getId(),
             'itemlist'=> $this->itemlist->toArray(),
+            'operation' => 'redirect',
             'customer' => [
                'name' => $this->customer->getName(),
                'email' => $this->customer->getEmail()
