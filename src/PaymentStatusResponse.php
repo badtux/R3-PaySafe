@@ -8,6 +8,7 @@ class PaymentStatusResponse {
     const RES_TEXT = 'description';
     const STATUS = 'status';
     const PAYER  = 'payer';
+    const CREATED_TIME = 'created_time';
 
 
     protected $data;
@@ -37,6 +38,10 @@ class PaymentStatusResponse {
         return $this->getField(self::TXN_REF);
     }
 
+    public function getTXNCreatedTime()
+    {
+        return $this->getField(self::CREATED_TIME);
+    }
     protected function getField($field)
     {
         if (array_key_exists($field,$this->data)) {
