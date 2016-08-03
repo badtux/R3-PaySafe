@@ -42,6 +42,10 @@ class PaymentStatusResponse {
     {
         return $this->getField(self::CREATED_TIME);
     }
+    public function toArray()
+    {
+        return $this->data;
+    }
     protected function getField($field)
     {
         if (array_key_exists($field,$this->data)) {
