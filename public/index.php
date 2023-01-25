@@ -4,7 +4,7 @@
     $merchant = 'TESTMALKEYRENLKR';
     $sessionId = false;
     $currency = 'LKR';
-    $amount = '1.00';
+    $amount = 10.00;
     $uniqueOrderId = (string)rand(10, 99);
     $curl = curl_init(); 
      
@@ -14,8 +14,9 @@
         // 'Content-Type' => 'application/x-www-form-urlencoded'
     ];
  
-    // curl_setopt($curl, CURLOPT_URL, "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/69");
-    curl_setopt($curl, CURLOPT_URL, "https://cbcmpgs.gateway.mastercard.com/api/rest/version/69/merchant/$merchant/session");
+    
+    curl_setopt($curl, CURLOPT_URL, "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/69");
+    // curl_setopt($curl, CURLOPT_URL, "https://cbcmpgs.gateway.mastercard.com/api/rest/version/69/merchant/$merchant/session");
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($curl, CURLOPT_HTTPHEADER,  $headers);
     curl_setopt($curl, CURLOPT_POST, 1);
@@ -31,8 +32,8 @@
     // $sessionId = explode("=", explode("&", $result)[2])[1];
 ?> 
 
-<script src="https://cbcmpgs.gateway.mastercard.com/static/checkout/checkout.min.js" data-error="errorCallback" data-cancel="cancelCallback"></script>
-
+<!-- <script src="https://cbcmpgs.gateway.mastercard.com/static/checkout/checkout.min.js" data-error="errorCallback" data-cancel="cancelCallback"></script> -->
+<!-- 
 <script>
     function errorCallback(error) {
         console.log(JSON.stringify(error));
@@ -59,4 +60,4 @@
     });
     
     Checkout.showPaymentPage()
-</script>
+</script> -->
