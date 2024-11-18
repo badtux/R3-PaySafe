@@ -1,0 +1,122 @@
+
+#paymentFormContainer
+{
+display: flex;
+justify-content: center;
+align-items: center;
+flex-direction: column;
+/* width:; */
+}
+.payment-form {
+  width: auto;
+  height: auto;
+  padding: 45px;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input.valid {
+  border-color: green;
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.form-group input.invalid {
+  border-color: red;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+.form-group input[type="submit"] {
+  background-color: #031057;
+  color: white;
+  border: none;
+  cursor: pointer;
+  
+}
+
+.form-group input[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+.validation-message {
+  margin-top: 5px;
+  font-size: 14px;
+  height: 20px;
+}
+
+.logos {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.logos img {
+  height: 30px;
+  width: 120px;
+}
+
+.header_logo {
+  display: block;
+  margin: 0 auto 20px;
+ 
+  max-width:75%;
+  height: auto;
+}
+
+.profile-name-card {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  margin: 25px 0;
+  min-height: 1em;
+}
+
+.error {
+  color: red;
+}
+
+.form-group-inline {
+  justify-content: center;
+  display: flex;
+  gap: 37px;
+ 
+}
+
+.form-group-inline .form-group {
+  flex: 1;
+}
+
+.payment-form select {
+  margin-right: 5px;
+}
+
+.form-group-inline .form-group {
+  flex: 1;
+}
+
+select,
+input[type="text"] {
+  width: 100%;
+}
