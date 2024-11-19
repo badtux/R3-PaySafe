@@ -15,16 +15,20 @@ if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
 
 
+    $currency = isset($_POST['currency']) ? $_POST['currency'] : 'LKR';
+
     if (isset($_POST['price'])) {
         $price = $_POST['price'];
-        $amount = intval($price * 100);
+
+
+        if ($currency === 'USD') {
+            $amount = intval($price * 100);
+        } else {
+            $amount = intval($price * 100);
+        }
     } else {
-        $amount = 1000;
+        $amount = 0;
     }
-
-
-    $currency = isset($_POST['currency']) ? $_POST['currency'] : 'USD';
-
 
     $reference = uniqid();
     $email = $_POST['email'];
@@ -34,25 +38,23 @@ if (isset($_POST['simplifyToken'])) {
         $status = 'ERROR';
     } else {
         try {
-
             $payment = Simplify_Payment::createPayment(array(
                 'reference' => $reference,
                 'amount' => $amount,
-                'description' => 'payment description',
+                'description' => 'Payment description',
                 'currency' => $currency,
                 'token' => $token,
             ));
-
 
             if ($payment->paymentStatus == 'APPROVED') {
                 $notificationMessage = 'Payment Approved! Thank you for your purchase!';
                 $status = 'APPROVED';
 
-
+                // Send confirmation email
                 $mail = new PHPMailer(true);
                 try {
                     define('MAIL_HOST', 'digitable.io');
-                    define('MAIL_PORT', '465');
+                    define('MAIL_PORT', 465);
                     define('MAIL_USERNAME', 'no-reply@digitable.io');
                     define('MAIL_PASSWORD', "=pvNlO)5=atu");
                     define('MAIL_ENCRYPTION', 'ssl');
@@ -70,7 +72,7 @@ if (isset($_POST['simplifyToken'])) {
 
                     $mail->isHTML(false);
                     $mail->Subject = "Payment Confirmation";
-                    $mail->Body = "Dear Customer,\n\nYour payment of " . ($currency == 'USD' ? '$' : '₹') . $price . " has been successfully approved.\n\nThank you for your purchase!";
+                    $mail->Body = "Dear Customer,\n\nYour payment of " . ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) . " has been successfully approved.\n\nThank you for your purchase!";
 
                     $mail->send();
                 } catch (Exception $e) {
@@ -90,5 +92,6 @@ if (isset($_POST['simplifyToken'])) {
     $status = 'ERROR';
 }
 
+// Redirect back to payment page with status and message
 header("Location:../paymentpage.php?status=$status&message=" . urlencode($notificationMessage));
 exit();

@@ -1,14 +1,13 @@
 <?php
 session_start();
 
-
 // Fetch URL parameters
 $status = isset($_GET['status']) ? htmlspecialchars($_GET['status']) : null;
 $message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : null;
 $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : '';
 $price = isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '';
+$currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LKR';
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -21,56 +20,82 @@ $price = isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '';
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
+
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
+
     <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg m-6">
         <img class="mx-auto mb-4" src="assets/combank.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
         <h2 class="text-xl font-semibold text-center mb-6">COMBANK MPGS Payment Gateway</h2>
 
         <div id="paymentFormContainer">
             <form id="paymentForm" action="config/auth.php" method="POST">
-                <!-- Email and Amount in One Row -->
                 <div class="flex space-x-4 mb-6">
+                    <!-- Currency Field -->
                     <div class="w-1/2">
-                        <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
-                        <input type="email" id="email" name="email"
-                            value="<?= isset($_GET['email']) ? htmlspecialchars($_GET['email']) : '' ?>"
-                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
-                        <span class="validation-message text-red-500 text-xs mt-1" id="emailError"></span>
+                        <label for="currency" class="block text-sm font-medium text-gray-700">Currency:</label>
+                        <select id="currency" name="currency" required
+                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2"
+                            <?= !empty($currency) ? 'disabled' : '' ?>>
+                            <option value="LKR" <?= $currency === 'LKR' ? 'selected' : '' ?>>LKR</option>
+                            <option value="USD" <?= $currency === 'USD' ? 'selected' : '' ?>>USD</option>
+                        </select>
+                        <?php if (!empty($currency)): ?>
+
+                            <input type="hidden" name="currency" value="<?= $currency ?>">
+                        <?php endif; ?>
                     </div>
+
+
+                    <!-- Amount Field -->
                     <div class="w-1/2">
-                        <label for="price" class="block text-sm font-medium text-gray-700">Amount (USD):</label>
+                        <label for="price" class="block text-sm font-medium text-gray-700">Amount:</label>
                         <input type="text" name="price" id="price"
-                            value="<?= isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '' ?>"
-                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
+                            value="<?= $price ?>"
+                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2"
+                            <?= $price ? 'readonly' : '' ?> />
                     </div>
                 </div>
 
-                <!-- Credit Card Number, Expiry Date, and CVV in One Row -->
+                <!-- Currency Selection -->
+                <div class="flex mb-6">
+                    <div class="w-full">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+                        <input type="email" id="email" name="email"
+                            value="<?= $email ?>"
+                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
+                        <span class="validation-message text-red-500 text-xs mt-1" id="emailError"></span>
+
+
+
+                    </div>
+                </div>
+
+
                 <div class="flex space-x-4 mb-6">
                     <!-- Credit Card Number Field -->
                     <div class="w-full">
                         <label for="card_number" class="block text-sm font-medium text-gray-700">Credit Card Number:</label>
                         <input id="card_number" name="card_number" type="text" maxlength="20" autocomplete="off" required autofocus
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
-                        <span class="validation-message text-red-500 text-xs mt-1" id="card_number_msg"></span>
+                        <span class="validation-message text-red-500 text-xs mt-1" id='card_number_msg'></span>
                     </div>
                 </div>
 
                 <!-- Expiry Date Section -->
                 <div class="flex space-x-4 mb-6">
                     <div class="w-full">
-                        <label for="cc-exp-month" class="block text-sm font-medium text-gray-700">Expiry Date:</label>
-                        <div class="flex space-x-4">
-                            <select id="cc-exp-month" name="exp_month" required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2">
-                                <option value="">Month</option>
+                        <label for='cc-exp-month' class='block text-sm font-medium text-gray-700'>Expiry Date:</label>
+                        <div class='flex space-x-4 h-12'>
+                            <select id='cc-exp-month' name='exp_month' required
+                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2'>
+                                <option value=''>Month</option>
                                 <?php for ($i = 1; $i <= 12; $i++): ?>
                                     <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>"><?= date('M', mktime(0, 0, 0, $i, 1)) ?></option>
                                 <?php endfor; ?>
                             </select>
-                            <select id="cc-exp-year" name="exp_year" required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2">
-                                <option value="">Year</option>
+                            <select id='cc-exp-year' name='exp_year' required
+                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2'>
+                                <option value=''>Year</option>
                                 <?php for ($year = date('Y'); $year <= date('Y') + 10; $year++): ?>
                                     <option value="<?= substr($year, -2) ?>"><?= $year ?></option>
                                 <?php endfor; ?>
@@ -80,24 +105,25 @@ $price = isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '';
 
                     <!-- CVV Section -->
                     <div class="">
-                        <label for="cvv" class="block text-sm font-medium text-gray-700">CVV:</label>
-                        <input id="cvv" name="cvv" type="text" maxlength="4" autocomplete="off" required
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
-                        <span class="validation-message text-red-500 text-xs mt-1" id="cvv_msg"></span>
+                        <label for='cvv' class='block text-sm font-medium text-gray=700'>CVV:</label>
+                        <input id='cvv' name='cvv' type='text' maxlength='4' autocomplete='off' required
+                            class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2' />
+                        <span class='validation-message text-red=500 text-xs mt=1' id='cvv_msg'></span>
                     </div>
                 </div>
 
                 <!-- Submit Button -->
-                <div class="mb-6">
-                    <input type="submit" value="Pay Now"
-                        class="w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-200 cursor-pointer" />
+                <div class="">
+                    <!-- Pay Now Button -->
+                    <input type='submit' value='Pay Now'
+                        class='w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration=200 cursor-pointer' />
                 </div>
 
                 <!-- Logos -->
-                <div class="logos flex flex-wrap justify-center gap-4">
-                    <img src="assets/all.jpg" alt="" class="max-w-full sm:w-auto">
-                    <img src="assets/card_acceptancelogo.jpg" alt="" class="max-w-full sm:w-auto">
-                    <img src="assets/combank.png" alt="" class="max-w-full sm:w-auto">
+                <div class='logos flex flex-wrap justify-center gap=4'>
+                    <img src='assets/all.jpg' alt='' class='max-w-full sm:w-auto'>
+                    <img src='assets/card_acceptancelogo.jpg' alt='' class='max-w-full sm:w-auto'>
+                    <img src='assets/combank.png' alt='' class='max-w-full sm:w-auto'>
                 </div>
 
             </form>
@@ -105,7 +131,7 @@ $price = isset($_GET['price']) ? htmlspecialchars($_GET['price']) : '';
 
         <!-- Notification Message -->
         <div id="notificationMessage" class="
-            w-full max-w-md p-4 bg-white rounded-lg hidden shadow-lg mt-6 mx-auto">
+            w-full max-w-md p-4 bg-white rounded-lg hidden  mt-6 mx-auto">
             <p class="
             text-center text-lg font-semibold"
                 id='messageText'></p>
