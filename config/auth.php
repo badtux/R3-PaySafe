@@ -10,6 +10,11 @@ Simplify::$publicKey = 'sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0';
 Simplify::$privateKey = '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq';
 
 $notificationMessage = '';
+$name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
+$reference =isset($_POST['reference']) ? $_POST['reference'] :'No reference' ;
+$email = $_POST['email'];
+
+
 
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
@@ -29,9 +34,8 @@ if (isset($_POST['simplifyToken'])) {
     } else {
         $amount = 0;
     }
-
-    $reference = uniqid();
-    $email = $_POST['email'];
+   
+  
 
     if (empty($email)) {
         $notificationMessage = 'No email address provided.';
@@ -47,7 +51,7 @@ if (isset($_POST['simplifyToken'])) {
             ));
 
             if ($payment->paymentStatus == 'APPROVED') {
-                $notificationMessage = 'Payment Approved! Thank you for your purchase!';
+                $notificationMessage = "Your payment for " .htmlspecialchars($reference)."\n\n has been Approved. Thank you!";
                 $status = 'APPROVED';
 
                 // Send confirmation email
@@ -72,7 +76,10 @@ if (isset($_POST['simplifyToken'])) {
 
                     $mail->isHTML(false);
                     $mail->Subject = "Payment Confirmation";
-                    $mail->Body = "Dear Customer,\n\nYour payment of " . ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) . " has been successfully approved.\n\nThank you for your purchase!";
+                    $mail->Body = "Dear " . htmlspecialchars($name) .  ", reference " .htmlspecialchars($reference)."\n\nYour payment of " . 
+                    ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) . 
+                    " has been successfully approved.\n\nThank you for your purchase!";
+                
 
                     $mail->send();
                 } catch (Exception $e) {
