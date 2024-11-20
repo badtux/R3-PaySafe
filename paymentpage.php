@@ -32,7 +32,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
                 <div class="flex space-x-4 mb-6">
                     <!-- Currency Field -->
                     <div class="w-1/2">
-                        <label for="currency" class="block text-sm font-medium text-gray-700">Currency:</label>
+                        <label for="currency" class="block text-sm font-medium text-gray-700 pl-1">Currency:</label>
                         <select id="currency" name="currency" required
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2"
                             <?= !empty($currency) ? 'disabled' : '' ?>>
@@ -48,33 +48,44 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
 
                     <!-- Amount Field -->
                     <div class="w-1/2">
-                        <label for="price" class="block text-sm font-medium text-gray-700">Amount:</label>
+                        <label for="price" class="block text-sm font-medium text-gray-700 pl-1">Amount:</label>
                         <input type="text" name="price" id="price"
                             value="<?= $price ?>"
                             required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2"
                             <?= $price ? 'readonly' : '' ?> />
                     </div>
                 </div>
+                <div class="flex space-x-4 mb-6">
 
-                <!-- Currency Selection -->
-                <div class="flex mb-6">
-                    <div class="w-full">
-                        <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+
+
+                    <!-- Card holder name -->
+                    <div class="w-1/2">
+                        <label for="email" class="block text-sm font-medium text-gray-700 pl-1">Name:</label>
                         <input type="email" id="email" name="email"
                             value="<?= $email ?>"
                             required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
                         <span class="validation-message text-red-500 text-xs mt-1" id="emailError"></span>
 
-
+                    </div>
+                    <div class="w-1/2">
+                        <label for="email" class="block text-sm font-medium text-gray-700 pl-1">Email:</label>
+                        <input type="email" id="email" name="email"
+                            value="<?= $email ?>"
+                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
+                        <span class="validation-message text-red-500 text-xs mt-1" id="emailError"></span>
 
                     </div>
                 </div>
 
 
+
+
+
                 <div class="flex space-x-4 mb-6">
                     <!-- Credit Card Number Field -->
                     <div class="w-full">
-                        <label for="card_number" class="block text-sm font-medium text-gray-700">Credit Card Number:</label>
+                        <label for="card_number" class="block text-sm font-medium text-gray-700 pl-1">Credit Card Number:</label>
                         <input id="card_number" name="card_number" type="text" maxlength="20" autocomplete="off" required autofocus
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" />
                         <span class="validation-message text-red-500 text-xs mt-1" id='card_number_msg'></span>
@@ -84,7 +95,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
                 <!-- Expiry Date Section -->
                 <div class="flex space-x-4 mb-6">
                     <div class="w-full">
-                        <label for='cc-exp-month' class='block text-sm font-medium text-gray-700'>Expiry Date:</label>
+                        <label for='cc-exp-month' class='block text-sm font-medium text-gray-700 pl-1'>Expiry Date:</label>
                         <div class='flex space-x-4 h-12'>
                             <select id='cc-exp-month' name='exp_month' required
                                 class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2'>
@@ -105,7 +116,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
 
                     <!-- CVV Section -->
                     <div class="">
-                        <label for='cvv' class='block text-sm font-medium text-gray=700'>CVV:</label>
+                        <label for='cvv' class='block text-sm font-medium text-gray=700 pl-1'>CVV:</label>
                         <input id='cvv' name='cvv' type='text' maxlength='4' autocomplete='off' required
                             class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2' />
                         <span class='validation-message text-red=500 text-xs mt=1' id='cvv_msg'></span>
