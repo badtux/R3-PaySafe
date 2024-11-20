@@ -24,8 +24,9 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
 
     <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg m-6">
-        <img class="mx-auto mb-4" src="assets/combank.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
-        <h2 class="text-xl font-semibold text-center mb-6">COMBANK MPGS Payment Gateway</h2>
+        <img class="mx-auto mb-4" src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
+        <h2 class="text-xl font-semibold text-center mb-6">Malkey Rent-A-Car</h2>
+        <h4 class="text-xl font-semibold text-center mb-6">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
 
         <div id="paymentFormContainer">
             <form id="paymentForm" action="config/auth.php" method="POST">
