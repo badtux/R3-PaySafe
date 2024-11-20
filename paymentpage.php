@@ -160,7 +160,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
             id='messageText'></p>
         <a href="https://www.malkey.lk/"
             class="block mt-2 px-6 py-3 text-white font-semibold bg-gradient-to-r from-green-500 to-blue-500 rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-600 transform transition duration-300 ease-in-out hover:scale-105
-               text-center">Return to Home</a>
+               text-center">Return to Merchant</a>
     </div>
     </div>
 
