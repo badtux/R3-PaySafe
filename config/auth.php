@@ -34,11 +34,6 @@ if (isset($_POST['simplifyToken'])) {
         $amount = 0;
     }
 
-    error_log("Reference: " . print_r($reference, true));
-    error_log("Amount: " . print_r($amount, true));
-    error_log("Currency: " . print_r($currency, true));
-    error_log("Token: " . print_r($token, true));
-
     if (empty($email)) {
         $notificationMessage = 'No email address provided.';
         $status = 'ERROR';

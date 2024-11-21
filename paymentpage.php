@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require_once 'config/config.php';
 // Fetch URL parameters
 $status = isset($_GET['status']) ? htmlspecialchars($_GET['status']) : null;
 $message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : null;
@@ -167,6 +167,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
         pubkey = '<?php echo SMPLY_PUBKEY; ?>';
+        console.log(pubkey);
     </script>
     <script src='js/form.js'></script>
     <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
