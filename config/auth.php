@@ -6,12 +6,16 @@ require '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-Simplify::$publicKey = 'sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0';
-Simplify::$privateKey = '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq';
+Simplify::$publicKey = 'lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw'; //live 
+Simplify::$privateKey = '1nwUv+QJwDCQ0FviCoLcgrzrgHb3V2yfhjD9xjVX3lJ5YFFQL0ODSXAOkNtXTToq';
+
+//Simplify::$publicKey = 'sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0'; //sandbox
+//Simplify::$privateKey = '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq';
+
 
 $notificationMessage = '';
 $name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
-$reference =isset($_POST['reference']) ? $_POST['reference'] :'No reference' ;
+$reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
 $email = $_POST['email'];
 
 
@@ -34,8 +38,11 @@ if (isset($_POST['simplifyToken'])) {
     } else {
         $amount = 0;
     }
-   
-  
+
+    error_log("Reference: " . print_r($reference, true));
+    error_log("Amount: " . print_r($amount, true));
+    error_log("Currency: " . print_r($currency, true));
+    error_log("Token: " . print_r($token, true));
 
     if (empty($email)) {
         $notificationMessage = 'No email address provided.';
@@ -51,7 +58,7 @@ if (isset($_POST['simplifyToken'])) {
             ));
 
             if ($payment->paymentStatus == 'APPROVED') {
-                $notificationMessage = "Your payment for " .htmlspecialchars($reference)."\n\n has been Approved. Thank you!";
+                $notificationMessage = "Your payment for " . htmlspecialchars($reference) . "\n\n has been Approved. Thank you!";
                 $status = 'APPROVED';
 
                 // Send confirmation email
@@ -76,10 +83,10 @@ if (isset($_POST['simplifyToken'])) {
 
                     $mail->isHTML(false);
                     $mail->Subject = "Payment Confirmation";
-                    $mail->Body = "Dear " . htmlspecialchars($name) .  ", reference " .htmlspecialchars($reference)."\n\nYour payment of " . 
-                    ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) . 
-                    " has been successfully approved.\n\nThank you for your purchase!";
-                
+                    $mail->Body = "Dear " . htmlspecialchars($name) .  ", reference " . htmlspecialchars($reference) . "\n\nYour payment of " .
+                        ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) .
+                        " has been successfully approved.\n\nThank you for your purchase!";
+
 
                     $mail->send();
                 } catch (Exception $e) {

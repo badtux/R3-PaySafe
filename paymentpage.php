@@ -149,8 +149,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
     <div id="notificationMessage" class="
             w-full max-w-md p-4 bg-white rounded-lg hidden  mx-auto">
 
-        <div class=" p-0 md:pr-10 w -1/2
-">
+        <div class="p-0 md:pr-10 w -1/2">
             <img class="mx-auto mb-1" src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
             <h2 class="text-xl font-semibold text-center ">Malkey Rent-A-Car</h2>
             <h4 class="text-lg text-center mb-4  text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>

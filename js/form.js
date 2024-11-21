@@ -28,7 +28,9 @@ $(document).ready(function () {
 
     SimplifyCommerce.generateToken(
       {
-        key: "sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0",
+        key: "lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw", //live
+      // key: "sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0", //sandbox
+
         card: {
           number: rawCardNumber,
           cvc: $("#cvv").val(),
