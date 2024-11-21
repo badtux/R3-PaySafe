@@ -165,6 +165,9 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
 
     <!-- Scripts -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        pubkey = '<?php echo SMPLY_PUBKEY; ?>';
+    </script>
     <script src='js/form.js'></script>
     <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
 

@@ -1,24 +1,19 @@
 <?php
 session_start();
 require_once("../lib/Simplify.php");
-require '../vendor/autoload.php';
+require_once '../vendor/autoload.php';
+require_once 'config.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-Simplify::$publicKey = 'lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw'; //live 
-Simplify::$privateKey = '1nwUv+QJwDCQ0FviCoLcgrzrgHb3V2yfhjD9xjVX3lJ5YFFQL0ODSXAOkNtXTToq';
-
-//Simplify::$publicKey = 'sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0'; //sandbox
-//Simplify::$privateKey = '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq';
-
+Simplify::$publicKey = SMPLY_PUBKEY;
+Simplify::$privateKey = SMPLY_PVKEY;
 
 $notificationMessage = '';
 $name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
 $reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
 $email = $_POST['email'];
-
-
 
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
