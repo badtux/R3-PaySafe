@@ -1,6 +1,6 @@
 <?php 
 
-define('APP_LIVE', true);
+define('APP_LIVE', false);
 
 if(APP_LIVE){
     define('SMPLY_PUBKEY', 'lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw'); //live 

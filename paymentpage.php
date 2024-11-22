@@ -31,7 +31,7 @@ $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'LK
             <h4 class="text-xl text-center mb-4 mt-2 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
-            <form id="paymentForm" action="config/auth.php" method="POST">
+            <form id="paymentForm" action="/paysafe/auth" method="POST">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
                     <div class="w-3/8">

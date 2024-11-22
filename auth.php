@@ -1,8 +1,6 @@
 <?php
 session_start();
-require_once("../lib/Simplify.php");
-require_once '../vendor/autoload.php';
-require_once 'config.php';
+require_once('lib/Simplify.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -18,12 +16,10 @@ $email = $_POST['email'];
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
 
-
     $currency = isset($_POST['currency']) ? $_POST['currency'] : 'LKR';
 
     if (isset($_POST['price'])) {
         $price = $_POST['price'];
-
 
         if ($currency === 'USD') {
             $amount = intval($price * 100);
