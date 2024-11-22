@@ -50,14 +50,8 @@ if (isset($_POST['simplifyToken'])) {
                 // Send confirmation email
                 $mail = new PHPMailer(true);
                 try {
-                    define('MAIL_HOST', 'digitable.io');
-                    define('MAIL_PORT', 465);
-                    define('MAIL_USERNAME', 'no-reply@digitable.io');
-                    define('MAIL_PASSWORD', "=pvNlO)5=atu");
-                    define('MAIL_ENCRYPTION', 'ssl');
-                    define('MAIL_FROM_ADDRESS', 'no-reply@digitable.io');
-
                     $mail->addAddress($email);
+                    $mail->AddCC('viraj.abayarathna@gmail.com');
 
                     $mail->isSMTP();
                     $mail->Host = MAIL_HOST;
@@ -72,9 +66,10 @@ if (isset($_POST['simplifyToken'])) {
                     $mail->Body = "Dear " . htmlspecialchars($name) .  ", reference " . htmlspecialchars($reference) . "\n\nYour payment of " .
                         ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) .
                         " has been successfully approved.\n\nThank you for your purchase!";
+                    $sendStatus = $mail->send();
 
+                    $notificationMessage = $notificationMessage.' > '.(int)$sendStatus;
 
-                    $mail->send();
                 } catch (Exception $e) {
                     $notificationMessage .= ' However, we couldn\'t send a confirmation email: ' . htmlspecialchars($mail->ErrorInfo);
                 }
@@ -93,5 +88,5 @@ if (isset($_POST['simplifyToken'])) {
 }
 
 // Redirect back to payment page with status and message
-header("Location:../paymentpage.php?status=$status&message=" . urlencode($notificationMessage));
+header("Location:/paysafe?status=$status&message=" . urlencode($notificationMessage));
 exit();

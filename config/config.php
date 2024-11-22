@@ -11,4 +11,11 @@ else {
     define('SMPLY_PVKEY' , '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq');
 }
 
+define('MAIL_HOST', 'digitable.io');
+define('MAIL_PORT', 465);
+define('MAIL_USERNAME', 'no-reply@digitable.io');
+define('MAIL_PASSWORD', "=pvNlO)5=atu");
+define('MAIL_ENCRYPTION', 'ssl');
+define('MAIL_FROM_ADDRESS', 'no-reply@digitable.io');
+
 ?>
