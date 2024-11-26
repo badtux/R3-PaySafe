@@ -21,7 +21,7 @@ class Router
 
     public function handleRequest()
     {
-        $requestedPath = rtrim($_SERVER['REQUEST_URI'], '/');
+        $requestedPath = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
         $requestMethod = $_SERVER['REQUEST_METHOD'];
 
         foreach ($this->routes as $route) {

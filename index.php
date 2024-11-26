@@ -6,11 +6,11 @@ require_once('vendor/autoload.php');
 
 $router = new Router();
 
-$router->addRoute('GET', '/paysafe', function () {
+$router->addRoute('GET', '', function () {
     include 'paymentpage.php';
 });
 
-$router->addRoute('POST', '/paysafe/auth', function () {
+$router->addRoute('POST', '/auth', function () {
     include 'auth.php';
 });
 

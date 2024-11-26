@@ -28,7 +28,7 @@ $(document).ready(function () {
         const currency = $('#currency').val();
 
         pubkey = pubkey_lkr;
-        if($('#currency').val != 'LKR'){
+        if(currency != 'LKR'){
             pubkey = pubkey_usd;
         }
 

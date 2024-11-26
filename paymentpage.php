@@ -1,19 +1,26 @@
 <?php
-session_start();
+//session_start();
 require_once 'config/config.php';
 
-$_SESSION['txn'] = ['email' => false, 'price' => false, 'reference' = false, 'currency' = 'LKR'];
+// http://cmbgateway.loc/?currency=LKR&price=100&email=abc@gmail.com&reference=1123df
+// http://cmbgateway.loc/?currency=USD&price=100&email=abc@gmail.com&reference=1123df
 
-if(isset($_GET['price'], $_GET['currency'], $_GET['reference']), $_GET['email']){
+if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])) {
     $_SESSION['txn'] = [
-        'email' = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : '';
-        'price' = isset($_GET['price']) ? htmlspecialchars(intval($_GET['price'])) : '';
-        'reference' = isset($_GET['reference']) ? htmlspecialchars($_GET['reference']) : false;
-        'currency' = isset($_GET['currency']) ? htmlspecialchars(strtoupper($_GET['currency'])) : 'LKR';
+        'email' => htmlspecialchars($_GET['email']),
+        'price' => htmlspecialchars(intval($_GET['price'])),
+        'reference' => htmlspecialchars($_GET['reference']),
+        'currency' => htmlspecialchars(strtoupper($_GET['currency']))
     ];
 
-    header('Location:/paysafe/');
+    $_SESSION['t'] = md5(serialize($_SESSION['txn']));
+    header('Location: /?continue=' . $_SESSION['t']);
     exit;
+}
+
+if (!isset($_GET['continue']) || !isset($_SESSION['t']) || !($_GET['continue'] == $_SESSION['t'])) {
+
+    $_SESSION['txn'] = ['email' => false, 'price' => false, 'reference' => false, 'currency' => 'LKR'];
 }
 
 $status = isset($_GET['status']) ? htmlspecialchars($_GET['status']) : null;
@@ -21,8 +28,10 @@ $message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : null;
 $txn = $_SESSION['txn'];
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,6 +39,7 @@ $txn = $_SESSION['txn'];
     <link rel="stylesheet" href="css/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
     <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-1/2  m-6 flex flex-col lg:flex-row justify-between items-center">
         <div class="p-0 md:pr-10 w -1/2">
@@ -38,7 +48,7 @@ $txn = $_SESSION['txn'];
             <h4 class="text-xl text-center mb-4 mt-2 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
-            <form id="paymentForm" action="/paysafe/auth" method="POST">
+            <form id="paymentForm" action="/auth" method="POST">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
                     <div class="w-3/8">
@@ -66,9 +76,9 @@ $txn = $_SESSION['txn'];
                     <div class="w-3/8">
                         <label for="price" class="block text-sm font-medium text-gray-700 pl-1">Amount</label>
                         <input type="text" name="price" id="price"
-                            value="<?= $price ?>"
+                            value="<?= isset($txn['price']) ? $txn['price'] : '' ?>"
                             required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
-                            <?= $price ? 'readonly' : '' ?> />
+                            <?= isset($txn['price']) && $txn['price'] ? 'readonly' : '' ?> />
                     </div>
                 </div>
 
@@ -84,7 +94,7 @@ $txn = $_SESSION['txn'];
                     <div class="w-1/2">
                         <label for="email" class="block text-sm font-medium text-gray-700 pl-1">Email</label>
                         <input type="email" id="email" name="email"
-                            value="<?= $email ?>"
+                            value="<?= isset($txn['email']) ? $txn['email'] : '' ?>"
                             required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8" />
                         <span class="validation-message text-red-500 text-xs mt-1" id="emailError"></span>
                     </div>
@@ -149,9 +159,9 @@ $txn = $_SESSION['txn'];
 
         </form>
     </div>
- 
+
     <!-- Notification Message -->
-   
+
     <div id="notificationMessage" class="
             w-full max-w-md p-4 bg-white rounded-lg hidden  mx-auto">
 

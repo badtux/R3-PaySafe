@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 require_once('lib/Simplify.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -8,23 +8,20 @@ use PHPMailer\PHPMailer\Exception;
 $notificationMessage = '';
 $name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
 $reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
-$email = $_POST['email'];
+$email = isset($_POST['email']) ? $_POST['email'] : ''; // Fetch the actual email value
+$price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
+$currency = isset($_POST['currency']) ? strtoupper($_POST['currency']) : 'LKR';
+$amount = $price > 0 ? intval($price * 100) : 0;
 
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
 
-    $currency = isset($_POST['currency']) ? strtoupper($_POST['currency']) : 'LKR';
-
-    if (isset($_POST['price'])) {
-        $price = $_POST['price'];
-
-        if ($currency === 'USD') {
-            $amount = intval($price * 100);
-        } else {
-            $amount = intval($price * 100);
-        }
+    if ($currency == 'LKR') {
+        Simplify::$publicKey = SMPLY_LKR_PUBKEY;
+        Simplify::$privateKey = SMPLY_LKR_PVKEY;
     } else {
-        $amount = 0;
+        Simplify::$publicKey = SMPLY_USD_PUBKEY;
+        Simplify::$privateKey = SMPLY_USD_PVKEY;
     }
 
     if (empty($email)) {
@@ -32,15 +29,7 @@ if (isset($_POST['simplifyToken'])) {
         $status = 'ERROR';
     } else {
         try {
-            if($currency == 'LKR'){
-                Simplify::$publicKey = SMPLY_LKR_PUBKEY;
-                Simplify::$privateKey = SMPLY_LKR_PVKEY;
-            }
-            else {
-                Simplify::$publicKey = SMPLY_USD_PUBKEY;
-                Simplify::$privateKey = SMPLY_USD_PVKEY;
-            }
-
+           
             $payment = Simplify_Payment::createPayment(array(
                 'reference' => $reference,
                 'amount' => $amount,
@@ -49,14 +38,17 @@ if (isset($_POST['simplifyToken'])) {
                 'token' => $token,
             ));
 
+           
+            error_log("Payment details: " . print_r($payment, true));
+
             if ($payment->paymentStatus == 'APPROVED') {
-                $notificationMessage = "Your payment for " . htmlspecialchars($reference) . "\n\n has been Approved. Thank you!";
+                $notificationMessage = "Your payment for " . htmlspecialchars($reference) . " has been Approved. Thank you!";
                 $status = 'APPROVED';
 
                 // Send confirmation email
                 $mail = new PHPMailer(true);
                 try {
-                    $mail->SMTPDebug = 2;
+                    $mail->SMTPDebug = 2; 
                     $mail->isSMTP();
                     $mail->Host = MAIL_HOST;
                     $mail->SMTPAuth = true;
@@ -69,15 +61,14 @@ if (isset($_POST['simplifyToken'])) {
                     $mail->addAddress($email);
                     $mail->AddCC('viraj.abayarathna@gmail.com');
 
-                    $mail->isHTML(false);   
+                    $mail->isHTML(false);
                     $mail->Subject = "Payment Confirmation";
-                    $mail->Body = "Dear " . htmlspecialchars($name) .  ", reference " . htmlspecialchars($reference) . "\n\nYour payment of " .
+                    $mail->Body = "Dear " . htmlspecialchars($name) . ", reference " . htmlspecialchars($reference) . "\n\nYour payment of " .
                         ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) .
                         " has been successfully approved.\n\nThank you for your purchase!";
                     $sendStatus = $mail->send();
 
-                    $notificationMessage = $notificationMessage.' > '.(int)$sendStatus;
-
+                    $notificationMessage .= ' Email sent successfully.';
                 } catch (Exception $e) {
                     $notificationMessage .= ' However, we couldn\'t send a confirmation email: ' . htmlspecialchars($mail->ErrorInfo);
                 }
@@ -96,5 +87,5 @@ if (isset($_POST['simplifyToken'])) {
 }
 
 // Redirect back to payment page with status and message
-header("Location:/paysafe?status=$status&message=" . urlencode($notificationMessage));
+header("Location:/paymentpage.php?status=$status&message=" . urlencode($notificationMessage));
 exit();
