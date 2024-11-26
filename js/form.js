@@ -24,9 +24,13 @@ $(document).ready(function () {
         e.preventDefault();
         $("#submit").attr("disabled", "disabled");
 
-        const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
+        const rawCardNumber = $("#card_number").val().replace(/\D/g, '');
+        const currency = $('#currency').val();
 
-        console.log('----> '+pubkey);
+        pubkey = pubkey_lkr;
+        if($('#currency').val != 'LKR'){
+            pubkey = pubkey_usd;
+        }
 
         SimplifyCommerce.generateToken(
             {
