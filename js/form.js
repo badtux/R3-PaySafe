@@ -81,11 +81,11 @@ $(document).ready(function () {
         const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (emailPattern.test(value)) {
-            messageElement.text("Valid email address").css("color", "green");
+            messageElement.text("Valid email").css("color", "green");
             $("#email").removeClass("invalid").addClass("valid");
         } else {
             messageElement
-                .text("Please enter a valid email address")
+                .text("Invalid email")
                 .css("color", "red");
             $("#email").removeClass("valid").addClass("invalid");
         }

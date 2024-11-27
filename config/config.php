@@ -2,7 +2,7 @@
 
 define('APP_LIVE', false);
 define('BASE_PATH', '/paysafe');
-define('CC_LIST', ['viaj.abayarathna@gmail.com']);
+define('CC_LIST', ['viaj.abayarathna@gmail.com','milindum@gmail.com','accounts@malkey.lk']);
 
 if(APP_LIVE){
     define('SMPLY_LKR_PUBKEY', 'lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw'); //live 
