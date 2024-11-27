@@ -48,7 +48,7 @@ $txn = $_SESSION['txn'];
             <h4 class="text-xl text-center mb-4 mt-2 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
-            <form id="paymentForm" action="/auth" method="POST">
+            <form id="paymentForm" action="<?= BASE_PATH.'/auth' ?>" method="POST">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
                     <div class="w-3/8">

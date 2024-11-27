@@ -87,7 +87,7 @@
     <div class="container">
         <h1>404</h1>
         <h2>Oops! The page you're looking for doesn't exist.</h2>
-        <a href="/payment" class="btn">Go Back Home</a>
+        <a href="<?= BASE_PATH ?>" class="btn">Go Back Home</a>
 
         <div class="footer">
             <p>&copy; 2024 Your Website. All rights reserved.</p>

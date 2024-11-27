@@ -1,6 +1,7 @@
 <?php 
 
 define('APP_LIVE', false);
+define('BASE_PATH', '/paysafe');
 
 if(APP_LIVE){
     define('SMPLY_LKR_PUBKEY', 'lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw'); //live 
