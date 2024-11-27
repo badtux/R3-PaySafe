@@ -94,7 +94,5 @@ if (isset($_POST['simplifyToken'])) {
 }
 
 // Redirect back to payment page with status and message
-header("Location: paymentpage.php?status=$status&message=" . urlencode($notificationMessage));
-
-//header("Location: " . BASE_PATH . "?status=$status&message=" . urlencode($notificationMessage));
+header("Location: " . BASE_PATH . "?status=$status&message=" . urlencode($notificationMessage));
 exit();
