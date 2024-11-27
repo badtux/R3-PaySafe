@@ -15,8 +15,8 @@ else {
     define('SMPLY_LKR_PUBKEY', 'sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0'); //sandbox
     define('SMPLY_LKR_PVKEY', '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq');
 
-    define('SMPLY_USD_PUBKEY', 'sbpb_ZThjNTRkNGQtNTYwZS00YTgwLWEzYWQtNTIwNzRjZjhiNzQ0'); //sandbox
-    define('SMPLY_USD_PVKEY', '8uhTFkGZqFYHW9YzARCMZr9Yqrcrc3cZKPUDSo6ka7h5YFFQL0ODSXAOkNtXTToq');
+    define('SMPLY_USD_PUBKEY', 'sbpb_ZTY2NTA3ZjYtZTBhZi00OGZmLTg0N2YtZmE0NWJlMTBkOGVm'); //sandbox
+    define('SMPLY_USD_PVKEY', 'TrwuQb5xNUoriNasPO8cDnfIvUPQ35ta+0SvXi80XS95YFFQL0ODSXAOkNtXTToq');
 }
 
 define('MAIL_DRIVER', 'smtp');

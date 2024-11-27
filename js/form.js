@@ -27,10 +27,7 @@ $(document).ready(function () {
         const rawCardNumber = $("#card_number").val().replace(/\D/g, '');
         const currency = $('#currency').val();
 
-        pubkey = pubkey_lkr;
-        if(currency != 'LKR'){
-            pubkey = pubkey_usd;
-        }
+        let pubkey = (currency === 'LKR') ? pubkey_lkr : pubkey_usd;
 
         SimplifyCommerce.generateToken(
             {

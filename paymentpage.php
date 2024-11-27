@@ -1,9 +1,11 @@
 <?php
 session_start();
 require_once 'config/config.php';
+//sandbox
 
-// http://cmbgateway.loc/?currency=LKR&price=100&email=abc@gmail.com&reference=1123df
-// http://cmbgateway.loc/?currency=USD&price=100&email=abc@gmail.com&reference=1123df
+
+
+
 
 if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])) {
     $_SESSION['txn'] = [
@@ -19,7 +21,8 @@ if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])
 }
 
 if (!isset($_GET['continue']) || !isset($_SESSION['t']) || !($_GET['continue'] == $_SESSION['t'])) {
-    $_SESSION['txn'] = ['email' => false, 'price' => false, 'reference' => false, 'currency' => 'LKR'];
+
+    $_SESSION['txn'] = ['email' => false, 'price' => false, 'reference' => false, 'currency' => false];
 }
 
 $status = isset($_GET['status']) ? htmlspecialchars($_GET['status']) : null;
@@ -47,7 +50,7 @@ $txn = $_SESSION['txn'];
             <h4 class="text-xl text-center mb-4 mt-2 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
-            <form id="paymentForm" action="<?= BASE_PATH.'/auth' ?>" method="POST">
+            <form id="paymentForm" action="<?= BASE_PATH . '/auth' ?>" method="POST">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
                     <div class="w-3/8">
@@ -60,18 +63,23 @@ $txn = $_SESSION['txn'];
 
                     <div class="w-2/8">
                         <label for="currency" class="block text-sm font-medium text-gray-700 pl-1">Currency</label>
-                        <select id="currency" name="currency" required
-                            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2 text-sm h-8"
-                            <?= !empty($txn['currency']) ? 'disabled' : '' ?>>
-                            <option value="LKR" <?= $txn['currency'] === 'LKR' ? 'selected' : '' ?>>LKR</option>
-                            <option value="USD" <?= $txn['currency'] === 'USD' ? 'selected' : '' ?>>USD</option>
-                        </select>
-                        <?php if (!empty($currency)): ?>
-                            <input type="hidden" name="currency" value="<?= $txn['currency'] ?>">
-                        <?php endif; ?>
-                    </div>
 
-                    <!-- Amount Field -->
+                        <?php if (isset($txn['currency']) && ($txn['currency'])!== false): ?>
+
+                            <input type="text" name="currency" id="currency"
+                                value="<?= htmlspecialchars($txn['currency'], ENT_QUOTES, 'UTF-8') ?>"
+                                readonly
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none p-2 h-8 bg-gray-100 cursor-not-allowed">
+                        <?php else: ?>
+
+                            <select id="currency" name="currency" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 p-2 h-8">
+                                <option value="LKR" <?= isset($txn['currency']) && $txn['currency'] === 'LKR' ? 'selected' : '' ?>>LKR</option>
+                                <option value="USD" <?= isset($txn['currency']) && $txn['currency'] === 'USD' ? 'selected' : '' ?>>USD</option>
+                            </select>
+                        <?php endif; ?>
+
+                    </div>
                     <div class="w-3/8">
                         <label for="price" class="block text-sm font-medium text-gray-700 pl-1">Amount</label>
                         <input type="text" name="price" id="price"
@@ -181,8 +189,8 @@ $txn = $_SESSION['txn'];
     <!-- Scripts -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-        pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
-        pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
+        const pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
+        const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
     </script>
     <script src='js/form.js'></script>
     <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
