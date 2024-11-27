@@ -16,13 +16,23 @@ $amount = $price > 0 ? intval($price * 100) : 0;
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
 
+   
+
     if ($currency == 'LKR') {
         Simplify::$publicKey = SMPLY_LKR_PUBKEY;
         Simplify::$privateKey = SMPLY_LKR_PVKEY;
+
+        echo "SMPLY_LKR_PUBKEY: " . SMPLY_LKR_PUBKEY . "\n";
+        echo "SMPLY_LKR_PVKEY: " . SMPLY_LKR_PVKEY . "\n";
     } else {
         Simplify::$publicKey = SMPLY_USD_PUBKEY;
         Simplify::$privateKey = SMPLY_USD_PVKEY;
+        
+        echo "SMPLY_USD_PUBKEY: " . SMPLY_USD_PUBKEY . "\n";
+        echo "SMPLY_USD_PVKEY: " . SMPLY_USD_PVKEY . "\n";
     }
+    
+
 
     if (empty($email)) {
         $notificationMessage = 'No email address provided.';
@@ -38,7 +48,7 @@ if (isset($_POST['simplifyToken'])) {
                 'token' => $token,
             ));
 
-           
+          
             error_log("Payment details: " . print_r($payment, true));
 
             if ($payment->paymentStatus == 'APPROVED') {
@@ -87,5 +97,5 @@ if (isset($_POST['simplifyToken'])) {
 }
 
 // Redirect back to payment page with status and message
-header("Location:".BASE_PATH."?status=$status&message=" . urlencode($notificationMessage));
+header("Location:paymentpage.php?status=$status&message=" . urlencode($notificationMessage));
 exit();

@@ -1,5 +1,5 @@
 <?php
-//session_start();
+session_start();
 require_once 'config/config.php';
 
 // http://cmbgateway.loc/?currency=LKR&price=100&email=abc@gmail.com&reference=1123df
@@ -182,8 +182,9 @@ $txn = $_SESSION['txn'];
     <!-- Scripts -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-        pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
-        pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
+    
+    const pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
+    const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
     </script>
     <script src='js/form.js'></script>
     <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
