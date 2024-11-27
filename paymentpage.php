@@ -38,13 +38,13 @@ $txn = $_SESSION['txn'];
         <div class="p-0 md:pr-10 w -1/2">
             <img class="mx-auto mb-1" src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
             <h2 class="text-xl font-semibold text-center ">Malkey Rent-A-Car</h2>
-            <h4 class="text-xl text-center mb-4 mt-2 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
+            <h4 class="text-lg text-center mb-5 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
             <form id="paymentForm" action="<?= BASE_PATH . '/auth' ?>" method="POST">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
-                    <div class="w-3/8">
+                    <div class="w-2/5">
                         <label for="ref" class="block text-sm font-medium text-gray-700 pl-1">Reference</label>
                         <input type="text" name="reference" id="reference"
                             value="<?= $txn['reference'] ?>"
@@ -52,7 +52,7 @@ $txn = $_SESSION['txn'];
                             <?= $txn['reference'] ? 'readonly' : '' ?> />
                     </div>
 
-                    <div class="w-2/8">
+                    <div class="w-1/5">
                         <label for="currency" class="block text-sm font-medium text-gray-700 pl-1">Currency</label>
 
                         <?php if (isset($txn['currency']) && ($txn['currency'])!== false): ?>
@@ -60,18 +60,19 @@ $txn = $_SESSION['txn'];
                             <input type="text" name="currency" id="currency"
                                 value="<?= htmlspecialchars($txn['currency'], ENT_QUOTES, 'UTF-8') ?>"
                                 readonly
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none p-2 h-8 bg-gray-100 cursor-not-allowed">
+                               
+                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs  cursor-not-allowed'>
                         <?php else: ?>
 
                             <select id="currency" name="currency" required
-                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 p-2 h-8">
+                            class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
                                 <option value="LKR" <?= isset($txn['currency']) && $txn['currency'] === 'LKR' ? 'selected' : '' ?>>LKR</option>
                                 <option value="USD" <?= isset($txn['currency']) && $txn['currency'] === 'USD' ? 'selected' : '' ?>>USD</option>
                             </select>
                         <?php endif; ?>
 
                     </div>
-                    <div class="w-3/8">
+                    <div class="w-2/5">
                         <label for="price" class="block text-sm font-medium text-gray-700 pl-1">Amount</label>
                         <input type="text" name="price" id="price"
                             value="<?= isset($txn['price']) ? $txn['price'] : '' ?>"
@@ -111,7 +112,7 @@ $txn = $_SESSION['txn'];
                 <!-- Expiry Date Section -->
                 <div class="flex space-x-4 mb-6">
                     <div class="w-full">
-                        <label for='cc-exp-month' class='block text-sm font-medium text-gray-700 pl-1'>Expiry Date</label>
+                        <label for='cc-exp-month' class='class="block text-sm font-medium text-gray-700 pl-1'>Expiry Date</label>
                         <div class='flex space-x-4'>
                             <select id='cc-exp-month' name='exp_month' required
                                 class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
@@ -132,7 +133,7 @@ $txn = $_SESSION['txn'];
 
                     <!-- CVV Section -->
                     <div class="">
-                        <label for='cvv' class='block text-sm font-medium text-gray=700 pl=1'>CVV</label>
+                        <label for='Cvv' class='class="block text-sm font-medium text-gray-700 pl-1'>CVV</label>
                         <input id='cvv' name='cvv' type='text' maxlength='4' autocomplete='off' required
                             class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8' />
                         <span class='validation-message text-red=500 text-xs mt=1' id='cvv_msg'></span>
