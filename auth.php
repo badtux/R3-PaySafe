@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 require_once('lib/Simplify.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -59,7 +59,10 @@ if (isset($_POST['simplifyToken'])) {
 
                     $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
                     $mail->addAddress($email);
-                    $mail->AddCC('viraj.abayarathna@gmail.com');
+
+                    foreach($ccList as $cc){
+                        $mail->AddCC('viraj.abayarathna@gmail.com');
+                    }
 
                     $mail->isHTML(false);
                     $mail->Subject = "Payment Confirmation";

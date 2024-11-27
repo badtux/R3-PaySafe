@@ -1,5 +1,5 @@
 <?php
-//session_start();
+session_start();
 require_once 'config/config.php';
 
 // http://cmbgateway.loc/?currency=LKR&price=100&email=abc@gmail.com&reference=1123df
@@ -19,7 +19,6 @@ if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])
 }
 
 if (!isset($_GET['continue']) || !isset($_SESSION['t']) || !($_GET['continue'] == $_SESSION['t'])) {
-
     $_SESSION['txn'] = ['email' => false, 'price' => false, 'reference' => false, 'currency' => 'LKR'];
 }
 
