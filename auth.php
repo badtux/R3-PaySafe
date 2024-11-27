@@ -16,8 +16,6 @@ $amount = $price > 0 ? intval($price * 100) : 0;
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
 
-   
-
     if ($currency == 'LKR') {
         Simplify::$publicKey = SMPLY_LKR_PUBKEY;
         Simplify::$privateKey = SMPLY_LKR_PVKEY;
@@ -31,15 +29,12 @@ if (isset($_POST['simplifyToken'])) {
         echo "SMPLY_USD_PUBKEY: " . SMPLY_USD_PUBKEY . "\n";
         echo "SMPLY_USD_PVKEY: " . SMPLY_USD_PVKEY . "\n";
     }
-    
-
 
     if (empty($email)) {
         $notificationMessage = 'No email address provided.';
         $status = 'ERROR';
     } else {
         try {
-           
             $payment = Simplify_Payment::createPayment(array(
                 'reference' => $reference,
                 'amount' => $amount,
@@ -48,8 +43,7 @@ if (isset($_POST['simplifyToken'])) {
                 'token' => $token,
             ));
 
-          
-            error_log("Payment details: " . print_r($payment, true));
+            //error_log("Payment details: " . print_r($payment, true));
 
             if ($payment->paymentStatus == 'APPROVED') {
                 $notificationMessage = "Your payment for " . htmlspecialchars($reference) . " has been Approved. Thank you!";
@@ -70,7 +64,7 @@ if (isset($_POST['simplifyToken'])) {
                     $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
                     $mail->addAddress($email);
 
-                    foreach($ccList as $cc){
+                    foreach(CC_LIST as $cc){
                         $mail->AddCC('viraj.abayarathna@gmail.com');
                     }
 

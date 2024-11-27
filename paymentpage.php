@@ -1,11 +1,6 @@
 <?php
 session_start();
 require_once 'config/config.php';
-//sandbox
-
-
-
-
 
 if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])) {
     $_SESSION['txn'] = [
@@ -29,11 +24,8 @@ $status = isset($_GET['status']) ? htmlspecialchars($_GET['status']) : null;
 $message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : null;
 $txn = $_SESSION['txn'];
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +33,6 @@ $txn = $_SESSION['txn'];
     <link rel="stylesheet" href="css/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
     <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-1/2  m-6 flex flex-col lg:flex-row justify-between items-center">
         <div class="p-0 md:pr-10 w -1/2">
@@ -215,7 +206,5 @@ $txn = $_SESSION['txn'];
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     </script>
-
 </body>
-
 </html>
