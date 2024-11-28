@@ -116,29 +116,33 @@ $txn = $_SESSION['txn'];
 
                 <!-- Expiry Date Section -->
                 <div class="flex space-x-4 mb-6">
-                    <div class="w-1/2">
-                        <label for="cc-exp-month" class="block text-sm font-medium text-gray-700 pl-1">Expiry Date</label>
+                    <div class="w-full">
+                        <label for="cc-exp" class="block text-sm font-medium text-gray-700 pl-1">Expiry Date</label>
                         <div class="flex space-x-4">
 
                             <!-- Month Dropdown -->
-                            <select id="cc-exp-month" name="exp_month" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
-                                <option value="" disabled selected>MM</option>
-                                <?php for ($i = 1; $i <= 12; $i++): ?>
-                                    <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>"><?= date('m', mktime(0, 0, 0, $i, 1)) ?></option>
-                                <?php endfor; ?>
+                            <div class="w-1/2">
+                                <select id="cc-exp-month" name="exp_month" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
+                                    <option value="" disabled selected>MM</option>
+                                    <?php for ($i = 1; $i <= 12; $i++): ?>
+                                        <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>"><?= date('m', mktime(0, 0, 0, $i, 1)) ?></option>
+                                    <?php endfor; ?>
 
-                            </select>
+                                </select>
+                                <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
+                            </div>
                             <!-- Year Dropdown -->
-                            <select id="cc-exp-year" name="exp_year" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
-                                <option value="" disabled selected>YY</option>
-                                <?php for ($year = date('Y'); $year <= date('Y') + 10; $year++): ?>
-                                    <option value="<?= substr($year, -2) ?>"><?= substr($year, -2) ?></option>
-                                <?php endfor; ?>
-                            </select>
-                            <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
+                            <div class="w-1/2">
+                                <select id="cc-exp-year" name="exp_year" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
+                                    <option value="" disabled selected>YY</option>
+                                    <?php for ($year = date('Y'); $year <= date('Y') + 10; $year++): ?>
+                                        <option value="<?= substr($year, -2) ?>"><?= substr($year, -2) ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
+                            </div>
+
                         </div>
-
-
                     </div>
                     <div class="w-2/5">
                         <label for="cvv" class="block text-sm font-medium text-gray-700 pl-1">CVV</label>
