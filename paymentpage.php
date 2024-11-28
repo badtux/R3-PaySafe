@@ -26,6 +26,7 @@ $txn = $_SESSION['txn'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,6 +34,7 @@ $txn = $_SESSION['txn'];
     <link rel="stylesheet" href="css/custom.css">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
     <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-1/2  m-6 flex flex-col lg:flex-row justify-between items-center">
         <div class="p-0 md:pr-10 w -1/2">
@@ -41,31 +43,32 @@ $txn = $_SESSION['txn'];
             <h4 class="text-lg text-center mb-5 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
-            <form id="paymentForm" action="<?= BASE_PATH . '/auth' ?>" method="POST">
+            <form novalidate id="paymentForm" action="<?= BASE_PATH . '/auth' ?>" method="POST">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
                     <div class="w-2/5">
-                        <label for="ref" class="block text-sm font-medium text-gray-700 pl-1">Reference</label>
+                        <label for="reference" class="block text-sm font-medium text-gray-700 pl-1">Reference</label>
                         <input type="text" name="reference" id="reference"
                             value="<?= $txn['reference'] ?>"
-                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
+                            required class="error-message mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
                             <?= $txn['reference'] ? 'readonly' : '' ?> />
+                        <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
                     </div>
 
                     <div class="w-1/5">
                         <label for="currency" class="block text-sm font-medium text-gray-700 pl-1">Currency</label>
 
-                        <?php if (isset($txn['currency']) && ($txn['currency'])!== false): ?>
+                        <?php if (isset($txn['currency']) && ($txn['currency']) !== false): ?>
 
                             <input type="text" name="currency" id="currency"
                                 value="<?= htmlspecialchars($txn['currency'], ENT_QUOTES, 'UTF-8') ?>"
                                 readonly
-                               
-                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs  cursor-not-allowed'>
+
+                                class=' mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs  cursor-not-allowed'>
                         <?php else: ?>
 
                             <select id="currency" name="currency" required
-                            class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
+                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
                                 <option value="LKR" <?= isset($txn['currency']) && $txn['currency'] === 'LKR' ? 'selected' : '' ?>>LKR</option>
                                 <option value="USD" <?= isset($txn['currency']) && $txn['currency'] === 'USD' ? 'selected' : '' ?>>USD</option>
                             </select>
@@ -74,11 +77,15 @@ $txn = $_SESSION['txn'];
                     </div>
                     <div class="w-2/5">
                         <label for="price" class="block text-sm font-medium text-gray-700 pl-1">Amount</label>
-                        <input type="text" name="price" id="price"
+                        <input required type="text" name="price" id="price"
                             value="<?= isset($txn['price']) ? $txn['price'] : '' ?>"
-                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
-                            <?= isset($txn['price']) && $txn['price'] ? 'readonly' : '' ?> />
+                            class="error-message mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
+                            <?= isset($txn['price']) && $txn['price'] ? 'readonly' : '' ?>
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                            style="appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;" />
+                        <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
                     </div>
+
                 </div>
 
                 <div class="flex space-x-4 mb-4">
@@ -86,7 +93,8 @@ $txn = $_SESSION['txn'];
                     <div class="w-1/2">
                         <label for="name" class="block text-sm font-medium text-gray-700 pl-1">Name</label>
                         <input type="text" id="name" name="name"
-                            required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8" />
+                            required class="error-message mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8" />
+                        <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
                     </div>
 
                     <!-- Email Field -->
@@ -95,7 +103,8 @@ $txn = $_SESSION['txn'];
                         <input type="email" id="email" name="email"
                             value="<?= isset($txn['email']) ? $txn['email'] : '' ?>"
                             required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8" />
-                        <span class="validation-message text-red-500 text-xs mt-1" id="emailError"></span>
+                        <span class=" error-message  text-red-500 text-xs mt-1" id="emailError"></span>
+
                     </div>
                 </div>
 
@@ -103,60 +112,67 @@ $txn = $_SESSION['txn'];
                     <!-- Credit Card Number Field -->
                     <div class="w-full">
                         <label for="card_number" class="block text-sm font-medium text-gray-700 pl-1">Credit Card Number</label>
-                        <input id="card_number" name="card_number" type="text" maxlength="20" autocomplete="off" required autofocus
+                        <input id="card_number" name="card_number" type="text" maxlength="19" autocomplete="off" required autofocus
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8" />
-                        <span class='validation-message text-red-500 text-xs mt=1' id='card_number_msg'></span>
+                        <span class=' error-message validation-message text-red-500 text-xs mt=1' id='card_number_msg'></span>
                     </div>
                 </div>
 
                 <!-- Expiry Date Section -->
                 <div class="flex space-x-4 mb-6">
-                    <div class="w-full">
-                        <label for='cc-exp-month' class='class="block text-sm font-medium text-gray-700 pl-1'>Expiry Date</label>
-                        <div class='flex space-x-4'>
-                            <select id='cc-exp-month' name='exp_month' required
-                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
-                                <option value=''>MM</option>
+                    <div class="w-1/2">
+                        <label for="cc-exp-month" class="block text-sm font-medium text-gray-700 pl-1">Expiry Date</label>
+                        <div class="flex space-x-4">
+
+                            <!-- Month Dropdown -->
+
+                            <select id="cc-exp-month" name="exp_month" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
+                                <option value="" disabled selected>MM</option>
                                 <?php for ($i = 1; $i <= 12; $i++): ?>
                                     <option value="<?= str_pad($i, 2, '0', STR_PAD_LEFT) ?>"><?= date('m', mktime(0, 0, 0, $i, 1)) ?></option>
                                 <?php endfor; ?>
+
                             </select>
-                            <select id='cc-exp-year' name='exp_year' required
-                                class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
-                                <option value=''>YY</option>
+
+
+                            <!-- Year Dropdown -->
+
+                            <select id="cc-exp-year" name="exp_year" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
+                                <option value="" disabled selected>YY</option>
                                 <?php for ($year = date('Y'); $year <= date('Y') + 10; $year++): ?>
                                     <option value="<?= substr($year, -2) ?>"><?= substr($year, -2) ?></option>
                                 <?php endfor; ?>
                             </select>
+
+                            <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
                         </div>
+
+
+                    </div>
+                    <div class="w-2/5">
+                        <label for="cvv" class="block text-sm font-medium text-gray-700 pl-1">CVV</label>
+                        <input required type="text" name="cvv" id="cvv"
+                            maxlength="3" autocomplete="off"
+                            class="error-message mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                            style="appearance: none; -webkit-appearance: none; -moz-appearance: none;" />
+                        <span class="error-message validation-message text-red-500 text-xs mt-1" id="cvv_msg"></span>
                     </div>
 
-                    <!-- CVV Section -->
-                    <div class="">
-                        <label for='Cvv' class='class="block text-sm font-medium text-gray-700 pl-1'>CVV</label>
-                        <input id='cvv' name='cvv' type='text' maxlength='4' autocomplete='off' required
-                            class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8' />
-                        <span class='validation-message text-red=500 text-xs mt=1' id='cvv_msg'></span>
-                    </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div="">
-                    <!-- Pay Now Button -->
-                    <input type='submit' value='Pay Now'
-                        class='w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py=2 px=4 rounded-md transition duration=200 cursor-pointer h-8' />
+                <input type='submit' value='Pay Now'
+                    class='mt-5 w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py=2 px=4 rounded-md transition duration=200 cursor-pointer h-8' />
 
 
-                    <div class='logos flex flex-wrap justify-center gap=4'>
-                        <img src='assets/all.jpg' alt='' class='max-w-full sm:w-auto'>
-                        <img src='assets/card_acceptancelogo.jpg' alt='' class='max-w-full sm:w-auto'>
-                        <img src='assets/combank.png' alt='' class='max-w-full sm:w-auto'>
-                    </div>
+                <div class='logos flex flex-wrap justify-center gap=4'>
+                    <img src='assets/all.jpg' alt='' class='max-w-full sm:w-auto'>
+                    <img src='assets/card_acceptancelogo.jpg' alt='' class='max-w-full sm:w-auto'>
+                    <img src='assets/combank.png' alt='' class='max-w-full sm:w-auto'>
+                </div>
         </div>
-
-        <!-- Logos -->
-
-        </form>
+    </div>
+    </form>
     </div>
 
     <!-- Notification Message -->
@@ -208,4 +224,5 @@ $txn = $_SESSION['txn'];
         }
     </script>
 </body>
+
 </html>
