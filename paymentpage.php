@@ -59,14 +59,11 @@ $txn = $_SESSION['txn'];
                         <label for="currency" class="block text-sm font-medium text-gray-700 pl-1">Currency</label>
 
                         <?php if (isset($txn['currency']) && ($txn['currency']) !== false): ?>
-
                             <input type="text" name="currency" id="currency"
                                 value="<?= htmlspecialchars($txn['currency'], ENT_QUOTES, 'UTF-8') ?>"
                                 readonly
-
                                 class=' mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs  cursor-not-allowed'>
                         <?php else: ?>
-
                             <select id="currency" name="currency" required
                                 class='mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs'>
                                 <option value="LKR" <?= isset($txn['currency']) && $txn['currency'] === 'LKR' ? 'selected' : '' ?>>LKR</option>
@@ -87,7 +84,6 @@ $txn = $_SESSION['txn'];
                     </div>
 
                 </div>
-
                 <div class="flex space-x-4 mb-4">
                     <!-- Card holder name -->
                     <div class="w-1/2">
@@ -125,7 +121,6 @@ $txn = $_SESSION['txn'];
                         <div class="flex space-x-4">
 
                             <!-- Month Dropdown -->
-
                             <select id="cc-exp-month" name="exp_month" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
                                 <option value="" disabled selected>MM</option>
                                 <?php for ($i = 1; $i <= 12; $i++): ?>
@@ -133,17 +128,13 @@ $txn = $_SESSION['txn'];
                                 <?php endfor; ?>
 
                             </select>
-
-
                             <!-- Year Dropdown -->
-
                             <select id="cc-exp-year" name="exp_year" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
                                 <option value="" disabled selected>YY</option>
                                 <?php for ($year = date('Y'); $year <= date('Y') + 10; $year++): ?>
                                     <option value="<?= substr($year, -2) ?>"><?= substr($year, -2) ?></option>
                                 <?php endfor; ?>
                             </select>
-
                             <span class="error-message validation-message text-red-500 text-xs mt-1"></span>
                         </div>
 
@@ -163,8 +154,6 @@ $txn = $_SESSION['txn'];
 
                 <input type='submit' value='Pay Now'
                     class='mt-5 w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py=2 px=4 rounded-md transition duration=200 cursor-pointer h-8' />
-
-
                 <div class='logos flex flex-wrap justify-center gap=4'>
                     <img src='assets/all.jpg' alt='' class='max-w-full sm:w-auto'>
                     <img src='assets/card_acceptancelogo.jpg' alt='' class='max-w-full sm:w-auto'>
