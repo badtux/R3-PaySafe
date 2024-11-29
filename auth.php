@@ -78,8 +78,8 @@ if (isset($_POST['simplifyToken'])) {
                     $status = 'FAILED';
                     $transactionId = $payment->id;
                     $currency = $payment->currency;
-                    $amount = $payment->amout;
-                    $getprice = $amount / 100;
+                    // $amount = $payment->amout;
+                    // $getprice = $amount / 100;
 
                     // Declined payment email
                     $mail->Subject = "PaySafe - Payment failed  Ref-" . htmlspecialchars($reference) . "\n\n";
