@@ -23,6 +23,10 @@
 # 5553 0422 4198 4105	MasterCard	APPROVED	APPROVED
 # 5555 5537 5304 8194	MasterCard	APPROVED	APPROVED
 # 5555 5555 5555 4444	MasterCard	APPROVED	APPROVED
+# 5555 5537 5304 8194   MasterCard	DICLINE   	DICLINE
+
+
+
 # 4012 8888 8888 1881	Visa	APPROVED	APPROVED
 # 4111 1111 1111 1111	Visa	APPROVED	APPROVED
 # 6011 0009 9013 9424	Discover	APPROVED	APPROVED
@@ -36,12 +40,12 @@
 
 
 
-//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=100&email=abc@gmail.com&reference=1123df
+//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=100&email=abc@gmail.com&reference=123LKRTX
 
-//https://malkey.go.digitable.io/paysafe/?currency=USD&price=100&email=abc@gmail.com&reference=1123df
+//https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
 
-// http://cmbgateway.loc/?currency=LKR&price=100&email=abc@gmail.com&reference=1123df
-// http://cmbgateway.loc/?currency=USD&price=100&email=abc@gmail.com&reference=1123df
+// http://cmbgateway.loc/?currency=LKR&price=100&email=abc@gmail.com&reference=1123lkr
+// http://cmbgateway.loc/?currency=USD&price=10&email=abc@gmail.com&reference=1123usd
 
 
 

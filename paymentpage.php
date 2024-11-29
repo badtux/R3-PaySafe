@@ -1,5 +1,5 @@
 <?php
-session_start();
+//session_start();
 require_once 'config/config.php';
 
 if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])) {
@@ -155,17 +155,25 @@ $txn = $_SESSION['txn'];
                     </div>
 
                 </div>
+                <div class=" fixed sticky top-0 z-10 bg-white py-4">
+                    <div>
+                        <input type="submit" value="Pay Now"
+                            class="mt-5 w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-200 cursor-pointer h-8" />
+                    </div>
 
-                <input type='submit' value='Pay Now'
-                    class='mt-5 w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py=2 px=4 rounded-md transition duration=200 cursor-pointer h-8' />
-                <div class='logos flex flex-wrap justify-center gap=4'>
-                    <img src='assets/all.jpg' alt='' class='max-w-full sm:w-auto'>
-                    <img src='assets/card_acceptancelogo.jpg' alt='' class='max-w-full sm:w-auto'>
-                    <img src='assets/combank.png' alt='' class='max-w-full sm:w-auto'>
+                    <div class="logos flex flex-wrap justify-center gap-4 mt-4">
+                        <img src="assets/all.jpg" alt="" class="max-w-full sm:w-auto">
+                        <img src="assets/card_acceptancelogo.jpg" alt="" class="max-w-full sm:w-auto">
+                        <img src="assets/combank.png" alt="" class="max-w-full sm:w-auto">
+                    </div>
                 </div>
+
         </div>
+
+    </div>
     </div>
     </form>
+
     </div>
 
     <!-- Notification Message -->

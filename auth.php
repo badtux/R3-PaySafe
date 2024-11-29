@@ -1,5 +1,5 @@
 <?php
-session_start();
+//session_start();
 require_once('lib/Simplify.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -19,15 +19,9 @@ if (isset($_POST['simplifyToken'])) {
     if ($currency == 'LKR') {
         Simplify::$publicKey = SMPLY_LKR_PUBKEY;
         Simplify::$privateKey = SMPLY_LKR_PVKEY;
-
-        echo "SMPLY_LKR_PUBKEY: " . SMPLY_LKR_PUBKEY . "\n";
-        echo "SMPLY_LKR_PVKEY: " . SMPLY_LKR_PVKEY . "\n";
     } else {
         Simplify::$publicKey = SMPLY_USD_PUBKEY;
         Simplify::$privateKey = SMPLY_USD_PVKEY;
-        
-        echo "SMPLY_USD_PUBKEY: " . SMPLY_USD_PUBKEY . "\n";
-        echo "SMPLY_USD_PVKEY: " . SMPLY_USD_PVKEY . "\n";
     }
 
     if (empty($email)) {
@@ -43,45 +37,57 @@ if (isset($_POST['simplifyToken'])) {
                 'token' => $token,
             ));
 
-            //error_log("Payment details: " . print_r($payment, true));
+            $mail = new PHPMailer(true);
+            try {
+                $mail->SMTPDebug = 2;
+                $mail->isSMTP();
+                $mail->Host = MAIL_HOST;
+                $mail->SMTPAuth = true;
+                $mail->Username = MAIL_USERNAME;
+                $mail->Password = MAIL_PASSWORD;
+                $mail->SMTPSecure = MAIL_ENCRYPTION;
+                $mail->Port = MAIL_PORT;
 
-            if ($payment->paymentStatus == 'APPROVED') {
-                $notificationMessage = "Your payment for " . htmlspecialchars($reference) . " has been Approved. Thank you!";
-                $status = 'APPROVED';
+                $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
+                $mail->addAddress($email);
 
-                // Send confirmation email
-                $mail = new PHPMailer(true);
-                try {
-                    $mail->SMTPDebug = 2; 
-                    $mail->isSMTP();
-                    $mail->Host = MAIL_HOST;
-                    $mail->SMTPAuth = true;
-                    $mail->Username = MAIL_USERNAME;
-                    $mail->Password = MAIL_PASSWORD;
-                    $mail->SMTPSecure = MAIL_ENCRYPTION;
-                    $mail->Port = MAIL_PORT;
-
-                    $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
-                    $mail->addAddress($email);
-
-                    foreach(CC_LIST as $cc){
-                        $mail->AddCC('viraj.abayarathna@gmail.com');
-                    }
-
-                    $mail->isHTML(false);
-                    $mail->Subject = "Payment Confirmation";
-                    $mail->Body = "Dear " . htmlspecialchars($name) . ", reference " . htmlspecialchars($reference) . "\n\nYour payment of " .
-                        ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) .
-                        " has been successfully approved.\n\nThank you for your purchase!";
-                    $sendStatus = $mail->send();
-
-                    $notificationMessage .= ' Email sent successfully.';
-                } catch (Exception $e) {
-                    $notificationMessage .= ' However, we couldn\'t send a confirmation email: ' . htmlspecialchars($mail->ErrorInfo);
+                foreach (CC_LIST as $cc) {
+                    $mail->AddCC($cc);
                 }
-            } else {
-                $notificationMessage = 'Payment Failed: ' . htmlspecialchars($payment->paymentStatus);
-                $status = 'FAILED';
+
+                $mail->isHTML(false);
+
+                if ($payment->paymentStatus == 'APPROVED') {
+                    $transactionId = $payment->id;
+                    $declineReason = $payment->declineReason;
+                    $notificationMessage = "Your payment for " . htmlspecialchars($reference) . " has been Approved. Thank you!";
+                    $status = 'APPROVED';
+
+                    // Approved payment email
+                    $mail->Subject = "PaySafe - Payment Confirmation for Ref- " . htmlspecialchars($reference) . "";
+                    $mail->Body = "Dear " . htmlspecialchars($name) . ",\n\nYour payment of " .
+                        ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) .
+                        " has been successfully approved." .
+                        "Transaction ID: " . htmlspecialchars($transactionId) . "\n\n" .
+                        "Thank you for your purchase!";
+                } else {
+                    $notificationMessage = 'Payment Failed: ' . htmlspecialchars($payment->paymentStatus);
+                    $status = 'FAILED';
+                    $transactionId = $payment->id;
+
+
+                    // Declined payment email
+                    $mail->Subject = "PaySafe - Payment failed  Ref-" . htmlspecialchars($reference) . "\n\n";
+                    $mail->Body = "Dear " . htmlspecialchars($name) . ",\n\nWe regret to inform you that your payment of " .
+                        ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) . " was declined ." . "\n" .
+                        "Transaction ID: " . htmlspecialchars($transactionId) . "\n" .
+                        "Please try again or contact support for assistance.";
+                }
+
+                $mail->send();
+                $notificationMessage .= ' Email sent successfully.';
+            } catch (Exception $e) {
+                $notificationMessage .= ' However, we couldn\'t send a confirmation email: ' . htmlspecialchars($mail->ErrorInfo);
             }
         } catch (Exception $e) {
             $notificationMessage = 'Payment Error: ' . htmlspecialchars($e->getMessage());
@@ -96,5 +102,5 @@ if (isset($_POST['simplifyToken'])) {
 // Redirect back to payment page with status and message
 header("Location: " . BASE_PATH . "?status=$status&message=" . urlencode($notificationMessage));
 
-exit();
 
+exit();

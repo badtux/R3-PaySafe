@@ -40,8 +40,6 @@ $(document).ready(function () {
     SimplifyCommerce.generateToken(
       {
         key: pubkey, //live
-        // key: "sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0", //sandbox
-
         card: {
           number: rawCardNumber,
           cvc: $("#cvv").val(),
