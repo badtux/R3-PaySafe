@@ -200,7 +200,7 @@ $txn = $_SESSION['txn'];
         const pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
         const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
     </script>
-    <script src='js/form.js'></script>
+    <script src='js/form.js<v=2'></script>
     <script src="//www.simplify.com/commerce/v1/simplify.js?v=2"></script>
 
     <!-- Handle URL Parameters -->
