@@ -38,9 +38,9 @@ $txn = $_SESSION['txn'];
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
     <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-1/2  m-6 flex flex-col lg:flex-row justify-between items-center">
         <div class="p-0 md:pr-10 w -1/2">
-            <img class="mx-auto mb-1" src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
+            <img class="mx-auto" src="assets/Makley_logo.png" alt="Mulky logo" style="max-width:250px; height:130px;">
             <h2 class="text-xl font-semibold text-center ">Malkey Rent-A-Car</h2>
-            <h4 class="text-lg text-center mb-5 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
+            <h4 class="text-sm text-center mb-5 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
             <form novalidate id="paymentForm" action="<?= BASE_PATH . '/auth' ?>" method="POST">
@@ -162,9 +162,7 @@ $txn = $_SESSION['txn'];
                     </div>
 
                     <div class="logos flex flex-wrap justify-center gap-4 mt-4">
-                        <img src="assets/all.jpg" alt="" class="max-w-full sm:w-auto">
-                        <img src="assets/card_acceptancelogo.jpg" alt="" class="max-w-full sm:w-auto">
-                        <img src="assets/combank.png" alt="" class="max-w-full sm:w-auto">
+                    <img src="assets/sponser.png" alt="sponser logo" style="width:180px; height:50px;" />
                     </div>
                 </div>
 
@@ -182,9 +180,9 @@ $txn = $_SESSION['txn'];
             w-full max-w-md p-4 bg-white rounded-lg hidden  mx-auto">
 
         <div class="p-0 md:pr-10 w -1/2">
-            <img class="mx-auto mb-1" src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Acquiring Bank Logo" style="max-width:250px; height:60px;">
+            <img class="mx-auto" src="assets/Makley_logo.png" alt="Malkey logo" style="max-width:250px; height:130px;">
             <h2 class="text-xl font-semibold text-center ">Malkey Rent-A-Car</h2>
-            <h4 class="text-lg text-center mb-4  text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
+            <h4 class="text-sm text-center mb-4  text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <p class="
             text-center text-lg font-semibold mt-4"
