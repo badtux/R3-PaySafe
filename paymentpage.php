@@ -153,16 +153,17 @@ $txn = $_SESSION['txn'];
                             style="appearance: none; -webkit-appearance: none; -moz-appearance: none;" />
                         <span class="error-message validation-message text-red-500 text-xs mt-1" id="cvv_msg"></span>
                     </div>
-
                 </div>
-                <div class=" fixed sticky top-0 z-10 bg-white py-4">
+                <div class="fixed sticky top-0 z-10 bg-white py-4">
+                    <div class="text-center text-sm">
+                        <input type="checkbox" id="tos"> &nbsp;I agree to the <a href="https://www.malkey.lk/terms-conditions.html" target="_blank" class="underline decoration-gray-400 hover:text-blue-700">Terms and Conditions</a>
+                    </div>
                     <div>
                         <input type="submit" value="Pay Now"
-                            class="mt-5 w-full bg-blue-600 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-200 cursor-pointer h-8" />
+                            class="mt-5 w-full disabled:bg-gray-400 bg-blue-600 disabled:bg-grey-600 hover:bg-green-600 text-white font-semibold rounded-md transition duration-200 cursor-pointer h-8" disabled />
                     </div>
-
                     <div class="logos flex flex-wrap justify-center gap-4 mt-4">
-                    <img src="assets/sponser.png" alt="sponser logo" />
+                        <img src="assets/sponser.png" alt="sponser logo" />
                     </div>
                 </div>
 

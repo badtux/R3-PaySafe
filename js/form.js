@@ -22,6 +22,15 @@ function simplifyResponseHandler(data) {
 $(document).ready(function () {
   $("#paymentForm").attr("novalidate", "novalidate");
 
+  // Enable the submit button when the checkbox is checked
+  $('#tos').on('change', function() {
+    if ($(this).is(':checked')) {
+      $('#paymentForm input[type="submit"]').prop('disabled', false);
+    } else {
+      $('#paymentForm input[type="submit"]').prop('disabled', true);
+    }
+  });
+
   // Form submission handler
   $("#paymentForm").on("submit", function (e) {
     e.preventDefault();
