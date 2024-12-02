@@ -31,7 +31,7 @@ $txn = $_SESSION['txn'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Form</title>
-    <link rel="stylesheet" href="css/custom.css?v=1">
+    <link rel="stylesheet" href="css/custom.css?v=2">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -201,7 +201,7 @@ $txn = $_SESSION['txn'];
         const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
     </script>
     <script src='js/form.js'></script>
-    <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
+    <script src="//www.simplify.com/commerce/v1/simplify.js?v=2"></script>
 
     <!-- Handle URL Parameters -->
     <script>
