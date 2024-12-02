@@ -73,8 +73,7 @@ flex-direction: column;
 }
 
 .logos img {
-  height: 30px;
-  width: 120px;
+  width: 60%;
 }
 
 .header_logo {

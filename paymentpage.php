@@ -31,7 +31,7 @@ $txn = $_SESSION['txn'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Form</title>
-    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/custom.css?v=1">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -162,7 +162,7 @@ $txn = $_SESSION['txn'];
                     </div>
 
                     <div class="logos flex flex-wrap justify-center gap-4 mt-4">
-                    <img src="assets/sponser.png" alt="sponser logo" style="width:180px; height:50px;" />
+                    <img src="assets/sponser.png" alt="sponser logo" />
                     </div>
                 </div>
 
