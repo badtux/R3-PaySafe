@@ -1,7 +1,7 @@
 <?php
 
 define('APP_LIVE', false);
-define('BASE_PATH', '');
+define('BASE_PATH', '/paysafe');
 define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
 
 if (APP_LIVE) {
