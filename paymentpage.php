@@ -35,7 +35,7 @@ $txn = $_SESSION['txn'];
 </head>
 
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
-    <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-1/2  m-6 flex flex-col lg:flex-row justify-between items-center">
+    <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-2/3  m-6 flex flex-col lg:flex-row justify-between items-center">
         <div class="p-0 md:pr-10 w -1/2">
             <img class="mx-auto" src="assets/Makley_logo.png" alt="Mulky logo" style="max-width:250px; height:130px;">
             <h2 class="text-xl font-semibold text-center ">Malkey Rent-A-Car</h2>
