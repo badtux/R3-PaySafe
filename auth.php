@@ -1,21 +1,17 @@
 <?php
-//session_start();
 require_once('lib/Simplify.php');
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+require_once('mail.class.php');
 
 $notificationMessage = '';
-$name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
-$reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
-$email = isset($_POST['email']) ? $_POST['email'] : ''; // Fetch the actual email value
-$price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
-$currency_p = isset($_POST['currency']) ? strtoupper($_POST['currency']) : 'LKR';
-$amount_p = $price > 0 ? intval($price * 100) : 0;
 
 if (isset($_POST['simplifyToken'])) {
     $token = $_POST['simplifyToken'];
-
+    $name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
+    $reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
+    $email = isset($_POST['email']) ? $_POST['email'] : ''; // Fetch the actual email value
+    $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
+    $currency_p = isset($_POST['currency']) ? strtoupper($_POST['currency']) : 'LKR';
+    $amount_p = $price > 0 ? intval($price * 100) : 0;
 
     if ($currency_p == 'LKR') {
         Simplify::$publicKey = SMPLY_LKR_PUBKEY;
@@ -24,6 +20,7 @@ if (isset($_POST['simplifyToken'])) {
         Simplify::$publicKey = SMPLY_USD_PUBKEY;
         Simplify::$privateKey = SMPLY_USD_PVKEY;
     }
+
     if (empty($email)) {
         $notificationMessage = 'No email address provided.';
         $status = 'ERROR';
@@ -36,25 +33,8 @@ if (isset($_POST['simplifyToken'])) {
                 'currency' => $currency_p,
                 'token' => $token,
             ));
-            $mail = new PHPMailer(true);
+
             try {
-                $mail->SMTPDebug = 2;
-                $mail->isSMTP();
-                $mail->Host = MAIL_HOST;
-                $mail->SMTPAuth = true;
-                $mail->Username = MAIL_USERNAME;
-                $mail->Password = MAIL_PASSWORD;
-                $mail->SMTPSecure = MAIL_ENCRYPTION;
-                $mail->Port = MAIL_PORT;
-
-                $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
-                $mail->addAddress($email);
-
-                foreach (CC_LIST as $cc) {
-                    $mail->AddCC($cc);
-                }
-                $mail->isHTML(false);
-
                 if ($payment->paymentStatus == 'APPROVED') {
                     $transactionId = $payment->id;
                     $declineReason = $payment->declineReason;
@@ -67,13 +47,17 @@ if (isset($_POST['simplifyToken'])) {
                     error_log("currency:$currency");
 
                     // Approved payment email
-                    $mail->Subject = "PaySafe - Payment Confirmation for Ref- " . htmlspecialchars($reference) . "";
-                    $mail->Body = "Dear " . htmlspecialchars($name) . ",\n\nYour payment of " .
+                    $mail = new Mail();
+                    $mail->notify(
+                        "PaySafe - Payment Confirmation for Ref- " . htmlspecialchars($reference),
+                        "Dear " . htmlspecialchars($name) . ",\n\nYour payment of " .
                         ($currency == 'USD' ? '$' : 'LKR ') . number_format($getprice, 2) .
                         " has been successfully approved." .
                         "Transaction ID: " . htmlspecialchars($transactionId) . "\n\n" .
-                        "Thank you for your purchase!";
-                } else {
+                        "Thank you for your purchase!",
+                        $email);
+                } 
+                else {
                     $notificationMessage = 'Payment Failed: ' . htmlspecialchars($payment->paymentStatus);
                     $status = 'FAILED';
                     $transactionId = $payment->id;
@@ -89,10 +73,9 @@ if (isset($_POST['simplifyToken'])) {
                         "Please try again or contact support for assistance.";
                 }
 
-                $mail->send();
                 $notificationMessage .= ' Email sent successfully.';
             } catch (Exception $e) {
-                $notificationMessage .= ' However, we couldn\'t send a confirmation email: ' . htmlspecialchars($mail->ErrorInfo);
+                $notificationMessage .= ' However, we couldn\'t send a confirmation email: ';
             }
         } catch (Exception $e) {
             $notificationMessage = 'Payment Error: ' . htmlspecialchars($e->getMessage());

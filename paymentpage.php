@@ -26,19 +26,20 @@ $txn = $_SESSION['txn'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Form</title>
-    <link rel="stylesheet" href="css/custom.css?v=2">
+    <title>Malkey Rent-A-Car - Pay Online</title>
+    <link rel="stylesheet" href="<?= BASE_PATH.'/css/custom.css?v=2' ?>">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-50 flex items-center justify-center min-h-screen ">
     <div id="maincontainer" class="bg-white shadow-lg rounded-lg p-8 w-full  md:w-2/3  m-6 flex flex-col lg:flex-row justify-between items-center">
-        <div class="p-0 md:pr-10 w -1/2">
-            <img class="mx-auto" src="assets/Makley_logo.png" alt="Mulky logo" style="max-width:250px; height:130px;">
-            <h2 class="text-xl font-semibold text-center ">Malkey Rent-A-Car</h2>
+        <div class="p-0 md:pr-10 w-1/2">
+            <img class="mx-auto" src="<?= BASE_PATH.'/assets/Makley_logo.png' ?>" alt="Malky logo" style="max-width:250px; height:130px;">
+            <h2 class="text-xl font-semibold text-center">Malkey Rent-A-Car</h2>
             <h4 class="text-sm text-center mb-5 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
@@ -171,11 +172,9 @@ $txn = $_SESSION['txn'];
     </div>
     </div>
     </form>
-
     </div>
 
     <!-- Notification Message -->
-
     <div id="notificationMessage" class="
             w-full max-w-md p-4 bg-white rounded-lg hidden  mx-auto">
 
@@ -199,7 +198,7 @@ $txn = $_SESSION['txn'];
         const pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
         const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
     </script>
-    <script src='js/form.js?v=2'></script>
+    <script src="<?= BASE_PATH . '/js/form.js?v=2' ?>"></script>
     <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
 
     <!-- Handle URL Parameters -->
