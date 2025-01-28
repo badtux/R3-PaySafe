@@ -255,7 +255,7 @@ $(document).ready(function () {
 
                 // AJAX request
                 $.ajax({
-                    url: "/auth",
+                    url: "/auth", // Replace with your correct endpoint
                     type: 'POST',
                     data: formData,
                     success: function (response) {
@@ -272,7 +272,8 @@ $(document).ready(function () {
                                 alert('Unexpected Status: ' + data.paymentStatus);
                             }
                         } catch (e) {
-                            console.error('JSON Parse Error:', e);
+                          //
+                          //   console.error('JSON Parse Error:', e);
                             alert('Error: Invalid response format from the server.');
                         }
                     },
