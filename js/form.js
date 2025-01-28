@@ -1,23 +1,23 @@
-function simplifyResponseHandler(data) {
-  var $paymentForm = $("#paymentForm");
-  $(".error").remove();
-  if (data.error) {
-    if (data.error.code === "validation") {
-      var fieldErrors = data.error.fieldErrors;
-      fieldErrors.forEach(function (fieldError) {
-        $paymentForm.after(
-          `<div class='error'> Card number is invalid. Please enter a valid card number.</div>`
-        );
-      });
-    }
-    $("#submit").removeAttr("disabled");
-  } else {
-    $paymentForm.append(
-      `<input type='hidden' name='simplifyToken' value='${data.id}' />`
-    );
-    $paymentForm.get(0).submit();
-  }
-}
+// function simplifyResponseHandler(data) {
+//   var $paymentForm = $("#paymentForm");
+//   $(".error").remove();
+//   if (data.error) {
+//     if (data.error.code === "validation") {
+//       var fieldErrors = data.error.fieldErrors;
+//       fieldErrors.forEach(function (fieldError) {
+//         $paymentForm.after(
+//           `<div class='error'> Card number is invalid. Please enter a valid card number.</div>`
+//         );
+//       });
+//     }
+//     $("#submit").removeAttr("disabled");
+//   } else {
+//     $paymentForm.append(
+//       `<input type='hidden' name='simplifyToken' value='${data.id}' />`
+//     );
+//     $paymentForm.get(0).submit();
+//   }
+// }
 
 $(document).ready(function () {
   $("#paymentForm").attr("novalidate", "novalidate");
@@ -42,22 +42,22 @@ $(document).ready(function () {
       $("#submit").removeAttr("disabled");
       return;
     }
-    const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
-    const currency = $("#currency").val();
-    let pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
+    // const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
+    // const currency = $("#currency").val();
+    // let pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
 
-    SimplifyCommerce.generateToken(
-      {
-        key: pubkey, //live
-        card: {
-          number: rawCardNumber,
-          cvc: $("#cvv").val(),
-          expMonth: $("#cc-exp-month").val(),
-          expYear: $("#cc-exp-year").val(),
-        },
-      },
-      simplifyResponseHandler
-    );
+    // SimplifyCommerce.generateToken(
+    //   {
+    //     key: pubkey, //live
+    //     card: {
+    //       number: rawCardNumber,
+    //       cvc: $("#cvv").val(),
+    //       expMonth: $("#cc-exp-month").val(),
+    //       expYear: $("#cc-exp-year").val(),
+    //     },
+    //   },
+    //   simplifyResponseHandler
+    // );
   });
 
   $("input, select").on("focus", function () {

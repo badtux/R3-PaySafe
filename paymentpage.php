@@ -11,7 +11,7 @@ if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])
     ];
 
     $_SESSION['t'] = md5(serialize($_SESSION['txn']));
-    header('Location: /?continue=' . $_SESSION['t']);
+    //header('Location: /?continue=' . $_SESSION['t']);
     exit;
 }
 
@@ -26,6 +26,7 @@ $txn = $_SESSION['txn'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,7 +43,7 @@ $txn = $_SESSION['txn'];
             <h4 class="text-sm text-center mb-5 text-black-400">Mahesh Mallawaratchie Enterprises Pvt Ltd</h4>
         </div>
         <div class="lg:w-1/2" id="paymentFormContainer">
-            <form novalidate id="paymentForm" action="<?= BASE_PATH . '/auth' ?>" method="POST">
+            <form novalidate id="paymentForm">
                 <div class="flex space-x-4 mb-4">
                     <!-- Currency Field -->
                     <div class="w-2/5">
@@ -194,7 +195,102 @@ $txn = $_SESSION['txn'];
     </div>
 
     <!-- Scripts -->
+
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+$(document).ready(function () {
+    $('#paymentForm').on('submit', function (event) {
+        event.preventDefault();
+
+        const form = $(this);
+        const submitButton = form.find('button[type="submit"]');
+        const loadingText = 'Processing...';
+        const originalButtonText = submitButton.text();
+
+        submitButton.prop('disabled', true).text(loadingText);
+
+        // Prepare raw card number and public key
+        const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
+        const currency = $("#currency").val();
+        const pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
+
+        // SimplifyCommerce Token Generation
+        SimplifyCommerce.generateToken(
+            {
+                key: pubkey,
+                card: {
+                    number: rawCardNumber,
+                    cvc: $("#cvv").val(),
+                    expMonth: $("#cc-exp-month").val(),
+                    expYear: $("#cc-exp-year").val(),
+                },
+            },
+            function simplifyResponseHandler(data) {
+                $(".error").remove(); // Clear previous errors
+
+                if (data.error) {
+                    console.error('Token Generation Error:', data.error);
+                    if (data.error.code === "validation") {
+                        const fieldErrors = data.error.fieldErrors;
+                        fieldErrors.forEach(function (fieldError) {
+                            form.after(
+                                `<div class='error'>Card number is invalid. Please enter a valid card number.</div>`
+                            );
+                        });
+                    }
+                    submitButton.prop('disabled', false).text(originalButtonText);
+                    return;
+                }
+
+                // Token successfully generated
+                console.log('Token Generated:', data.id);
+                form.append(
+                    `<input type='hidden' id='simplifyToken' name='simplifyToken' value='${data.id}' />`
+                );
+
+                // Serialize form data
+                const formData = form.serialize();
+                console.log('Form Data Sent to Server:', formData);
+
+                // AJAX request
+                $.ajax({
+                    url: "/auth",
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        console.log('Raw Response:', response);
+                        try {
+                            const data = JSON.parse(response);
+                            console.log('Parsed Response:', data);
+                            if (data.paymentStatus === 'APPROVED') {
+                                alert('Payment Successful: ' + data.message);
+                            } else if (data.paymentStatus === 'FAILED') {
+                                alert('Payment Failed: ' + data.message);
+                            } else {
+                                console.warn('Unexpected Payment Status:', data.paymentStatus);
+                                alert('Unexpected Status: ' + data.paymentStatus);
+                            }
+                        } catch (e) {
+                            console.error('JSON Parse Error:', e);
+                            alert('Error: Invalid response format from the server.');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX Error:', { xhr, status, error });
+                        alert(`Payment failed: ${xhr.responseText || error}`);
+                    },
+                    complete: function () {
+                        submitButton.prop('disabled', false).text(originalButtonText);
+                    },
+                });
+            }
+        );
+    });
+});
+
+    </script>
+
     <script>
         const pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
         const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
