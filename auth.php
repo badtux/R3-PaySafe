@@ -1,43 +1,68 @@
 <?php
+//session_start();
 
-require_once('lib/Simplify.php');
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Retrieve POST data
-$token = $_POST['simplifyToken'] ?? null;
-$name = $_POST['name'] ?? 'Customer';
-$reference = $_POST['reference'] ?? 'No reference';
-$email = $_POST['email'] ?? '';
+require 'vendor/autoload.php';
+require_once 'config/config.php';
+require_once('lib/Simplify.php');
+
+$notificationMessage = '';
+$name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
+$reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
+$email = isset($_POST['email']) ? $_POST['email'] : ''; // Fetch the actual email value
 $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
-$currency_p = strtoupper($_POST['currency'] ?? 'LKR');
+$currency_p = isset($_POST['currency']) ? strtoupper($_POST['currency']) : 'LKR';
 $amount_p = $price > 0 ? intval($price * 100) : 0;
+$token = !isset($_POST['simplifyToken'])?false:trim($_POST['simplifyToken']);
 
+function sendMail($email, $subject, $body){
+    $mail = new PHPMailer(true);
+            
+    $mail->SMTPDebug = 2;
+    $mail->isSMTP();
+    $mail->Host = MAIL_HOST;
+    $mail->SMTPAuth = true;
+    $mail->Username = MAIL_USERNAME;
+    $mail->Password = MAIL_PASSWORD;
+    $mail->SMTPSecure = MAIL_ENCRYPTION;
+    $mail->Port = MAIL_PORT;
 
+    $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
+    $mail->addAddress($email);
 
-while (!$token && $retryCount < $maxRetries) {
-    sleep($retryDelay);
-    $retryCount++;
-   
-    $token = $_POST['simplifyToken'] ?? null;
+    foreach (CC_LIST as $cc) {header('Content-Type: application/json; charset=utf-8');
+        $mail->AddCC($cc);
+    }
+    $mail->isHTML(false);
 }
 
-// Validate token and email
-if (!$token) {
-    echo json_encode(['paymentStatus' => 'ERROR', 'message' => 'Token generation timed out. Please try again.']);
+function sendOut($status, $notificationMessage, $data=false){
+    header('Content-Type: application/json; charset=utf-8');
+    $out = [
+        'paymentStatus' => $status,
+        'status' => $status,
+        'message' => $notificationMessage
+    ];
+
+    if($data) { $out['data'] = $data; }
+    echo json_encode($out);
     exit;
 }
-
-if (empty($email)) {
-    echo json_encode(['paymentStatus' => 'ERROR', 'message' => 'No email address provided.']);
-    exit;
-}
-
-// Set Simplify credentials
-Simplify::$publicKey = ($currency_p === 'LKR') ? SMPLY_LKR_PUBKEY : SMPLY_USD_PUBKEY;
-Simplify::$privateKey = ($currency_p === 'LKR') ? SMPLY_LKR_PVKEY : SMPLY_USD_PVKEY;
 
 try {
+    if(!$token) { throw new Exception('Token not found', 101); }
+
+    if ($currency_p == 'LKR') {
+        Simplify::$publicKey = SMPLY_LKR_PUBKEY;
+        Simplify::$privateKey = SMPLY_LKR_PVKEY;
+    } else {
+        Simplify::$publicKey = SMPLY_USD_PUBKEY;
+        Simplify::$privateKey = SMPLY_USD_PVKEY;
+    }
+
     $payment = Simplify_Payment::createPayment([
         'reference' => $reference,
         'amount' => $amount_p,
@@ -46,59 +71,51 @@ try {
         'token' => $token,
     ]);
 
-    if ($payment->paymentStatus === 'APPROVED') {
+    if ($payment->paymentStatus == 'APPROVED') {
         $transactionId = $payment->id;
-        $amountFormatted = number_format($amount_p / 100, 2);
+        $declineReason = $payment->declineReason;
+        $currency = $payment->currency;
+        $amount = $payment->amount;
+        $getprice = $amount / 100;
+        
+        $mail->Subject = "PaySafe - Payment Confirmation for Ref- " . htmlspecialchars($reference) . "";
+        $mail->Body = "Dear " . htmlspecialchars($name) . ",\n\nYour payment of " .
+            ($currency == 'USD' ? '$' : 'LKR ') . number_format($getprice, 2) .
+            " has been successfully approved." .
+            "Transaction ID: " . htmlspecialchars($transactionId) . "\n\n" .
+            "Thank you for your purchase!";
 
-        $notificationMessage = "Your payment for $reference has been Approved. Thank you!";
-        $paymentStatus = 'APPROVED';
+        sendMail($email, $subjet, $body);
 
-        error_log("Payment Approved: Transaction ID: $transactionId, Amount: $amountFormatted");
-
-        // Send email
-        $mail = new PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host = MAIL_HOST;
-        $mail->SMTPAuth = true;
-        $mail->Username = MAIL_USERNAME;
-        $mail->Password = MAIL_PASSWORD;
-        $mail->SMTPSecure = MAIL_ENCRYPTION;
-        $mail->Port = MAIL_PORT;
-
-        $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
-        $mail->addAddress($email);
-
-        $mail->isHTML(false);
-        $mail->Subject = "Payment Confirmation - Ref: $reference";
-        $mail->Body = "Dear $name,\n\nYour payment of " .
-            ($currency_p === 'USD' ? '$' : 'LKR ') . "$amountFormatted has been successfully approved.\n\n" .
-            "Transaction ID: $transactionId\n\nThank you for your purchase!";
-
-        try {
-            if ($mail->send()) {
-                $notificationMessage .= ' Email sent successfully.';
-            }
-        } catch (Exception $e) {
-            error_log("Email Error: " . $e->getMessage());
-            $notificationMessage .= " However, email couldn't be sent: " . $mail->ErrorInfo;
-        }
-    } else {
-        $notificationMessage = "Payment Failed: {$payment->paymentStatus}";
-        $paymentStatus = 'FAILED';
-        error_log("Payment Failed: {$payment->paymentStatus}");
+        throw new Exception('Payment approved', 201);
     }
-} catch (Exception $e) {
-    error_log("Payment Exception: " . $e->getMessage());
-    echo json_encode(['paymentStatus' => 'ERROR', 'message' => 'Payment Error: ' . htmlspecialchars($e->getMessage())]);
-    exit;
+    else {
+        $transactionId = $payment->id;
+        $currency = $payment->currency;
+    
+        $mail->Subject = "PaySafe - Payment failed  Ref-" . htmlspecialchars($reference) . "\n\n";
+        $mail->Body = "Dear " . htmlspecialchars($name) . ",\n\nWe regret to inform you that your payment of " .
+            ($currency == 'USD' ? '$' : 'LKR ') . number_format($price, 2) . " was declined ." . "\n" .
+            "Transaction ID: " . htmlspecialchars($transactionId) . "\n" .
+            "Please try again or contact support for assistance.";
+
+        sendMail($email, $subjet, $body);
+        throw new Exception('Payment failed', 401);
+    }
 }
 
-echo json_encode([
-    'paymentStatus' => isset($paymentStatus) ? $paymentStatus : 'ERROR',
-    'message' => htmlspecialchars($notificationMessage),
-    'reference' => htmlspecialchars($reference),
-    'price' => number_format($price, 2),
-    'currency' => htmlspecialchars($currency_p),
-]);
+catch(Simplify_BadRequestException | Simplify_ApiConnectionException | Exception $e){
+    switch($e->getCode()) {
+        case 201:
+            sendOut('APPROVED', 'Your payment for ' . htmlspecialchars($reference) . ' has been Approved. Thank you!');
+            break;
 
-exit;
+        case 401:
+            sendOut('FAILED', 'Payment Failed: ' . htmlspecialchars($payment->paymentStatus));
+            break;
+
+        default:
+            sendOut('ERROR', 'Payment Error: ' . htmlspecialchars($e->getMessage()));
+            break;
+    }
+}

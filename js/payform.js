@@ -1,63 +1,13 @@
-// function simplifyResponseHandler(data) {
-//   var $paymentForm = $("#paymentForm");
-//   $(".error").remove();
-//   if (data.error) {
-//     if (data.error.code === "validation") {
-//       var fieldErrors = data.error.fieldErrors;
-//       fieldErrors.forEach(function (fieldError) {
-//         $paymentForm.after(
-//           `<div class='error'> Card number is invalid. Please enter a valid card number.</div>`
-//         );
-//       });
-//     }
-//     $("#submit").removeAttr("disabled");
-//   } else {
-//     $paymentForm.append(
-//       `<input type='hidden' name='simplifyToken' value='${data.id}' />`
-//     );
-//     $paymentForm.get(0).submit();
-//   }
-// }
-
 $(document).ready(function () {
   $("#paymentForm").attr("novalidate", "novalidate");
 
   // Enable the submit button when the checkbox is checked
-  $('#tos').on('change', function() {
-    if ($(this).is(':checked')) {
-      $('#paymentForm input[type="submit"]').prop('disabled', false);
+  $("#tos").on("change", function () {
+    if ($(this).is(":checked")) {
+      $('#paymentForm input[type="submit"]').prop("disabled", false);
     } else {
-      $('#paymentForm input[type="submit"]').prop('disabled', true);
+      $('#paymentForm input[type="submit"]').prop("disabled", true);
     }
-  });
-
-  // Form submission handler
-  $("#paymentForm").on("submit", function (e) {
-    e.preventDefault();
-    $("#submit").attr("disabled", "disabled");
-    if (!validateRequiredFields()) {
-      return;
-    }
-    if (validateForm()) {
-      $("#submit").removeAttr("disabled");
-      return;
-    }
-    // const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
-    // const currency = $("#currency").val();
-    // let pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
-
-    // SimplifyCommerce.generateToken(
-    //   {
-    //     key: pubkey, //live
-    //     card: {
-    //       number: rawCardNumber,
-    //       cvc: $("#cvv").val(),
-    //       expMonth: $("#cc-exp-month").val(),
-    //       expYear: $("#cc-exp-year").val(),
-    //     },
-    //   },
-    //   simplifyResponseHandler
-    // );
   });
 
   $("input, select").on("focus", function () {
@@ -255,4 +205,118 @@ $(document).ready(function () {
       return false;
     }
   }
+
+  $("#paymentForm").on("submit", function (event) {
+    event.preventDefault();
+
+    $("#submit").attr("disabled", "disabled");
+    if (!validateRequiredFields()) {
+      return;
+    }
+    if (validateForm()) {
+      $("#submit").removeAttr("disabled");
+      return;
+    }
+
+    const form = $(this);
+    const submitButton = form.find('button[type="submit"]');
+    const loadingText = "Processing...";
+    const originalButtonText = submitButton.text();
+
+    submitButton.prop("disabled", true).text(loadingText);
+
+    const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
+    const currency = $("#currency").val();
+    const pubkey_lkr = $('#simplifyToken').data('publkr');
+    const pubkey_usd = $('#simplifyToken').data('pubusd');
+    const pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
+
+    console.log(pubkey + ' > ' + pubkey_lkr + ' >> ' + pubkey_usd);
+
+    SimplifyCommerce.generateToken(
+      {
+        key: pubkey,
+        card: {
+          number: rawCardNumber,
+          cvc: $("#cvv").val(),
+          expMonth: $("#cc-exp-month").val(),
+          expYear: $("#cc-exp-year").val(),
+        },
+      },
+      function simplifyResponseHandler(data) {
+        $(".error").remove(); // Clear previous errors
+    
+        console.log('=================>>> ');
+        console.log(data);
+    
+        if (data.error) {
+          console.error("Token Generation Error:", data.error);
+          if (data.error.code === "validation") {
+            const fieldErrors = data.error.fieldErrors;
+            fieldErrors.forEach(function (fieldError) {
+              form.after(
+                `<div class='error'>Card number is invalid. Please enter a valid card number.</div>`
+              );
+            });
+          }
+          submitButton.prop("disabled", false).text(originalButtonText);
+          return;
+        }
+    
+        // Token successfully generated
+        console.log("Token Generated:", data.id);
+    
+        $("#simplifyToken").val(data.id);
+    
+        console.log($("#simplifyToken").val());
+    
+        console.log( $( this ).serialize() );
+        //} else {
+        //  form.append(
+        //    `<input type="hidden" id="simplifyToken" name="simplifyToken" value="${data.id}" />`
+        //  );
+        //}
+    
+        // Serialize form data
+        const formData = form.serialize();
+        console.log("Form Data Sent to Server:", formData);
+    
+        // AJAX request
+        $.ajax({
+          url: "/auth.php",
+          type: "POST",
+          data: formData,
+          success: function (response) {
+            console.log("Raw Response:", response);
+            try {
+              const data = JSON.parse(response);
+              console.log("Parsed Response:", data);
+              if (data.paymentStatus === "APPROVED") {
+                alert("Payment Successful: " + data.message);
+              } else if (data.paymentStatus === "FAILED" || data.paymentStatus === "ERROR") {
+                alert("Payment Failed: " + data.message);
+              } else {
+                console.warn("Unexpected Payment Status:", data.paymentStatus);
+                alert("Unexpected Status: " + data.paymentStatus);
+              }
+            } catch (e) {
+              console.error("JSON Parse Error:", e);
+              alert("yugyuguyyuguygyuguyguyguyg");
+            }
+          },
+          error: function (xhr, status, error) {
+            console.error("AJAX Error:", {
+              xhr,
+              status,
+              error,
+            });
+            alert(`Payment failed: ${xhr.responseText || error}`);
+          },
+          complete: function () {
+            submitButton.prop("disabled", false).text(originalButtonText);
+          },
+        });
+      }
+    );
+  });
 });

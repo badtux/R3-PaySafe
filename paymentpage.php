@@ -31,6 +31,8 @@ $txn = $_SESSION['txn'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Form</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
     <link rel="stylesheet" href="css/custom.css?v=2">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -159,6 +161,7 @@ $txn = $_SESSION['txn'];
                         <input type="checkbox" id="tos"> &nbsp;I agree to the <a href="https://www.malkey.lk/terms-conditions.html" target="_blank" class="underline decoration-gray-400 hover:text-blue-700">Terms and Conditions</a>
                     </div>
                     <div>
+                        <input type="hidden" id="simplifyToken" value="" name="simplifyToken" data-publkr="<?php echo SMPLY_LKR_PUBKEY; ?>" data-pubusd="<?php echo SMPLY_USD_PUBKEY; ?>"/>
                         <input type="submit" value="Pay Now"
                             class="mt-5 w-full disabled:bg-gray-400 bg-blue-600 disabled:bg-grey-600 hover:bg-green-600 text-white font-semibold rounded-md transition duration-200 cursor-pointer h-8" disabled />
                     </div>
@@ -194,112 +197,8 @@ $txn = $_SESSION['txn'];
     </div>
     </div>
 
-    <!-- Scripts -->
-
-
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-$(document).ready(function () {
-    $('#paymentForm').on('submit', function (event) {
-        event.preventDefault();
-
-        const form = $(this);
-        const submitButton = form.find('button[type="submit"]');
-        const loadingText = 'Processing...';
-        const originalButtonText = submitButton.text();
-
-        submitButton.prop('disabled', true).text(loadingText);
-
-        // Prepare raw card number and public key
-        const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
-        const currency = $("#currency").val();
-        const pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
-
-        // SimplifyCommerce Token Generation
-        SimplifyCommerce.generateToken(
-            {
-                key: pubkey,
-                card: {
-                    number: rawCardNumber,
-                    cvc: $("#cvv").val(),
-                    expMonth: $("#cc-exp-month").val(),
-                    expYear: $("#cc-exp-year").val(),
-                },
-            },
-            function simplifyResponseHandler(data) {
-                $(".error").remove(); // Clear previous errors
-
-                if (data.error) {
-                    console.error('Token Generation Error:', data.error);
-                    if (data.error.code === "validation") {
-                        const fieldErrors = data.error.fieldErrors;
-                        fieldErrors.forEach(function (fieldError) {
-                            form.after(
-                                `<div class='error'>Card number is invalid. Please enter a valid card number.</div>`
-                            );
-                        });
-                    }
-                    submitButton.prop('disabled', false).text(originalButtonText);
-                    return;
-                }
-
-                // Token successfully generated
-                console.log('Token Generated:', data.id);
-                form.append(
-                    `<input type='hidden' id='simplifyToken' name='simplifyToken' value='${data.id}' />`
-                );
-
-                // Serialize form data
-                const formData = form.serialize();
-                console.log('Form Data Sent to Server:', formData);
-
-                // AJAX request
-                $.ajax({
-                    url: "/auth", // Replace with your correct endpoint
-                    type: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        console.log('Raw Response:', response);
-                        try {
-                            const data = JSON.parse(response);
-                            console.log('Parsed Response:', data);
-                            if (data.paymentStatus === 'APPROVED') {
-                                alert('Payment Successful: ' + data.message);
-                            } else if (data.paymentStatus === 'FAILED') {
-                                alert('Payment Failed: ' + data.message);
-                            } else {
-                                console.warn('Unexpected Payment Status:', data.paymentStatus);
-                                alert('Unexpected Status: ' + data.paymentStatus);
-                            }
-                        } catch (e) {
-                          //
-                          //   console.error('JSON Parse Error:', e);
-                            alert('Error: Invalid response format from the server.');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('AJAX Error:', { xhr, status, error });
-                        alert(`Payment failed: ${xhr.responseText || error}`);
-                    },
-                    complete: function () {
-                        submitButton.prop('disabled', false).text(originalButtonText);
-                    },
-                });
-            }
-        );
-    });
-});
-
-    </script>
-
-    <script>
-        const pubkey_lkr = '<?php echo SMPLY_LKR_PUBKEY; ?>';
-        const pubkey_usd = '<?php echo SMPLY_USD_PUBKEY; ?>';
-    </script>
-    <script src='js/form.js?v=2'></script>
-    <script src="//www.simplify.com/commerce/v1/simplify.js"></script>
-
     <!-- Handle URL Parameters -->
+    <script src="js/payform.js?v=7"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const status = urlParams.get('status');
