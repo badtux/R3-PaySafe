@@ -1,169 +1,96 @@
 <?php
-class PaymentGateway {
-    private $apiUrl;
-    private $merchantId;
-    private $apiPassword;
-    private $version;
-    private $certificatePath;
-    private $curlObj;
+// auth.php
+session_start();
 
-    public function __construct($merchantId, $apiPassword, $version, $certificatePath = "") {
-        $this->apiUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest";
-        $this->merchantId = $merchantId;
-        $this->apiPassword = $apiPassword;
-        $this->version = $version;
-        $this->certificatePath = $certificatePath;
-    }
+require_once 'config/config.php';
+require_once 'MastercardGateway.php';
 
-    // Check if the gateway is operational
-    public function checkGatewayConnectivity() {
-        $url = "{$this->apiUrl}/version/1/information";
-        
-        // Initialize cURL session
-        $this->curlObj = curl_init();
+$responseData = [];
 
-        // Set cURL options
-        curl_setopt($this->curlObj, CURLOPT_URL, $url);
-        curl_setopt($this->curlObj, CURLOPT_RETURNTRANSFER, true); // Return the response as a string
-        curl_setopt($this->curlObj, CURLOPT_FOLLOWLOCATION, true); // Follow redirects if any
-        curl_setopt($this->curlObj, CURLOPT_SSL_VERIFYPEER, false); // Disable SSL verification (for testing)
+if (!isset($_SESSION['txn']['price'], $_SESSION['txn']['currency'], $_SESSION['txn']['reference'])) {
+    echo json_encode(['status' => 'ERROR', 'message' => 'Session expired or invalid transaction']);
+    exit;
+}
+$cardNumber = preg_replace('/\D/', '', $_POST['card_number'] ?? '');
+$expMonth = str_pad($_POST['exp_month'] ?? '', 2, '0', STR_PAD_LEFT);
+$expYear = '20' . ($_POST['exp_year'] ?? '');
+$cvv = preg_replace('/\D/', '', $_POST['cvv'] ?? '');
 
-        // Execute the cURL request
-        $response = curl_exec($this->curlObj);
-        $httpCode = curl_getinfo($this->curlObj, CURLINFO_HTTP_CODE);
-        $error = curl_error($this->curlObj);
-
-        // Close cURL session
-        curl_close($this->curlObj);
-
-        if ($error) {
-            die("❌ Unable to connect to the payment gateway: " . $error);
-        }
-
-        // Check the response
-        $responseData = json_decode($response, true);
-
-        if (!isset($responseData['status']) || $responseData['status'] !== "OPERATING") {
-            die("❌ Gateway is not operating.");
-        }
-
-        echo "✅ Payment Gateway is operational.\n";
-    }
-
-    // Remove empty values from data
-    private function removeEmptyValues($array) {
-        foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                $array[$key] = $this->removeEmptyValues($value);
-                if (empty($array[$key])) {
-                    unset($array[$key]);
-                }
-            } elseif ($value === "" || $value === null) {
-                unset($array[$key]);
-            }
-        }
-        return $array;
-    }
-
-    // Convert form data to JSON format
-    private function parseRequest($formData) {
-        if (empty($formData)) {
-            return "";
-        }
-        $formData = $this->removeEmptyValues($formData);
-        return json_encode($formData, JSON_PRETTY_PRINT);
-    }
-
-    // Create request URL
-    private function formRequestUrl($customUri) {
-        return "{$this->apiUrl}/version/{$this->version}/merchant/{$this->merchantId}{$customUri}";
-    }
-
-    // Send transaction request
-    public function sendTransactionRequest($endpoint, $formData) {
-        $this->curlObj = curl_init();
-
-        $requestJson = $this->parseRequest($formData);
-        $requestUrl = $this->formRequestUrl($endpoint);
-
-        curl_setopt($this->curlObj, CURLOPT_URL, $requestUrl);
-        curl_setopt($this->curlObj, CURLOPT_POST, 1);
-        curl_setopt($this->curlObj, CURLOPT_POSTFIELDS, $requestJson);
-        curl_setopt($this->curlObj, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curlObj, CURLOPT_HTTPHEADER, [
-            "Content-Type: application/json; charset=UTF-8",
-            "Content-Length: " . strlen($requestJson)
-        ]);
-
-        curl_setopt($this->curlObj, CURLOPT_USERPWD, "{$this->merchantId}:{$this->apiPassword}");
-
-        // SSL Verification Handling
-        if (!empty($this->certificatePath)) {
-            curl_setopt($this->curlObj, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($this->curlObj, CURLOPT_CAINFO, $this->certificatePath);
-        } else {
-            curl_setopt($this->curlObj, CURLOPT_SSL_VERIFYPEER, false);
-        }
-
-        $response = curl_exec($this->curlObj);
-        $httpCode = curl_getinfo($this->curlObj, CURLINFO_HTTP_CODE);
-        $error = curl_error($this->curlObj);
-
-        curl_close($this->curlObj);
-
-        if ($error) {
-            return ["status_code" => $httpCode, "error" => $error, "response" => null];
-        }
-
-        return ["status_code" => $httpCode, "response" => json_decode($response, true)];
-    }
+if (
+    !preg_match('/^\d{13,19}$/', $cardNumber) ||
+    !preg_match('/^\d{3,4}$/', $cvv) ||
+    !checkdate((int)$expMonth, 1, (int)$expYear)
+) {
+    echo json_encode(['status' => 'ERROR', 'message' => 'Invalid card details']);
+    exit;
 }
 
-// Initialize Payment Gateway
-$merchantId = "TEST9170372718";
-$apiPassword = "9561cde89b146e22afd2dbec7d145a4f";
-$version = "1";
-$certificatePath = ""; // Set path to SSL certificate if required
-
-$gateway = new PaymentGateway($merchantId, $apiPassword, $version, $certificatePath);
-
-// Check gateway connectivity
-$gateway->checkGatewayConnectivity();
-
-// Sample Transaction Data
 $transactionData = [
-    "order" => [
-        "id" => "ORDER123456",
-        "currency" => "USD",
-        "amount" => 1000
+    'order' => [
+        'amount' => (float)$_SESSION['txn']['price'] * 100,
+        'currency' => $_SESSION['txn']['currency'],
+        'id' => $_SESSION['txn']['reference']
     ],
-    "transaction" => [
-        "reference" => "TXN123456",
-        "type" => "PAYMENT"
-    ],
-    "sourceOfFunds" => [
-        "provided" => [
-            "card" => [
-                "number" => "4111111111111111",
-                "expiry" => [
-                    "month" => "12",
-                    "year" => "2025"
+    'sourceOfFunds' => [
+        'type' => 'CARD',
+        'provided' => [
+            'card' => [
+                'number' => $cardNumber,
+                'expiry' => [
+                    'month' => $expMonth,
+                    'year' => $expYear
                 ],
-                "securityCode" => "123"
+                'securityCode' => $cvv
             ]
         ]
     ]
 ];
+echo json_encode($transactionData, JSON_PRETTY_PRINT);
 
-// Send Payment Request
-$response = $gateway->sendTransactionRequest("/order/ORDER123456/transaction", $transactionData);
 
-// Display Response
-echo "🔹 HTTP Status Code: " . $response["status_code"] . "\n";
+try {
+    $config = [
+        'gatewayUrl' => 'https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/100/information',
+        'version' => '100',
+        'merchantId' =>MERCHANT_ID,
+        'apiPassword' =>API_PASSWORD
+    ];
+    
+    $merchant = new Merchant($config);
+    $connection = new Connection();
+    $requestBody = $connection->ParseRequest($transactionData);
+    $customUri = '/merchant/' . MERCHANT_ID . '/order/' . $_SESSION['txn']['reference'] . '/transaction';
+    $response = $connection->SendTransaction($merchant, $requestBody, $customUri, 'POST');
+    if (
+        isset($response['status']) && $response['status'] === 200 &&
+        isset($response['response']['status']) && $response['response']['status'] === 'SUCCESS'
+    ) {
+        $responseData = [
+            'status' => 'APPROVED',
+            'message' => 'Payment processed successfully',
+            'headers' => apache_request_headers(),
+            'response' => $response
+        ];
+    } else {
+        $error = $response['response']['error']['explanation'] ?? 'Payment processing failed';
+        $responseData = [
+            'status' => 'DECLINED',
+            'message' => $error,
+            'headers' => apache_request_headers(),
+            'response' => $response
+        ];
+    }
+} catch (Exception $e) {
+    $responseData = [
 
-if (isset($response["error"])) {
-    echo "❌ Error: " . $response["error"] . "\n";
-} else {
-    echo "🔹 Response: " . json_encode($response["response"], JSON_PRETTY_PRINT) . "\n";
+        'status' => 'ERROR',
+        'message' => 'Payment error: ' . $e->getMessage(),
+        'headers' => apache_request_headers()
+    ];
 }
-?>
+
+unset($_SESSION['txn']);
+session_regenerate_id(true);
+
+echo json_encode($responseData);
+exit;

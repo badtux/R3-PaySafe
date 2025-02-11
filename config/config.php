@@ -8,7 +8,7 @@ define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'account
 // config.php
 // Mastercard Gateway Credentials
 define('MERCHANT_ID', 'TEST9170372718');
-define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f');
+define('API_PASSWORD', '6643edaf7600027f17cddbd661db156b');
 
 
 ini_set('display_errors', 0);

@@ -1,7 +1,7 @@
 <?php
-//session_start();
-require_once 'config/config.php';
-if (!isset($_SESSION['txn'])) {
+//  session_start();
+   require_once 'config/config.php';
+   if (!isset($_SESSION['txn'])) {
     die('Transaction not initialized. <a href="create_transaction.php">Start transaction</a>');
 }
 

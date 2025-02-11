@@ -1,6 +1,7 @@
 
 <?php
 
+require_once 'auth.php';
 class Merchant {
     private $gatewayUrl;
     private $version;
@@ -72,58 +73,39 @@ class Connection {
               . "/version/" . $merchant->GetVersion()
               . "/merchant/" . $merchant->GetMerchantId()
               . $customUri;
-        return $url;
+        return $customUri;
+   
     }
 
     public function SendTransaction(Merchant $merchant, $requestBody, $customUri, $method = 'POST') {
         try {
-            // Prepare request URL
             $url = $this->FormRequestUrl($merchant, $customUri);
             curl_setopt($this->curlObj, CURLOPT_URL, $url);
 
-            // Set authentication
             curl_setopt($this->curlObj, CURLOPT_USERPWD, $merchant->GetMerchantId() . ":" . $merchant->GetPassword());
 
-            // Set headers
             $headers = [
                 "Content-Type: application/json;charset=UTF-8",
                 "Accept: application/json"
             ];
             curl_setopt($this->curlObj, CURLOPT_HTTPHEADER, $headers);
-            
             if ($method === 'POST') {
-                curl_setopt($this->curlObj, CURLOPT_POST, true);
+                curl_setopt($this->curlObj, CURLOPT_POST, TRUE);
             } else {
                 curl_setopt($this->curlObj, CURLOPT_CUSTOMREQUEST, $method);
             }
             curl_setopt($this->curlObj, CURLOPT_POSTFIELDS, $requestBody);
 
-         
-            if ($merchant->GetCertificatePath()) {
-                curl_setopt($this->curlObj, CURLOPT_CAINFO, $merchant->GetCertificatePath());
-            }
-            curl_setopt($this->curlObj, CURLOPT_SSL_VERIFYPEER, $merchant->GetCertificateVerifyPeer());
-            curl_setopt($this->curlObj, CURLOPT_SSL_VERIFYHOST, $merchant->GetCertificateVerifyHost());
-
-          
-            if ($merchant->GetProxyServer()) {
-                curl_setopt($this->curlObj, CURLOPT_PROXY, $merchant->GetProxyServer());
-                if ($merchant->GetProxyAuth()) {
-                    curl_setopt($this->curlObj, CURLOPT_PROXYUSERPWD, $merchant->GetProxyAuth());
-                }
-            }
-
-            // Execute request
             $response = curl_exec($this->curlObj);
             $httpCode = curl_getinfo($this->curlObj, CURLINFO_HTTP_CODE);
             
             if ($response === false) {
-                throw new Exception('Curl error: ' . curl_error($this->curlObj));
+                throw new Exception( curl_error($this->curlObj));
             }
 
             return [
                 'status' => $httpCode,
-                'response' => json_decode($response, true)
+                'response' => json_decode($response,true)
             ];
 
         } finally {

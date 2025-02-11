@@ -1,11 +1,10 @@
  <?php
-// create_transaction.php
 session_start();
 
 // Generate transaction details
 $_SESSION['txn'] = [
-    'price' => 15000.00, // Set your amount here
-    'currency' => 'LKR', // Or get from user selection
+    'price' => 10.00, // Set your amount here
+    'currency' => 'USD', // Or get from user selection
     'reference' => 'TX-' . uniqid() . '-' . bin2hex(random_bytes(2))
 ];
 
