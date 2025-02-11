@@ -144,14 +144,41 @@ $(document).ready(function () {
   // Card number validation function
   function validateCardNumber(value) {
     const messageElement = $("#card_number_msg");
-    if (value.length === 16) {
-      messageElement.text("Valid digits count").css("color", "green");
-      $("#card_number").removeClass("invalid").addClass("valid");
+    value = value.replace(/\D/g, '');
+    if (value.length === 15 && (value.startsWith('34') || value.startsWith('37'))) {
+        if (luhnCheck(value)) {
+            messageElement.text("Valid Amex Card Number").css("color", "green");
+            $("#card_number").removeClass("invalid").addClass("valid");
+        } else {
+            messageElement.text("Invalid Amex card number").css("color", "red");
+            $("#card_number").removeClass("valid").addClass("invalid");
+        }
     } else {
-      messageElement.text("Enter 16 digits card number").css("color", "red");
-      $("#card_number").removeClass("valid").addClass("invalid");
+        messageElement.text("Enter a 15-digit valid Amex card number").css("color", "red");
+        $("#card_number").removeClass("valid").addClass("invalid");
     }
-  }
+}
+
+function luhnCheck(value) {
+    let sum = 0;
+    let shouldDouble = false;
+    for (let i = value.length - 1; i >= 0; i--) {
+        let digit = parseInt(value.charAt(i), 10);
+
+        if (shouldDouble) {
+            digit *= 2;
+            if (digit > 9) {
+                digit -= 9;
+            }
+        }
+
+        sum += digit;
+        shouldDouble = !shouldDouble;
+    }
+
+    return sum % 10 === 0;
+}
+
   // Expiry date validation
   function validateExpiryDate(value) {
     const messageElement = $("#expiry_date_msg");
@@ -182,7 +209,7 @@ $(document).ready(function () {
   // CVV validation
   function validateCVV(value) {
     const messageElement = $("#cvv_msg");
-    if (value.length === 3) {
+    if (value.length === 4) {
       messageElement.text("Valid CVV").css("color", "green");
       $("#cvv").removeClass("invalid").addClass("valid");
       return true;
@@ -218,105 +245,57 @@ $(document).ready(function () {
       return;
     }
 
-    const form = $(this);
-    const submitButton = form.find('button[type="submit"]');
-    const loadingText = "Processing...";
-    const originalButtonText = submitButton.text();
-
-    submitButton.prop("disabled", true).text(loadingText);
-
-    const rawCardNumber = $("#card_number").val().replace(/\D/g, "");
-    const currency = $("#currency").val();
-    const pubkey_lkr = $('#simplifyToken').data('publkr');
-    const pubkey_usd = $('#simplifyToken').data('pubusd');
-    const pubkey = currency === "LKR" ? pubkey_lkr : pubkey_usd;
-
-    console.log(pubkey + ' > ' + pubkey_lkr + ' >> ' + pubkey_usd);
-
-    SimplifyCommerce.generateToken(
-      {
-        key: pubkey,
-        card: {
-          number: rawCardNumber,
-          cvc: $("#cvv").val(),
-          expMonth: $("#cc-exp-month").val(),
-          expYear: $("#cc-exp-year").val(),
-        },
-      },
-      function simplifyResponseHandler(data) {
-        $(".error").remove(); // Clear previous errors
-    
-        console.log('=================>>> ');
-        console.log(data);
-    
-        if (data.error) {
-          console.error("Token Generation Error:", data.error);
-          if (data.error.code === "validation") {
-            const fieldErrors = data.error.fieldErrors;
-            fieldErrors.forEach(function (fieldError) {
-              form.after(
-                `<div class='error'>Card number is invalid. Please enter a valid card number.</div>`
-              );
-            });
-          }
-          submitButton.prop("disabled", false).text(originalButtonText);
-          return;
-        }
-    
-        // Token successfully generated
-        console.log("Token Generated:", data.id);
-    
-        $("#simplifyToken").val(data.id);
-    
-        console.log($("#simplifyToken").val());
-    
-        console.log( $( this ).serialize() );
-        //} else {
-        //  form.append(
-        //    `<input type="hidden" id="simplifyToken" name="simplifyToken" value="${data.id}" />`
-        //  );
-        //}
-    
-        // Serialize form data
-        const formData = form.serialize();
-        console.log("Form Data Sent to Server:", formData);
-    
-        // AJAX request
-        $.ajax({
-          url: "/auth.php",
-          type: "POST",
+       const $submitBtn = $(this).find('[type="submit"]');
+      const originalText = $submitBtn.val();
+  
+      // Disable button during processing
+      $submitBtn.prop('disabled', true).val('Processing...');
+  
+      // Prepare form data
+      const formData = {
+          card_number: $('#card_number').val().replace(/\D/g, ''),
+          exp_month: $('#cc-exp-month').val(),
+          exp_year: $('#cc-exp-year').val(),
+          cvv: $('#cvv').val(),
+          name: $('#name').val(),
+          email: $('#email').val(),
+          price: $('#price').val(),
+          currency: $('#currency').val(),
+          reference: $('#reference').val()
+      };
+  
+      // AJAX request
+      $.ajax({
+          url: '/auth.php',
+          method: 'POST',
           data: formData,
-          success: function (response) {
-            console.log("Raw Response:", response);
-            try {
-              const data = JSON.parse(response);
-              console.log("Parsed Response:", data);
-              if (data.paymentStatus === "APPROVED") {
-                alert("Payment Successful: " + data.message);
-              } else if (data.paymentStatus === "FAILED" || data.paymentStatus === "ERROR") {
-                alert("Payment Failed: " + data.message);
+          dataType: 'json',
+          success: function(responseData) {
+              if (responseData.redirect) {
+                  window.location.href = responseData.redirect;
               } else {
-                console.warn("Unexpected Payment Status:", data.paymentStatus);
-                alert("Unexpected Status: " + data.paymentStatus);
+                  // Handle success notification
+                  $('#maincontainer').hide();
+                  $('#notificationMessage').removeClass('hidden');
+                  $('#messageText').text(responseData.message)
+                      .toggleClass('text-green-500', responseData.status === 'APPROVED')
+                      .toggleClass('text-red-500', responseData.status !== 'APPROVED');
               }
-            } catch (e) {
-              console.error("JSON Parse Error:", e);
-              alert("yugyuguyyuguygyuguyguyguyg");
-            }
           },
-          error: function (xhr, status, error) {
-            console.error("AJAX Error:", {
-              xhr,
-              status,
-              error,
-            });
-            alert(`Payment failed: ${xhr.responseText || error}`);
+          error: function(xhr) {
+              // Handle error response
+              const error = xhr.responseJSON || {};
+              $('#maincontainer').hide();
+              $('#notificationMessage').removeClass('hidden');
+              $('#messageText').text(error.message || 'Payment processing failed')
+                  .addClass('text-red-500');
           },
-          complete: function () {
-            submitButton.prop("disabled", false).text(originalButtonText);
-          },
-        });
-      }
-    );
-  });
-});
+          complete: function() {
+              // Re-enable button
+              $submitBtn.prop('disabled', false).val(originalText);
+          }
+      });
+  })
+})
+
+;

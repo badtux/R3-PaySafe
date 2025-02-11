@@ -1,27 +1,10 @@
 <?php
 //session_start();
 require_once 'config/config.php';
-
-if (isset($_GET['price'], $_GET['currency'], $_GET['reference'], $_GET['email'])) {
-    $_SESSION['txn'] = [
-        'email' => htmlspecialchars($_GET['email']),
-        'price' => htmlspecialchars(intval($_GET['price'])),
-        'reference' => htmlspecialchars($_GET['reference']),
-        'currency' => htmlspecialchars(strtoupper($_GET['currency']))
-    ];
-
-    $_SESSION['t'] = md5(serialize($_SESSION['txn']));
-    //header('Location: /?continue=' . $_SESSION['t']);
-    exit;
+if (!isset($_SESSION['txn'])) {
+    die('Transaction not initialized. <a href="create_transaction.php">Start transaction</a>');
 }
 
-if (!isset($_GET['continue']) || !isset($_SESSION['t']) || !($_GET['continue'] == $_SESSION['t'])) {
-
-    $_SESSION['txn'] = ['email' => false, 'price' => false, 'reference' => false, 'currency' => false];
-}
-
-$status = isset($_GET['status']) ? htmlspecialchars($_GET['status']) : null;
-$message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : null;
 $txn = $_SESSION['txn'];
 ?>
 <!DOCTYPE html>
@@ -110,7 +93,7 @@ $txn = $_SESSION['txn'];
                     <!-- Credit Card Number Field -->
                     <div class="w-full">
                         <label for="card_number" class="block text-sm font-medium text-gray-700 pl-1">Credit Card Number</label>
-                        <input id="card_number" name="card_number" type="text" maxlength="19" autocomplete="off" required autofocus
+                        <input id="card_number" name="card_number" type="text" maxlength="18" autocomplete="off" required autofocus
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8" />
                         <span class=' error-message validation-message text-red-500 text-xs mt=1' id='card_number_msg'></span>
                     </div>
@@ -137,7 +120,7 @@ $txn = $_SESSION['txn'];
                             <div class="w-1/2">
                                 <select id="cc-exp-year" name="exp_year" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8 text-sm sm:text-xs">
                                     <option value="" disabled selected>YY</option>
-                                    <?php for ($year = date('Y'); $year <= date('Y') + 10; $year++): ?>
+                                    <?php for ($year = date('Y'); $year <= date('Y') + 15; $year++): ?>
                                         <option value="<?= substr($year, -2) ?>"><?= substr($year, -2) ?></option>
                                     <?php endfor; ?>
                                 </select>
@@ -149,7 +132,7 @@ $txn = $_SESSION['txn'];
                     <div class="w-2/5">
                         <label for="cvv" class="block text-sm font-medium text-gray-700 pl-1">CVV</label>
                         <input required type="text" name="cvv" id="cvv"
-                            maxlength="3" autocomplete="off"
+                            maxlength="4" autocomplete="off"
                             class="error-message mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-500 p-2 h-8"
                             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             style="appearance: none; -webkit-appearance: none; -moz-appearance: none;" />
@@ -161,7 +144,6 @@ $txn = $_SESSION['txn'];
                         <input type="checkbox" id="tos"> &nbsp;I agree to the <a href="https://www.malkey.lk/terms-conditions.html" target="_blank" class="underline decoration-gray-400 hover:text-blue-700">Terms and Conditions</a>
                     </div>
                     <div>
-                        <input type="hidden" id="simplifyToken" value="" name="simplifyToken" data-publkr="<?php echo SMPLY_LKR_PUBKEY; ?>" data-pubusd="<?php echo SMPLY_USD_PUBKEY; ?>"/>
                         <input type="submit" value="Pay Now"
                             class="mt-5 w-full disabled:bg-gray-400 bg-blue-600 disabled:bg-grey-600 hover:bg-green-600 text-white font-semibold rounded-md transition duration-200 cursor-pointer h-8" disabled />
                     </div>

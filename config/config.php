@@ -4,19 +4,27 @@ define('APP_LIVE', false);
 define('BASE_PATH', '/paysafe');
 define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
 
-if (APP_LIVE) {
-    define('SMPLY_LKR_PUBKEY', 'lvpb_MDMwNGEzMmYtNzQxZi00MWNkLWEyOTktMTZlNDJjY2FlZTYw'); //live 
-    define('SMPLY_LKR_PVKEY', '1nwUv+QJwDCQ0FviCoLcgrzrgHb3V2yfhjD9xjVX3lJ5YFFQL0ODSXAOkNtXTToq');
 
-    define('SMPLY_USD_PUBKEY', 'lvpb_ZGQzYWMzNzYtZGQ4MS00NGFlLTkyZTItODk4NjMyZmY4YWU2'); //live
-    define('SMPLY_USD_PVKEY', 'BBrLYBh5dkefJEiG4sa0Ojr3nF101eQN0dtQx34juY95YFFQL0ODSXAOkNtXTToq');
-} else {
-    define('SMPLY_LKR_PUBKEY', 'sbpb_NjU0NWMyMjMtMzVmYi00ZWVjLWI0NDItN2I4MjljZWJiM2I0'); //sandbox
-    define('SMPLY_LKR_PVKEY', '5Hsh1LbHPktNOcWZ0ZBwUQADlyquDfSmiPMwX7qxrzd5YFFQL0ODSXAOkNtXTToq');
+// config.php
+// Mastercard Gateway Credentials
+define('MERCHANT_ID', 'TEST9170372718');
+define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f');
 
-    define('SMPLY_USD_PUBKEY', 'sbpb_ZTY2NTA3ZjYtZTBhZi00OGZmLTg0N2YtZmE0NWJlMTBkOGVm'); //sandbox
-    define('SMPLY_USD_PVKEY', 'TrwuQb5xNUoriNasPO8cDnfIvUPQ35ta+0SvXi80XS95YFFQL0ODSXAOkNtXTToq');
+
+ini_set('display_errors', 0);
+if (session_status() == PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 3600,
+        'path' => '/',
+        'domain' => '.cmbgateway.loc',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict'
+    ]);
+    session_start();
 }
+
+
 
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
