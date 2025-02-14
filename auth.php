@@ -1,10 +1,19 @@
 <?php
 
 
+
+$name = isset($_POST['name']) ? $_POST['name'] : 'Customer';
+$reference = isset($_POST['reference']) ? $_POST['reference'] : 'No reference';
+$email = isset($_POST['email']) ? $_POST['email'] : '';
+$price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
+$currency_p = isset($_POST['currency']) ? strtoupper($_POST['currency']) : 'LKR';
 $cardNumber = preg_replace('/\D/', '', $_POST['card_number'] ?? '');
 $expMonth = str_pad($_POST['exp_month'] ?? '', 2, '0', STR_PAD_LEFT);
 $expYear = '20' . ($_POST['exp_year'] ?? '');
 $cvv = preg_replace('/\D/', '', $_POST['cvv'] ?? '');
+$amount_p = $price > 0 ? intval($price * 100) : 0;
+
+
 
 
 class DirectPayment {
@@ -85,9 +94,8 @@ if ($gatewayStatus['status'] !== 'OPERATING') {
 $transactionData = [
     "apiOperation" => "PAY",
     "order" => [
-        "amount" => (float)$_SESSION['txn']['price'],
-        "currency" => $_SESSION['txn']['currency'],
-        "id" => $_SESSION['txn']['reference']
+        "amount" => $amount_p,
+        "currency" =>$currency_p
     ],
     "sourceOfFunds" => [
         "type" => "CARD",
@@ -95,7 +103,7 @@ $transactionData = [
             "card" => [
                 "number" => $cardNumber,
                 "expiry" => [
-                    "month" => str_pad($expMonth, 2, "0", STR_PAD_LEFT), // Ensures two-digit month
+                    "month" => $expMonth, 
                     "year" => $expYear
                 ],
                 "securityCode" => $cvv
