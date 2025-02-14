@@ -5,8 +5,7 @@ define('BASE_PATH', '/paysafe');
 define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
 
 
-// config.php
-// Mastercard Gateway Credentials
+
 define('MERCHANT_ID', 'TEST9170372718');
 define('API_PASSWORD', '6643edaf7600027f17cddbd661db156b');
 
