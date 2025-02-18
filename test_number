@@ -49,3 +49,37 @@ amex 340000099900051
 ; 02/37	UNSPECIFIED_FAILURE
 ; 05/37	UNKNOWN
 
+
+
+MID Deatils
+-----------
+Merchant ID for Production :- TEST9170372718
+Merchant Name :- MAHESH MALLAWARATCHIE ENTERPRISES PVT LTD
+Currencies --> USD  
+
+Merchant Portal URL
+---------------------
+https://nationstrustbankplc.gateway.mastercard.com/ma/
+
+Integration Credintails
+---------------------------------
+Merchant ID :- TEST9170372718
+Operator ID :- Operator1
+Password :- NTBMPGS2024#
+Administrator PW :- NTBMPGS2024#
+
+API
+--------
+U name : merchant.TEST9170372718
+PW:6643edaf7600027f17cddbd661db156b	
+MPGS Prod Refference guide
+----------------------------
+https://nationstrustbankplc.gateway.mastercard.com/api/documentation/integrationGuidelines/index.html?locale=en_US
+
+
+
+
+config docker 
+   "# nano /etc/resolv.conf
+   #
+   "

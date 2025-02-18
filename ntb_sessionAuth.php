@@ -1,25 +1,39 @@
 <?php
+
+$amount = isset($_GET['amount']) ? $_GET['amount'] : "1500000.00";
+$currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
+$description = isset($_GET['description']) ? $_GET['description'] : "test order";
+$orderId = uniqid();
 $merchantId = "TEST9170372718";
 $apiUsername = "merchant.TEST9170372718";
-$apiPassword = "b56444324642b7e2712b89e1925308fa";
-
-$orderId = "order#1294";
-$description = "test order";
+$apiPassword = "9561cde89b146e22afd2dbec7d145a4f";
 
 $url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/session";
 
-echo $url;
 $data = [
     "apiOperation" => "INITIATE_CHECKOUT",
+    "checkoutMode" => "WEBSITE",
     "interaction" => [
         "operation" => "AUTHORIZE",
         "merchant" => [
-            "name" => "merchant.TEST9170372718"
+            "name" => "merchant.TEST9170372718",
+            "logo" =>  "https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png",
+            "url" => "https://www.malkey.lk",
+            "phone" => "+94-112365365",
+            "email" => "www.malkey@gmail.com"
+        ],
+        "returnUrl" => "https://www.malkey.lk",
+
+        "locale" => "en_US",
+        "style" => [
+            "theme" => "default",
+
+
         ]
     ],
     "order" => [
-        "currency" => "USD",
-        "amount" => "100.00",
+        "currency" => $currency,
+        "amount" => $amount,
         "id" => $orderId,
         "description" => $description
     ]
@@ -45,9 +59,10 @@ $response = curl_exec($ch);
 if ($response === false) {
     $error_msg = curl_error($ch);
     $error_msg = curl_strerror(curl_errno($ch));
-    
+    error_log($error_msg);
+
     curl_close($ch);
-    die("cURL error: " . $error_msg); 
+    die("cURL error: " . $error_msg);
 }
 
 curl_close($ch);
@@ -55,9 +70,8 @@ curl_close($ch);
 $result = json_decode($response, true);
 if (isset($result['session']['id'])) {
     $sessionId = $result['session']['id'];
-   
-    echo json_encode(["sessionId" => $sessionId]);
+
+    // echo json_encode(["sessionId" => $sessionId]);
 } else {
     die("Failed to create session: " . json_encode($result));
 }
-?>
