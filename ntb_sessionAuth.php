@@ -17,7 +17,10 @@ $data = [
         "operation" => "AUTHORIZE",
         "merchant" => [
             "name" => "merchant.TEST9170372718",
-            "logo" =>  "https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png",
+            "logo" =>  "https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg",
+           // "logo" =>  "https://findit-resources.s3.us-east-2.amazonaws.com/account/profilePictures/1628852770756.png",
+
+          
             "url" => "https://www.malkey.lk",
             "phone" => "+94-112365365",
             "email" => "info@malkey.lk"
