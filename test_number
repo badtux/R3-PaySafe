@@ -85,7 +85,9 @@ config docker
    "
 
 
-   url http://cmbgateway.loc/ntb_hosted.php?currency=USD&amount=250&orderId=123456
+local 
 
+url http://cmbgateway.loc/paysafe?currency=USD&amount=250&orderId=id12345&description=test
 
-   url http://cmbgateway.loc/paysafe?currency=USD&amount=250&orderId=id12345&description=test
+live 
+https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123LKRTX
