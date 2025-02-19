@@ -68,13 +68,13 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 <i class='bx bx-lock-alt text-xl'></i>
                 <span>Proceed to Secure Payment</span>
             </button>
-            <div class="mt-6 flex items-center flex justify-center  text-sm text-gray-500">
+            <div class="mt-6 flex items-center  justify-center  text-sm text-gray-500">
                 <div class="flex items-center">
                     <i class='bx bx-shield-quarter text-green-500'></i>
-                    <span class="mr-6">256-bit SSL Secured Connection</span>
+                    <span class="mr-2">256-bit SSL Secured Connection</span>
                 </div>
                 <div>
-                    <img src="https://www.nationstrust.com/images/ntb_logo.png" alt="bank logo" class="h-6">
+                    <img src="assets/card.png" alt="bank logo" class="h-10 ">
                 </div>
             </div>
 

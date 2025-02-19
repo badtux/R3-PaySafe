@@ -90,4 +90,4 @@ local
 url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=121212t121&description=test
 
 live 
-https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123LKRTX
+https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123
