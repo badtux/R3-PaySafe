@@ -22,7 +22,7 @@ $data = [
             "phone" => "+94-112365365",
             "email" => "info@malkey.lk"
         ],
-        "returnUrl" => "https://www.malkey.lk",
+        //"returnUrl" => "https://www.malkey.lk",
 
         "locale" => "en_US",
         "style" => [
