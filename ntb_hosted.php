@@ -4,86 +4,101 @@ require_once "ntb_sessionAuth.php";
 if (!isset($sessionId)) {
     die("Session ID not available.");
 }
+
+$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
+$currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
+$description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
+$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Payment</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/hosted.css">
-    <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js" 
-            data-error="errorCallback" 
-            data-cancel="cancelCallback">
+    <title>Secure Payment | Nations Trust Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js"
+        data-error="errorCallback"
+        data-cancel="cancelCallback">
     </script>
 </head>
-<body>
-    <div class="container mt-1">
-        <div class="text-center">
-            <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="logo">
-            <!-- <img src="assets/Makley_logo.png" alt="Logo" class="logo"> -->
 
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
+            <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
+            <h1 class="text-2xl font-bold">Secure Payment</h1>
+            <p class="text-blue-100 text-sm">Protected by Nations Trust Bank</p>
         </div>
-        <div class="text-center mt-3"></div>
-            <button class="btn btn-primary" onclick="Checkout.showPaymentPage();">Redirect to Payment Page</button>
-            </div>
-        </div>
-        
-        <div id="embed-target" class="mt-1"></div>
-    </div>
 
-    <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Complete Your Secure Payment</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+        <div class="p-8">
+            <div class="space-y-6 mb-8">
+                <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                    <i class='bx bx-receipt text-2xl text-blue-600'></i>
+                    <div class="text-left">
+                        <p class="text-sm text-gray-500">Order Reference</p>
+                        <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($orderId); ?></p>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div id="hco-embedded"></div>
+
+                <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                    <i class='bx bx-detail text-2xl text-blue-600'></i>
+                    <div class="text-left">
+                        <p class="text-sm text-gray-500">Description</p>
+                        <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                    <i class='bx bx-credit-card text-2xl text-blue-600'></i>
+                    <div class="text-left">
+                        <p class="text-sm text-gray-500">Total Amount</p>
+                        <p class="font-bold text-2xl text-blue-600">
+                            <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                        </p>
+                    </div>
                 </div>
             </div>
+
+            <button onclick="Checkout.showPaymentPage();"
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                <i class='bx bx-lock-alt text-xl'></i>
+                <span>Proceed to Secure Payment</span>
+            </button>
+            <div class="mt-6 flex items-center flex justify-center  text-sm text-gray-500">
+                <div class="flex items-center">
+                    <i class='bx bx-shield-quarter text-green-500'></i>
+                    <span class="mr-6">256-bit SSL Secured Connection</span>
+                </div>
+                <div>
+                    <img src="https://www.nationstrust.com/images/ntb_logo.png" alt="bank logo" class="h-6">
+                </div>
+            </div>
+
+
+
         </div>
     </div>
 
     <script>
         function errorCallback(error) {
-            alert("There was an error: " + JSON.stringify(error));
+            alert("Error: " + JSON.stringify(error));
         }
+
         function cancelCallback() {
-            alert("The payment has been canceled. Please try again.");
+            alert("Payment canceled. Please try again.");
         }
 
         const sessionId = "<?php echo $sessionId; ?>";
-
         Checkout.configure({
-            session: { id: sessionId }
-        });
-
-        function startPayment() {
-            document.getElementById('startPaymentBtn').style.display = 'none';
-
-            Checkout.showEmbeddedPage('#embed-target');
-
-            $('#paymentModal').modal('show');
-        }
-
-        $('#paymentModal').on('shown.bs.modal', function () {
-            Checkout.showEmbeddedPage('#hco-embedded', () => $('#paymentModal').modal());
-        });
-
-        $('#paymentModal').on('hide.bs.modal', function () {
-            sessionStorage.clear();
+            session: {
+                id: sessionId
+            }
         });
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

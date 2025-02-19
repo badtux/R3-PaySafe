@@ -83,3 +83,9 @@ config docker
    "# nano /etc/resolv.conf
    #
    "
+
+
+   url http://cmbgateway.loc/ntb_hosted.php?currency=USD&amount=250&orderId=123456
+
+
+   url http://cmbgateway.loc/paysafe?currency=USD&amount=250&orderId=id12345&description=test

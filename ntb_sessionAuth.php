@@ -1,9 +1,9 @@
 <?php
 
-$amount = isset($_GET['amount']) ? $_GET['amount'] : "1500000.00";
+$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
-$description = isset($_GET['description']) ? $_GET['description'] : "test order";
-$orderId = uniqid();
+$description = isset($_GET['description']) ? $_GET['description'] : "no description";
+$orderId =  isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 $merchantId = "TEST9170372718";
 $apiUsername = "merchant.TEST9170372718";
 $apiPassword = "9561cde89b146e22afd2dbec7d145a4f";
@@ -20,7 +20,7 @@ $data = [
             "logo" =>  "https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png",
             "url" => "https://www.malkey.lk",
             "phone" => "+94-112365365",
-            "email" => "www.malkey@gmail.com"
+            "email" => "info@malkey.lk"
         ],
         "returnUrl" => "https://www.malkey.lk",
 
