@@ -6,8 +6,8 @@ require_once('vendor/autoload.php');
 
 $router = new Router();
 
-$router->addRoute('GET', BASE_PATH, function () {
-    include 'paymentpage.php';
+$router->addRoute('GET', BASE_PATH.'/paysafe' , function () {
+    include 'cmb_hosted.php';
 });
 
 $router->addRoute('POST', BASE_PATH.'/auth', function () {
