@@ -1,11 +1,15 @@
 <?php
 require_once 'config/config.php';
+require 'vendor/autoload.php';
+
+
 
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
 $description = isset($_GET['description']) ? $_GET['description'] : "no description";
 $orderId =  isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 
+// error_log($data);
 $url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/" . MERCHANT_ID . "/session";
 
 $data = [
@@ -14,20 +18,17 @@ $data = [
     "interaction" => [
         "operation" => "AUTHORIZE",
         "merchant" => [
-            "name" => "merchant.TEST9170372718",
-            "logo" =>  "https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg",
-           // "logo" =>  "https://findit-resources.s3.us-east-2.amazonaws.com/account/profilePictures/1628852770756.png", 
+            "name" => NAME,
+            "logo" => LOGO,
             "url" => "https://www.malkey.lk",
             "phone" => "+94-112365365",
             "email" => "info@malkey.lk"
-          ],
-        //"returnUrl" => "https://www.malkey.lk",
-
+        ],
         "locale" => "en_US",
         "style" => [
-            "theme" => "default",
-  ]
- ],
+            "theme" => "default"
+        ]
+    ],
     "order" => [
         "currency" => $currency,
         "amount" => $amount,
@@ -45,7 +46,6 @@ $options = [
         "Content-Type: text/plain",
         "Authorization: Basic " . base64_encode(API_USERNAME . ":" . API_PASSWORD)
     ],
-    
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_FAILONERROR => true
 ];
@@ -58,7 +58,6 @@ if ($response === false) {
     $error_msg = curl_error($ch);
     $error_msg = curl_strerror(curl_errno($ch));
     error_log($error_msg);
-
     curl_close($ch);
     die("cURL error: " . $error_msg);
 }
@@ -70,3 +69,6 @@ if (isset($result['session']['id'])) {
 } else {
     die("Failed to create session: " . json_encode($result));
 }
+
+
+?>

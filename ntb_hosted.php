@@ -22,74 +22,140 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js"
         data-error="errorCallback"
-        data-cancel="cancelCallback">
+        data-cancel="cancelCallback"
+        data-complete="successCallback">
     </script>
 </head>
 
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
+    <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
             <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
-            <h1 class="text-2xl font-bold">Secure Payment</h1>
+            <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
             <p class="text-blue-100 text-sm">Protected by Nations Trust Bank</p>
         </div>
+        <div id="main_2">
+            <div class="px-6 pt-8">
+                <div class="space-y-6 mb-8">
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-receipt text-2xl text-blue-600'></i>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-500">Order Reference</p>
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($orderId); ?></p>
+                        </div>
+                    </div>
 
-        <div class="p-8">
-            <div class="space-y-6 mb-8">
-                <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                    <i class='bx bx-receipt text-2xl text-blue-600'></i>
-                    <div class="text-left">
-                        <p class="text-sm text-gray-500">Order Reference</p>
-                        <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($orderId); ?></p>
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-detail text-2xl text-blue-600'></i>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-500">Description</p>
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-credit-card text-2xl text-blue-600'></i>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-500">Total Amount</p>
+                            <p class="font-bold text-2xl text-blue-600">
+                                <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                            </p>
+                        </div>
                     </div>
                 </div>
+                <button onclick="Checkout.showPaymentPage();"
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                    <i class='bx bx-lock-alt text-xl'></i>
+                    <span>Proceed to Secure Payment</span>
+                </button>
 
-                <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                    <i class='bx bx-detail text-2xl text-blue-600'></i>
-                    <div class="text-left">
-                        <p class="text-sm text-gray-500">Description</p>
-                        <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
-                    </div>
-                </div>
-
-                <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                    <i class='bx bx-credit-card text-2xl text-blue-600'></i>
-                    <div class="text-left">
-                        <p class="text-sm text-gray-500">Total Amount</p>
-                        <p class="font-bold text-2xl text-blue-600">
-                            <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
-                        </p>
-                    </div>
-                </div>
             </div>
-
-            <button onclick="Checkout.showPaymentPage();"
-                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                <i class='bx bx-lock-alt text-xl'></i>
-                <span>Proceed to Secure Payment</span>
-            </button>
-            <div class="mt-6 flex items-center  justify-center  text-sm text-gray-500">
-                <div class="flex items-center">
-                    <i class='bx bx-shield-quarter text-green-500'></i>
-                    <span class="mr-2">256-bit SSL Secured Connection</span>
-                </div>
-                <div>
-                    <img src="assets/card.png" alt="bank logo" class="h-10 ">
-                </div>
-            </div>
-
-
-
         </div>
+        <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold">
+            <!-- Payment status message will appear here -->
+        </div>
+
+        <!-- Hidden 'Return to Merchant' button -->
+        <button id="return-to-merchant-btn" class="hidden  bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+            Return to Merchant
+        </button>
+        <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
+            <div class="flex items-center">
+                <i class='bx bx-shield-quarter text-green-500'></i>
+                <span class="mr-2">256-bit SSL Secured Connection</span>
+            </div>
+            <div>
+                <img src="assets/card.png" alt="bank logo" class="h-10 ">
+            </div>
+        </div>
+
     </div>
 
+
+
+
     <script>
-        function errorCallback(error) {
-            alert("Error: " + JSON.stringify(error));
-        }
+        
 
         function cancelCallback() {
-            alert("Payment canceled. Please try again.");
+            document.getElementById("main_2").classList.add("hidden");
+            document.getElementById("payment-status").classList.remove("hidden");
+            document.getElementById("payment-status").textContent = "⚠️ Payment Canceled";
+            document.getElementById("payment-status").classList.add("text-yellow-600");
+            document.getElementById("return-to-merchant-btn").classList.add("hidden");
+            fetch("mailAuth.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    transactionId: paymentData.transactionId,
+                    status: "payment canceled",
+                    orderId: "<?php echo $orderId; ?>"
+                })
+            });
+
+
+        }
+
+        function errorCallback(error) {
+            document.getElementById("main_2").classList.add("hidden");
+            document.getElementById("payment-status").classList.remove("hidden");
+            document.getElementById("payment-status").textContent = "❌ Payment Error: " + JSON.stringify(error);
+            document.getElementById("payment-status").classList.add("text-red-600");
+            document.getElementById("return-to-merchant-btn").classList.add("hidden");
+
+            fetch("mailAuth.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    transactionId: paymentData.transactionId,
+                    status: "payment error",
+                    orderId: "<?php echo $orderId; ?>"
+                })
+            });
+        }
+
+        function successCallback(paymentData) {
+            document.getElementById("main_2").classList.add("hidden");
+            document.getElementById("payment-status").classList.remove("hidden");
+            document.getElementById("payment-status").textContent = "✅ Payment Successful!";
+            document.getElementById("payment-status").classList.add("text-green-600");
+            document.getElementById("return-to-merchant-btn").classList.remove("hidden");
+
+            fetch("mailAuth.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    transactionId: paymentData.transactionId,
+                    status: "success",
+                    orderId: "<?php echo $orderId; ?>"
+                })
+            });
         }
 
         const sessionId = "<?php echo $sessionId; ?>";
