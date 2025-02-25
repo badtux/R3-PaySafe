@@ -52,7 +52,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                             <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
                         </div>
                     </div>
-
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
                         <i class='bx bx-credit-card text-2xl text-blue-600'></i>
                         <div class="text-left">
@@ -62,12 +61,23 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                             </p>
                         </div>
                     </div>
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-detail text-2xl text-blue-600'></i>
+                        <div class="text-left w-full">
+                            <p class="text-sm text-gray-500">Your Email</p>
+                            <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full" placeholder="Enter your email">
+                            <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
+                        </div>
+                    </div>
+
+
                 </div>
-                <button onclick="Checkout.showPaymentPage();"
+                <button onclick="validateAndProceed()"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
                     <i class='bx bx-lock-alt text-xl'></i>
                     <span>Proceed to Secure Payment</span>
                 </button>
+
 
             </div>
         </div>
@@ -76,9 +86,12 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
         </div>
 
         <!-- Hidden 'Return to Merchant' button -->
-        <button id="return-to-merchant-btn" class="hidden  bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-            Return to Merchant
-        </button>
+        <div class="flex justify-center">
+            <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn" class="  hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                Return to Merchant
+            </button>
+        </div>
+
         <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
             <div class="flex items-center">
                 <i class='bx bx-shield-quarter text-green-500'></i>
@@ -90,12 +103,37 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
         </div>
 
     </div>
-
-
-
-
     <script>
-        
+        // Function to store email, amount, and currency to local storage
+        function storePaymentDetails() {
+            const email = document.getElementById('email').value;
+            const amount = "<?php echo htmlspecialchars($amount); ?>"; // Use PHP to get amount
+            const currency = "<?php echo htmlspecialchars($currency); ?>"; // Use PHP to get currency
+
+            // Check if email is valid
+            if (email && validateEmail(email)) {
+                // Store the details in localStorage
+                localStorage.setItem('email', email);
+                localStorage.setItem('amount', amount);
+                localStorage.setItem('currency', currency);
+                document.getElementById('error-message').classList.add('hidden');
+            } else {
+                // Show error if email is invalid
+                document.getElementById('error-message').classList.remove('hidden');
+            }
+        }
+
+        // Simple email validation
+        function validateEmail(email) {
+            const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email);
+        }
+
+        // Event listener to store the details when email field loses focus
+        document.getElementById('email').addEventListener('blur', storePaymentDetails);
+
+
+
 
         function cancelCallback() {
             document.getElementById("main_2").classList.add("hidden");
@@ -103,6 +141,12 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             document.getElementById("payment-status").textContent = "⚠️ Payment Canceled";
             document.getElementById("payment-status").classList.add("text-yellow-600");
             document.getElementById("return-to-merchant-btn").classList.add("hidden");
+
+            const email = localStorage.getItem('email');
+            const amount = localStorage.getItem('amount');
+            const currency = localStorage.getItem('currency');
+
+
             fetch("mailAuth.php", {
                 method: "POST",
                 headers: {
@@ -111,11 +155,12 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 body: JSON.stringify({
                     transactionId: paymentData.transactionId,
                     status: "payment canceled",
-                    orderId: "<?php echo $orderId; ?>"
+                    orderId: "<?php echo $orderId; ?>",
+                    email: email,
+                    amount: amount,
+                    currency: currency
                 })
             });
-
-
         }
 
         function errorCallback(error) {
@@ -125,6 +170,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             document.getElementById("payment-status").classList.add("text-red-600");
             document.getElementById("return-to-merchant-btn").classList.add("hidden");
 
+            const email = localStorage.getItem('email');
+            const amount = localStorage.getItem('amount');
+            const currency = localStorage.getItem('currency');
+
             fetch("mailAuth.php", {
                 method: "POST",
                 headers: {
@@ -133,7 +182,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 body: JSON.stringify({
                     transactionId: paymentData.transactionId,
                     status: "payment error",
-                    orderId: "<?php echo $orderId; ?>"
+                    orderId: "<?php echo $orderId; ?>",
+                    email: email,
+                    amount: amount,
+                    currency: currency
                 })
             });
         }
@@ -145,6 +197,12 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             document.getElementById("payment-status").classList.add("text-green-600");
             document.getElementById("return-to-merchant-btn").classList.remove("hidden");
 
+            // Retrieve email, amount, and currency from localStorage
+            const email = localStorage.getItem('email');
+            const amount = localStorage.getItem('amount');
+            const currency = localStorage.getItem('currency');
+
+            // Send the data to mailAuth.php
             fetch("mailAuth.php", {
                 method: "POST",
                 headers: {
@@ -153,7 +211,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 body: JSON.stringify({
                     transactionId: paymentData.transactionId,
                     status: "success",
-                    orderId: "<?php echo $orderId; ?>"
+                    orderId: "<?php echo $orderId; ?>",
+                    email: email,
+                    amount: amount,
+                    currency: currency
                 })
             });
         }
@@ -164,6 +225,25 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 id: sessionId
             }
         });
+
+        function validateAndProceed() {
+            let email = document.getElementById("email").value;
+            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Fixed regex pattern
+            let errorMessage = document.getElementById("error-message");
+            let emailInput = document.getElementById("email");
+
+            if (emailPattern.test(email)) {
+                emailInput.classList.remove("border-red-500");
+                emailInput.classList.add("border-green-500");
+                errorMessage.classList.add("hidden");
+
+                Checkout.showPaymentPage(); // Proceed to payment if email is valid
+            } else {
+                emailInput.classList.remove("border-green-500");
+                emailInput.classList.add("border-red-500");
+                errorMessage.classList.remove("hidden");
+            }
+        }
     </script>
 </body>
 
