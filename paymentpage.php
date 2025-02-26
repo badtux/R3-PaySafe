@@ -161,7 +161,7 @@ $txn = $_SESSION['txn'];
                         <input type="checkbox" id="tos"> &nbsp;I agree to the <a href="https://www.malkey.lk/terms-conditions.html" target="_blank" class="underline decoration-gray-400 hover:text-blue-700">Terms and Conditions</a>
                     </div>
                     <div>
-                        <input type="hidden" id="simplifyToken" value="" name="simplifyToken" data-publkr="<?php echo SMPLY_LKR_PUBKEY; ?>" data-pubusd="<?php echo SMPLY_USD_PUBKEY; ?>"/>
+                        <!-- <input type="hidden" id="simplifyToken" value="" name="simplifyToken" data-publkr="<?php echo SMPLY_LKR_PUBKEY; ?>" data-pubusd="<?php echo SMPLY_USD_PUBKEY; ?>"/> -->
                         <input type="submit" value="Pay Now"
                             class="mt-5 w-full disabled:bg-gray-400 bg-blue-600 disabled:bg-grey-600 hover:bg-green-600 text-white font-semibold rounded-md transition duration-200 cursor-pointer h-8" disabled />
                     </div>

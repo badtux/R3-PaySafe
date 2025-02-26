@@ -1,56 +1,250 @@
 <?php
-require_once 'cmb_hostedAuth.php';
+require_once "ntb_sessionAuth.php";
 
+if (!isset($sessionId)) {
+    die("Session ID not available.");
+}
+
+$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
+$currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
+$description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
+$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Secure Payment | Nations Trust Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js"
+        data-error="errorCallback"
+        data-cancel="cancelCallback"
+        data-complete="successCallback">
+    </script>
 </head>
-<body>
-<script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"
-    data-error="errorCallback"
-    data-cancel="http://cmbgateway.loc/config/indoooooooooooex.php">
-</script>
-<script type="text/javascript">
-    function errorCallback(error) {
-        alert("Error:" + JSON.stringify(error));
-        window.location.href = "http://cmbgateway.loc/config/index.php"
 
-    }
+<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
+    <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
+            <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
+            <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
+            <p class="text-blue-100 text-sm">Protected by Nations Trust Bank</p>
+        </div>
+        <div id="main_2">
+            <div class="px-6 pt-8">
+                <div class="space-y-6 mb-8">
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-receipt text-2xl text-blue-600'></i>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-500">Order Reference</p>
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($orderId); ?></p>
+                        </div>
+                    </div>
 
-    Checkout.configure({
-        merchant: '<?php echo $merchant ?>',
-        order: {
-            amount: function() {
-                return <?php echo $amount; ?>;
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-detail text-2xl text-blue-600'></i>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-500">Description</p>
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-credit-card text-2xl text-blue-600'></i>
+                        <div class="text-left">
+                            <p class="text-sm text-gray-500">Total Amount</p>
+                            <p class="font-bold text-2xl text-blue-600">
+                                <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                        <i class='bx bx-detail text-2xl text-blue-600'></i>
+                        <div class="text-left w-full">
+                            <p class="text-sm text-gray-500">Your Email</p>
+                            <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full" placeholder="Enter your email">
+                            <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
+                        </div>
+                    </div>
 
-            },
-            currency: <?php echo $currency; ?>;
-            description: 'Order Goods',
-            id: '<?php echo $orderid; ?>',
 
-        },
-        interaction: {
-            merchant: {
-                name: 'mohan joe',
-                address: {
-                    line1: '1234',
-                    line2: 'colombo',
+                </div>
+                <button onclick="validateAndProceed()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                    <i class='bx bx-lock-alt text-xl'></i>
+                    <span>Proceed to Secure Payment</span>
+                </button>
 
-                }
-            },
-        },
-        session: {
-            id: '<?php echo $sessionid; ?>'
+
+            </div>
+        </div>
+        <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold">
+            <!-- Payment status message will appear here -->
+        </div>
+
+        <!-- Hidden 'Return to Merchant' button -->
+        <div class="flex justify-center">
+            <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn" class="  hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                Return to Merchant
+            </button>
+        </div>
+
+        <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
+            <div class="flex items-center">
+                <i class='bx bx-shield-quarter text-green-500'></i>
+                <span class="mr-2">256-bit SSL Secured Connection</span>
+            </div>
+            <div>
+                <img src="assets/card.png" alt="bank logo" class="h-10 ">
+            </div>
+        </div>
+
+    </div>
+    <script>
+        // Function to store email, amount, and currency to local storage
+        function storePaymentDetails() {
+            const email = document.getElementById('email').value;
+            const amount = "<?php echo htmlspecialchars($amount); ?>"; // Use PHP to get amount
+            const currency = "<?php echo htmlspecialchars($currency); ?>"; // Use PHP to get currency
+
+            // Check if email is valid
+            if (email && validateEmail(email)) {
+                // Store the details in localStorage
+                localStorage.setItem('email', email);
+                localStorage.setItem('amount', amount);
+                localStorage.setItem('currency', currency);
+                document.getElementById('error-message').classList.add('hidden');
+            } else {
+                // Show error if email is invalid
+                document.getElementById('error-message').classList.remove('hidden');
+            }
         }
 
-    });
-    Checkout.showPaymentPage();
-</script>
+        // Simple email validation
+        function validateEmail(email) {
+            const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email);
+        }
+
+        // Event listener to store the details when email field loses focus
+        document.getElementById('email').addEventListener('blur', storePaymentDetails);
 
 
+
+
+        function cancelCallback() {
+            document.getElementById("main_2").classList.add("hidden");
+            document.getElementById("payment-status").classList.remove("hidden");
+            document.getElementById("payment-status").textContent = "⚠️ Payment Canceled";
+            document.getElementById("payment-status").classList.add("text-yellow-600");
+            document.getElementById("return-to-merchant-btn").classList.add("hidden");
+
+            const email = localStorage.getItem('email');
+            const amount = localStorage.getItem('amount');
+            const currency = localStorage.getItem('currency');
+
+
+            fetch("mailAuth.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    transactionId: paymentData.transactionId,
+                    status: "payment canceled",
+                    orderId: "<?php echo $orderId; ?>",
+                    email: email,
+                    amount: amount,
+                    currency: currency
+                })
+            });
+        }
+
+        function errorCallback(error) {
+            document.getElementById("main_2").classList.add("hidden");
+            document.getElementById("payment-status").classList.remove("hidden");
+            document.getElementById("payment-status").textContent = "❌ Payment Error: " + JSON.stringify(error);
+            document.getElementById("payment-status").classList.add("text-red-600");
+            document.getElementById("return-to-merchant-btn").classList.add("hidden");
+
+            const email = localStorage.getItem('email');
+            const amount = localStorage.getItem('amount');
+            const currency = localStorage.getItem('currency');
+
+            fetch("mailAuth.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    transactionId: paymentData.transactionId,
+                    status: "payment error",
+                    orderId: "<?php echo $orderId; ?>",
+                    email: email,
+                    amount: amount,
+                    currency: currency
+                })
+            });
+        }
+
+        function successCallback(paymentData) {
+            document.getElementById("main_2").classList.add("hidden");
+            document.getElementById("payment-status").classList.remove("hidden");
+            document.getElementById("payment-status").textContent = "✅ Payment Successful!";
+            document.getElementById("payment-status").classList.add("text-green-600");
+            document.getElementById("return-to-merchant-btn").classList.remove("hidden");
+
+            // Retrieve email, amount, and currency from localStorage
+            const email = localStorage.getItem('email');
+            const amount = localStorage.getItem('amount');
+            const currency = localStorage.getItem('currency');
+
+            // Send the data to mailAuth.php
+            fetch("mailAuth.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    transactionId: paymentData.transactionId,
+                    status: "success",
+                    orderId: "<?php echo $orderId; ?>",
+                    email: email,
+                    amount: amount,
+                    currency: currency
+                })
+            });
+        }
+
+        const sessionId = "<?php echo $sessionId; ?>";
+        Checkout.configure({
+            session: {
+                id: sessionId
+            }
+        });
+
+        function validateAndProceed() {
+            let email = document.getElementById("email").value;
+            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Fixed regex pattern
+            let errorMessage = document.getElementById("error-message");
+            let emailInput = document.getElementById("email");
+
+            if (emailPattern.test(email)) {
+                emailInput.classList.remove("border-red-500");
+                emailInput.classList.add("border-green-500");
+                errorMessage.classList.add("hidden");
+
+                Checkout.showPaymentPage(); // Proceed to payment if email is valid
+            } else {
+                emailInput.classList.remove("border-green-500");
+                emailInput.classList.add("border-red-500");
+                errorMessage.classList.remove("hidden");
+            }
+        }
+    </script>
 </body>
+
 </html>
