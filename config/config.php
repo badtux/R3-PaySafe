@@ -15,8 +15,8 @@ if (APP_LIVE) {
     define('API_PASSWORD', '2bc2cac63cef6ebf59c7c925e571ee49'); 
     define('NAME', 'Malkey Rent A Car');
 } else {
-    define('MERCHANT_ID', 'TEST9170372718'); // sandbox 
-    define('API_USERNAME', 'merchant.TEST9170372718'); 
+    define('MERCHANT_ID', 'TESTMALKEYRENLKR'); // sandbox 
+    define('API_USERNAME', 'merchant.TESTMALKEYRENLKR'); 
     define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f'); 
     define('NAME', 'Malkey Rent A Car');
 }

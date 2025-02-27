@@ -10,7 +10,7 @@ $description = isset($_GET['description']) ? $_GET['description'] : "no descript
 $orderId =  isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 
 // error_log($data);
-$url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/" . MERCHANT_ID . "/session";
+$url = " https://cbcmpgs.gateway.mastercard.com/api/rest/version/71/merchant/" . MERCHANT_ID . "/session";
 
 $data = [
     "apiOperation" => "INITIATE_CHECKOUT",
