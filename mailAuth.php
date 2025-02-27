@@ -8,7 +8,7 @@ use PHPMailer\PHPMailer\Exception;
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Get the necessary data from the POST request
-$transactionId = isset($data['transactionId']) ? $data['transactionId'] : '';
+$transactionId = isset($data['transactionId'])? $data['transactionId'] : "no set id ";
 $orderId = isset($data['orderId']) ? $data['orderId'] : '';
 $status = isset($data['status']) ? $data['status'] : '';
 $email = isset($data['email']) ? $data['email'] : '';  // Get email from the request
@@ -18,6 +18,8 @@ $currency = isset($data['currency']) ? $data['currency'] : '';
 
 $subject = "Payment Status Update";
 $body = "";
+
+error_log("id====================================$transactionId");
 
 
 if ($status == 'payment error') {

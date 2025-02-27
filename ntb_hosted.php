@@ -9,6 +9,7 @@ $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
 $description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
+
 ?>
 
 <!DOCTYPE html>
@@ -20,10 +21,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
     <title>Secure Payment | Nations Trust Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js"
-        data-error="errorCallback"
-        data-cancel="cancelCallback"
-        data-complete="successCallback">
+    <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js">
     </script>
 </head>
 
@@ -81,16 +79,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
             </div>
         </div>
-        <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold">
-            <!-- Payment status message will appear here -->
-        </div>
-
-        <!-- Hidden 'Return to Merchant' button -->
-        <div class="flex justify-center">
-            <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn" class="  hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                Return to Merchant
-            </button>
-        </div>
 
         <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
             <div class="flex items-center">
@@ -104,121 +92,12 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
     </div>
     <script>
-        // Function to store email, amount, and currency to local storage
-        function storePaymentDetails() {
-            const email = document.getElementById('email').value;
-            const amount = "<?php echo htmlspecialchars($amount); ?>"; // Use PHP to get amount
-            const currency = "<?php echo htmlspecialchars($currency); ?>"; // Use PHP to get currency
+      
 
-            // Check if email is valid
-            if (email && validateEmail(email)) {
-                // Store the details in localStorage
-                localStorage.setItem('email', email);
-                localStorage.setItem('amount', amount);
-                localStorage.setItem('currency', currency);
-                document.getElementById('error-message').classList.add('hidden');
-            } else {
-                // Show error if email is invalid
-                document.getElementById('error-message').classList.remove('hidden');
-            }
-        }
-
-        // Simple email validation
         function validateEmail(email) {
             const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             return re.test(email);
         }
-
-        // Event listener to store the details when email field loses focus
-        document.getElementById('email').addEventListener('blur', storePaymentDetails);
-
-
-
-
-        function cancelCallback() {
-            document.getElementById("main_2").classList.add("hidden");
-            document.getElementById("payment-status").classList.remove("hidden");
-            document.getElementById("payment-status").textContent = "⚠️ Payment Canceled";
-            document.getElementById("payment-status").classList.add("text-yellow-600");
-            document.getElementById("return-to-merchant-btn").classList.add("hidden");
-
-            const email = localStorage.getItem('email');
-            const amount = localStorage.getItem('amount');
-            const currency = localStorage.getItem('currency');
-
-
-            fetch("mailAuth.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    transactionId: paymentData.transactionId,
-                    status: "payment canceled",
-                    orderId: "<?php echo $orderId; ?>",
-                    email: email,
-                    amount: amount,
-                    currency: currency
-                })
-            });
-        }
-
-        function errorCallback(error) {
-            document.getElementById("main_2").classList.add("hidden");
-            document.getElementById("payment-status").classList.remove("hidden");
-            document.getElementById("payment-status").textContent = "❌ Payment Error: " + JSON.stringify(error);
-            document.getElementById("payment-status").classList.add("text-red-600");
-            document.getElementById("return-to-merchant-btn").classList.add("hidden");
-
-            const email = localStorage.getItem('email');
-            const amount = localStorage.getItem('amount');
-            const currency = localStorage.getItem('currency');
-
-            fetch("mailAuth.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    transactionId: paymentData.transactionId,
-                    status: "payment error",
-                    orderId: "<?php echo $orderId; ?>",
-                    email: email,
-                    amount: amount,
-                    currency: currency
-                })
-            });
-        }
-
-        function successCallback(paymentData) {
-            document.getElementById("main_2").classList.add("hidden");
-            document.getElementById("payment-status").classList.remove("hidden");
-            document.getElementById("payment-status").textContent = "✅ Payment Successful!";
-            document.getElementById("payment-status").classList.add("text-green-600");
-            document.getElementById("return-to-merchant-btn").classList.remove("hidden");
-
-            // Retrieve email, amount, and currency from localStorage
-            const email = localStorage.getItem('email');
-            const amount = localStorage.getItem('amount');
-            const currency = localStorage.getItem('currency');
-
-            // Send the data to mailAuth.php
-            fetch("mailAuth.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    transactionId: paymentData.transactionId,
-                    status: "success",
-                    orderId: "<?php echo $orderId; ?>",
-                    email: email,
-                    amount: amount,
-                    currency: currency
-                })
-            });
-        }
-
         const sessionId = "<?php echo $sessionId; ?>";
         Checkout.configure({
             session: {

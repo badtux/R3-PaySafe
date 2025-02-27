@@ -32,7 +32,7 @@
 ;2205459999997832
 ; 2205439999999541
 
-amex 340000099900051
+amex    340000099900051
      340353278080900
 
 
@@ -87,7 +87,7 @@ config docker
 
 local 
 
-url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=n1lo12hkjhjk5plo9vv21&description=test
+url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tests&description=test
 live 
 https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123
 
