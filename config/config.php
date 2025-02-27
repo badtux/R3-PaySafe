@@ -17,12 +17,10 @@ if (APP_LIVE) {
 } else {
     define('MERCHANT_ID', 'TESTMALKEYRENLKR'); // sandbox 
     define('API_USERNAME', 'merchant.TESTMALKEYRENLKR'); 
-    define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f'); 
+    define('API_PASSWORD', '0778afc55fa88712010a6e258f60c565'); 
     define('NAME', 'Malkey Rent A Car');
 }
 
-
-//define('CC_LIST', ['piumal0713@gmail.com', 'thamara.dasun1@gmail.com']);
 
 define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
 define('MAIL_DRIVER', 'smtp');

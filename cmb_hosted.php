@@ -1,31 +1,53 @@
 <?php
-require_once "ntb_sessionAuth.php";
+require_once "cmb_hostedAuth.php";
 
 if (!isset($sessionId)) {
     die("Session ID not available.");
 }
 
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
-$currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
+$currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
 $description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
 
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Payment | Nations Trust Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js"
-        data-error="errorCallback"
-        data-cancel="cancelCallback"
-        data-complete="successCallback">
-    </script>
+<script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"
+data-error="errorCallback"
+data-cancel="cancelCallback">
+</script>
+<script type="text/javascript">
+function errorCallback(error) {
+console.log(JSON.stringify(error));
+}
+function cancelCallback() {
+console.log('Payment cancelled');
+}
+
+const sessionId = "<?php echo $sessionId; ?>";
+
+Checkout.configure({
+session: {
+
+id: sessionId
+},
+interaction: {
+displayControl: { // you may change these settings as you prefer
+
+billingAddress : 'HIDE',
+customerEmail : 'HIDE',
+orderSummary : 'SHOW',
+shipping : 'HIDE'
+
+}}
+});
+</script>
 </head>
+<body>
+
+
 
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
@@ -72,11 +94,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
 
                 </div>
-                <button onclick="validateAndProceed()"
-                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                    <i class='bx bx-lock-alt text-xl'></i>
-                    <span>Proceed to Secure Payment</span>
-                </button>
+                <input type="button" value="Pay with Payment Page" onclick="validateAndProceed();"/>
 
 
             </div>
@@ -103,12 +121,36 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
         </div>
 
     </div>
+
+
+</body>
+</html>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment | Comcial Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"
+        data-error="errorCallback"
+        data-cancel="cancelCallback"
+        data-complete="successCallback">
+    </script>
+</head>
+
+
     <script>
-        // Function to store email, amount, and currency to local storage
         function storePaymentDetails() {
             const email = document.getElementById('email').value;
-            const amount = "<?php echo htmlspecialchars($amount); ?>"; // Use PHP to get amount
-            const currency = "<?php echo htmlspecialchars($currency); ?>"; // Use PHP to get currency
+            const amount = "<?php echo htmlspecialchars($amount); ?>";
+            const currency = "<?php echo htmlspecialchars($currency); ?>";
 
             // Check if email is valid
             if (email && validateEmail(email)) {
@@ -123,13 +165,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             }
         }
 
-        // Simple email validation
         function validateEmail(email) {
             const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             return re.test(email);
         }
-
-        // Event listener to store the details when email field loses focus
         document.getElementById('email').addEventListener('blur', storePaymentDetails);
 
 
@@ -219,11 +258,13 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             });
         }
 
-        const sessionId = "<?php echo $sessionId; ?>";
+      
+
         Checkout.configure({
             session: {
                 id: sessionId
-            }
+            },
+
         });
 
         function validateAndProceed() {
