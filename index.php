@@ -11,7 +11,7 @@ $router->addRoute('GET', BASE_PATH, function () {
 });
 
 $router->addRoute('POST', BASE_PATH.'/auth', function () {
-    include 'auth.php';
+    include 'cmb_sessionAuth.php';
 });
 
 $router->setNotFound(function () {
