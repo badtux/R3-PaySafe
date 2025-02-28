@@ -8,26 +8,35 @@ require 'vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-$merchantId = "TEST9170372718";
-$apiPassword = "9561cde89b146e22afd2dbec7d145a4f";
 
-// Retrieve orderId from session, fallback to a default if not set
-$orderId = isset($_SESSION['orderId']) ? $_SESSION['orderId'] : "no order id";
-$gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
+if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+    $email = $_POST['email'];
+    $_SESSION['email'] = $email;
+} else {
+    $email = $_SESSION['email'] ?? 'example@example.com'; 
+}
 
-// Initialize cURL
+
+$merchantId = MERCHANT_ID;
+$apiPassword = API_PASSWORD;
+$orderId = $_SESSION['orderId'] ?? 'no-order-id'; 
+$gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/61/merchant/$merchantId/order/$orderId";
+
+  error_log("ID=====================$orderId");
+  error_log("ID=====================$merchantId");
+  error_log("ID=====================$apiPassword");
+
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
 
-// Execute request
+
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
-
 
 $paymentStatus = "";
 $emailMessage = "";
@@ -37,78 +46,67 @@ if ($httpCode == 200) {
 
     if ($data) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
-
-      
-        $transactionId = $data['authentication']['3ds']['transactionId'] ?? "no set id";
-        $orderId = $data['id'] ?? '';
+        $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
+        $orderId = $data['id'] ?? $orderId; // Use API response if available
         $amount = $data['amount'] ?? '';
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
-        $email = "recipient@example.com"; 
 
-    
-        if ($status === 'success') {
-            $mailStatus = 'success';
-        } elseif ($status === 'error') {
-            $mailStatus = 'payment error';
-        } elseif ($status === 'canceled') {
-            $mailStatus = 'payment canceled';
-        } else {
-            $mailStatus = 'unknown';
-        }
+        // Determine email status
+        $mailStatus = match ($status) {
+            'success' => 'success',
+            'error' => 'payment error',
+            'canceled' => 'payment canceled',
+            default => 'unknown',
+        };
 
         $subject = "Payment Status Update";
-        $body = "";
 
         // Generate email body based on status
         if ($mailStatus == 'payment error') {
             $body = '
-    <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
-        <div style="background-color: white; padding: 15px; border-radius: 4px;">
-            <h3 style="margin: 0 0 10px 0;">Order Details</h3>
-            <table>
-                <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
-                <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
-                <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
-            </table>
-            <div style="margin-top: 15px; color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 4px;">
-                <h4 style="margin: 0 0 5px 0;">Error Details:</h4>
-                <pre style="margin: 0; font-family: Consolas, monospace;">' . htmlspecialchars($data['error'] ?? 'Unknown error') . '</pre>
-            </div>
-        </div>
-    </div>
-';
+            <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
+                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <div style="background-color: white; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin: 0 0 10px 0;">Order Details</h3>
+                    <table>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                    </table>
+                    <div style="margin-top: 15px; color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 4px;">
+                        <h4 style="margin: 0 0 5px 0;">Error Details:</h4>
+                        <pre style="margin: 0; font-family: Consolas, monospace;">' . htmlspecialchars($data['error'] ?? 'Unknown error') . '</pre>
+                    </div>
+                </div>
+            </div>';
         } elseif ($mailStatus == 'payment canceled') {
             $body = '
-                <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                 <h2 style="color: #BB6E2FFF; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
-                    <div style="background-color: white; padding: 15px; border-radius: 4px;">
-                        <h3 style="margin: 0 0 10px 0;">Order Details</h3>
-                        <table>
-                            <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
-                               <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
-                            <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
-                        </table>
-                    </div>
+            <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
+                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/banklogo1.png" alt="Cancel Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <div style="background-color: white; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin: 0 0 10px 0;">Order Details</h3>
+                    <table>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                    </table>
                 </div>
-            ';
+            </div>';
         } elseif ($mailStatus == 'success') {
             $body = '
-                <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                  <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
-                    <div style="background-color: white; padding: 15px; border-radius: 4px;">
-                        <h3 style="margin: 0 0 10px 0;">Order Details</h3>
-                        <table>
-                            <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
-                               <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
-                            <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
-                        </table>
-                        <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment with Malkey Rent A Car.</p>
-
-                    </div>
+            <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
+                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/banklogo1.png" alt="Success Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <div style="background-color: white; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin: 0 0 10px 0;">Order Details</h3>
+                    <table>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                    </table>
+                    <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment with Malkey Rent A Car.</p>
                 </div>
-            ';
+            </div>';
         } else {
             $body = '<p>Unknown payment status: ' . htmlspecialchars($status) . '</p>';
         }
@@ -127,7 +125,7 @@ if ($httpCode == 200) {
             $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
             $mail->addAddress($email);
             foreach (CC_LIST as $cc) {
-                $mail->AddCC($cc);
+                $mail->addCC($cc);
             }
             $mail->isHTML(true);
             $mail->Subject = $subject;
@@ -155,7 +153,6 @@ if ($httpCode == 200) {
     <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Optional: Add custom styles if needed */
         #payment-status.success { color: #155724; }
         #payment-status.error { color: #721c24; }
     </style>
@@ -167,37 +164,24 @@ if ($httpCode == 200) {
             <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
             <p class="text-blue-100 text-sm">Protected by Nations Trust Bank</p>
         </div>
-        <div id="main_2" class="hidden">
-            <div class="px-6 pt-8">
-                <div class="space-y-6 mb-8">
-                </div>
-            </div>
-        </div>
         <div id="payment-status" class="mt-6 text-center text-lg font-semibold <?php echo ($paymentStatus === 'SUCCESS' ? 'success' : 'error'); ?>">
             Payment Status: <?php echo $paymentStatus; ?><br>
             <?php echo $emailMessage; ?>
         </div>
-
         <div class="flex justify-center">
             <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
                 Return to Merchant
             </button>
         </div>
-
         <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
             <div class="flex items-center">
                 <i class='bx bx-shield-quarter text-green-500'></i>
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="/assets/card.png" alt="bank logo" class="h-10">
+                <img src="/assets/sponser.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>
-
-    <!-- <script>
-        document.getElementById('payment-status').classList.remove('hidden');
-        document.getElementById('return-to-merchant-btn').classList.remove('hidden');
-    </script> -->
 </body>
 </html>

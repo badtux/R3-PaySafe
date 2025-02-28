@@ -19,7 +19,7 @@ $data = http_build_query([
     'order.currency' => $currency,
     'order.description' => $description,
     'interaction.operation' => 'PURCHASE',
-    'interaction.returnUrl' => 'http://cmbgateway.loc/paysafe',
+    'interaction.returnUrl' => 'http://cmbgateway.loc/response.php',
     'interaction.merchant.name' => NAME
 ]);
 
