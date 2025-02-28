@@ -2,7 +2,6 @@
 require_once 'config/config.php';
 require 'vendor/autoload.php';
 
-// Start the session
 session_start();
 
 
@@ -26,8 +25,6 @@ if ($currency == 'LKR') {
     $apiPassWord =API_PASSWORD_USD;
     
 }
-
-
 $url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/session";
 
 $data = [

@@ -30,8 +30,7 @@ class Router
                 return;
             }
         }
-
-
+        
         if ($this->notFoundCallback) {
             call_user_func($this->notFoundCallback);
         }
