@@ -5,17 +5,30 @@ require 'vendor/autoload.php';
 // Start the session
 session_start();
 
-// Get orderId from GET parameter or set a default
+
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
 $description = isset($_GET['description']) ? $_GET['description'] : "no description";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 
-// Store orderId in session
 $_SESSION['orderId'] = $orderId;
+$_SESSION['currency'] = $currency;
+
+if ($currency == 'LKR') {
+
+   $merchantId = MERCHANT_ID_LKR;
+   $apiUserName =API_USERNAME_LKR;
+   $apiPassWord =API_PASSWORD_LKR;
+   
+} else {
+    $merchantId = MERCHANT_ID_USD;
+    $apiUserName =API_USERNAME_USD;
+    $apiPassWord =API_PASSWORD_USD;
+    
+}
 
 
-$url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/" . MERCHANT_ID . "/session";
+$url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/session";
 
 $data = [
     "apiOperation" => "INITIATE_CHECKOUT",
@@ -52,7 +65,7 @@ $options = [
     CURLOPT_POSTFIELDS => json_encode($data),
     CURLOPT_HTTPHEADER => [
         "Content-Type: text/plain",
-        "Authorization: Basic " . base64_encode(API_USERNAME . ":" . API_PASSWORD)
+        "Authorization: Basic " . base64_encode($apiUserName. ":" .$apiPassWord)
     ],
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_FAILONERROR => true
