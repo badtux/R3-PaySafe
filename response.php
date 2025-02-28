@@ -13,25 +13,29 @@ if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
     $email = $_POST['email'];
     $_SESSION['email'] = $email;
 } else {
-    $email = $_SESSION['email'] ?? 'example@example.com'; 
+    $email = $_SESSION['email'] ?? 'example@example.com';
 }
 
+$orderId = $_SESSION['orderId'] ?? 'no-order-id';
+$currency = $_SESSION['currency'];
 
-$merchantId = MERCHANT_ID;
-$apiPassword = API_PASSWORD;
-$orderId = $_SESSION['orderId'] ?? 'no-order-id'; 
+if ($currency == 'LKR') {
+    $merchantId = MERCHANT_ID_LKR;
+    $apiUserName = API_USERNAME_LKR;
+    $apiPassword = API_PASSWORD_LKR;
+} else {
+    $merchantId = MERCHANT_ID_USD;
+    $apiUserName = API_USERNAME_USD;
+    $apiPassword = API_PASSWORD_USD;
+}
 $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/61/merchant/$merchantId/order/$orderId";
-
-  error_log("ID=====================$orderId");
-  error_log("ID=====================$merchantId");
-  error_log("ID=====================$apiPassword");
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 
 
 $response = curl_exec($ch);
@@ -43,16 +47,19 @@ $emailMessage = "";
 
 if ($httpCode == 200) {
     $data = json_decode($response, true);
-
+    if (json_last_error() === JSON_ERROR_NONE) {
+        error_log("Decoded JSON data:" . var_export($data, true));
+    } else {
+        error_log("JSON decode error: " . json_last_error_msg());
+    }
     if ($data) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
-        $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
-        $orderId = $data['id'] ?? $orderId; // Use API response if available
+        $transactionId = $data['3DSecure']['xid'] ?? 'not-set';
+        $orderId = $data['id'] ?? $orderId; 
         $amount = $data['amount'] ?? '';
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
 
-        // Determine email status
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',
@@ -62,11 +69,10 @@ if ($httpCode == 200) {
 
         $subject = "Payment Status Update";
 
-        // Generate email body based on status
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/combank.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -83,7 +89,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'payment canceled') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/banklogo1.png" alt="Cancel Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/combank.png" alt="Cancel Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -96,7 +102,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/banklogo1.png" alt="Success Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -111,7 +117,6 @@ if ($httpCode == 200) {
             $body = '<p>Unknown payment status: ' . htmlspecialchars($status) . '</p>';
         }
 
-        // Send email using PHPMailer
         $mail = new PHPMailer(true);
         try {
             $mail->SMTPDebug = 0;
@@ -146,6 +151,7 @@ if ($httpCode == 200) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -153,10 +159,16 @@ if ($httpCode == 200) {
     <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #payment-status.success { color: #155724; }
-        #payment-status.error { color: #721c24; }
+        #payment-status.success {
+            color: #155724;
+        }
+
+        #payment-status.error {
+            color: #721c24;
+        }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
@@ -184,4 +196,5 @@ if ($httpCode == 200) {
         </div>
     </div>
 </body>
+
 </html>

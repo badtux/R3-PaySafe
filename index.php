@@ -13,6 +13,11 @@ $router->addRoute('GET', BASE_PATH, function () {
 $router->addRoute('POST', BASE_PATH.'/auth', function () {
     include 'cmb_hostedAuth.php';
 });
+$router->addRoute('GET', BASE_PATH.'/status', function () {
+    include 'response.php';
+});
+
+
 
 $router->setNotFound(function () {
     include '404.php';

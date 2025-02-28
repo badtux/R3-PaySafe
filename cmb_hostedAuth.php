@@ -2,18 +2,39 @@
 require_once 'config/config.php';
 require 'vendor/autoload.php';
 
+session_start();
+
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
 $description = isset($_GET['description']) ? $_GET['description'] : "TEST ORDER";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "10601";
 
+$_SESSION['orderId'] = $orderId;
+$_SESSION['currency'] = $currency;
+
+
+
+if ($currency == 'LKR') {
+
+    $merchantId = MERCHANT_ID_LKR;
+   $apiUserName =API_USERNAME_LKR;
+   $apiPassWord =API_PASSWORD_LKR;
+   
+} else {
+    $merchantId = MERCHANT_ID_USD;
+    $apiUserName =API_USERNAME_USD;
+    $apiPassWord =API_PASSWORD_USD;
+    
+}
+
+
 $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/61";
 
 $data = http_build_query([
     'apiOperation' => 'CREATE_CHECKOUT_SESSION',
-    'apiUsername' => API_USERNAME,
-    'apiPassword' => API_PASSWORD,
-    'merchant' => MERCHANT_ID,
+    'apiUsername' =>  $apiUserName,
+    'apiPassword' =>   $apiPassWord,
+    'merchant' => $merchantId,
     'order.id' => $orderId,
     'order.amount' => $amount,
     'order.currency' => $currency,

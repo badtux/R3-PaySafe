@@ -19,10 +19,9 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
     <title>Secure Payment | Commercial Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"
-            data-error="errorCallback"
-            data-cancel="cancelCallback">
-        </script>
+    <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"></script>
+       
+
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
@@ -86,7 +85,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="assets/card.png" alt="bank logo" class="h-10">
+                <img src="assets/sponser.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>
@@ -142,7 +141,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
 
-                fetch('response.php', {
+                fetch('/status', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
@@ -175,91 +174,91 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             }
         }
 
-        function successCallback(paymentData) {
-            document.getElementById("main_2").classList.add("hidden");
-            document.getElementById("payment-status").classList.remove("hidden");
-            document.getElementById("payment-status").textContent = "✅ Payment Successful! Transaction ID: " + (paymentData.transactionId || 'N/A');
-            document.getElementById("payment-status").classList.add("text-green-600");
-            document.getElementById("return-to-merchant-btn").classList.remove("hidden");
+        // function successCallback(paymentData) {
+        //     document.getElementById("main_2").classList.add("hidden");
+        //     document.getElementById("payment-status").classList.remove("hidden");
+        //     document.getElementById("payment-status").textContent = "✅ Payment Successful! Transaction ID: " + (paymentData.transactionId || 'N/A');
+        //     document.getElementById("payment-status").classList.add("text-green-600");
+        //     document.getElementById("return-to-merchant-btn").classList.remove("hidden");
 
-            const email = localStorage.getItem('email');
-            const amount = localStorage.getItem('amount');
-            const currency = localStorage.getItem('currency');
+        //     const email = localStorage.getItem('email');
+        //     const amount = localStorage.getItem('amount');
+        //     const currency = localStorage.getItem('currency');
 
-            console.log("Transaction ID:", paymentData.transactionId); // Debugging
+        //     console.log("Transaction ID:", paymentData.transactionId); // Debugging
 
-            fetch("response.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    transactionId: paymentData.transactionId || 'N/A',
-                    status: "success",
-                    orderId: "<?php echo $orderId; ?>",
-                    email: email,
-                    amount: amount,
-                    currency: currency
-                })
-            })
-            .then(response => response.json())
-            .then(data => console.log("Server response:", data))
-            .catch(error => console.error("Fetch error:", error));
-        }
+        //     fetch("response.php", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json"
+        //         },
+        //         body: JSON.stringify({
+        //             transactionId: paymentData.transactionId || 'N/A',
+        //             status: "success",
+        //             orderId: "<?php echo $orderId; ?>",
+        //             email: email,
+        //             amount: amount,
+        //             currency: currency
+        //         })
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => console.log("Server response:", data))
+        //     .catch(error => console.error("Fetch error:", error));
+        // }
 
-        function cancelCallback() {
-            document.getElementById("main_2").classList.add("hidden");
-            document.getElementById("payment-status").classList.remove("hidden");
-            document.getElementById("payment-status").textContent = "⚠️ Payment Canceled";
-            document.getElementById("payment-status").classList.add("text-yellow-600");
-            document.getElementById("return-to-merchant-btn").classList.add("hidden");
+        // function cancelCallback() {
+        //     document.getElementById("main_2").classList.add("hidden");
+        //     document.getElementById("payment-status").classList.remove("hidden");
+        //     document.getElementById("payment-status").textContent = "⚠️ Payment Canceled";
+        //     document.getElementById("payment-status").classList.add("text-yellow-600");
+        //     document.getElementById("return-to-merchant-btn").classList.add("hidden");
 
-            const email = localStorage.getItem('email');
-            const amount = localStorage.getItem('amount');
-            const currency = localStorage.getItem('currency');
+        //     const email = localStorage.getItem('email');
+        //     const amount = localStorage.getItem('amount');
+        //     const currency = localStorage.getItem('currency');
 
-            fetch("response.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    transactionId: "N/A", // No transaction ID on cancel
-                    status: "payment canceled",
-                    orderId: "<?php echo $orderId; ?>",
-                    email: email,
-                    amount: amount,
-                    currency: currency
-                })
-            });
-        }
+        //     fetch("response.php", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json"
+        //         },
+        //         body: JSON.stringify({
+        //             transactionId: "N/A", // No transaction ID on cancel
+        //             status: "payment canceled",
+        //             orderId: "<?php echo $orderId; ?>",
+        //             email: email,
+        //             amount: amount,
+        //             currency: currency
+        //         })
+        //     });
+        // }
 
-        function errorCallback(error) {
-            document.getElementById("main_2").classList.add("hidden");
-            document.getElementById("payment-status").classList.remove("hidden");
-            document.getElementById("payment-status").textContent = "❌ Payment Error: " + JSON.stringify(error);
-            document.getElementById("payment-status").classList.add("text-red-600");
-            document.getElementById("return-to-merchant-btn").classList.add("hidden");
+        // function errorCallback(error) {
+        //     document.getElementById("main_2").classList.add("hidden");
+        //     document.getElementById("payment-status").classList.remove("hidden");
+        //     document.getElementById("payment-status").textContent = "❌ Payment Error: " + JSON.stringify(error);
+        //     document.getElementById("payment-status").classList.add("text-red-600");
+        //     document.getElementById("return-to-merchant-btn").classList.add("hidden");
 
-            const email = localStorage.getItem('email');
-            const amount = localStorage.getItem('amount');
-            const currency = localStorage.getItem('currency');
+        //     const email = localStorage.getItem('email');
+        //     const amount = localStorage.getItem('amount');
+        //     const currency = localStorage.getItem('currency');
 
-            fetch("mailAuth.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    transactionId: "N/A", // No transaction ID on error
-                    status: "payment error",
-                    orderId: "<?php echo $orderId; ?>",
-                    email: email,
-                    amount: amount,
-                    currency: currency
-                })
-            });
-        }
+        //     fetch("mailAuth.php", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json"
+        //         },
+        //         body: JSON.stringify({
+        //             transactionId: "N/A", // No transaction ID on error
+        //             status: "payment error",
+        //             orderId: "<?php echo $orderId; ?>",
+        //             email: email,
+        //             amount: amount,
+        //             currency: currency
+        //         })
+        //     });
+        // }
     </script>
 </body>
 </html>
