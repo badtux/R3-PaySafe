@@ -87,7 +87,7 @@ config docker
 
 local 
 
-url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tests&description=test
+url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tests5&description=test
 live 
 https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123
 

@@ -28,7 +28,7 @@ $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-// Variables to hold status and email message
+
 $paymentStatus = "";
 $emailMessage = "";
 
@@ -38,15 +38,15 @@ if ($httpCode == 200) {
     if ($data) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
 
-        // Prepare email data from API response
+      
         $transactionId = $data['authentication']['3ds']['transactionId'] ?? "no set id";
         $orderId = $data['id'] ?? '';
         $amount = $data['amount'] ?? '';
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
-        $email = "recipient@example.com"; // Replace with actual recipient email
+        $email = "recipient@example.com"; 
 
-        // Map API status to mail statuses
+    
         if ($status === 'success') {
             $mailStatus = 'success';
         } elseif ($status === 'error') {
@@ -64,7 +64,7 @@ if ($httpCode == 200) {
         if ($mailStatus == 'payment error') {
             $body = '
     <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+        <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
         <div style="background-color: white; padding: 15px; border-radius: 4px;">
             <h3 style="margin: 0 0 10px 0;">Order Details</h3>
             <table>
@@ -82,7 +82,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'payment canceled') {
             $body = '
                 <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                 <h2 style="color: #BB6E2FFF; margin-top: 0;">⚠️ Payment Canceled <img src="assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                 <h2 style="color: #BB6E2FFF; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                     <div style="background-color: white; padding: 15px; border-radius: 4px;">
                         <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                         <table>
@@ -96,7 +96,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
                 <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                  <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                  <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                     <div style="background-color: white; padding: 15px; border-radius: 4px;">
                         <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                         <table>
@@ -104,7 +104,8 @@ if ($httpCode == 200) {
                                <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
                             <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
                         </table>
-                        <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment With Malkey Rent A Car</p>
+                        <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment with Malkey Rent A Car.</p>
+
                     </div>
                 </div>
             ';
@@ -167,15 +168,9 @@ if ($httpCode == 200) {
             <p class="text-blue-100 text-sm">Protected by Nations Trust Bank</p>
         </div>
         <div id="main_2" class="hidden">
-            <!-- Form hidden by default since this is the response page -->
             <div class="px-6 pt-8">
                 <div class="space-y-6 mb-8">
-                    <!-- Form fields omitted as they're not needed here -->
                 </div>
-                <button onclick="validateAndProceed()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                    <i class='bx bx-lock-alt text-xl'></i>
-                    <span>Proceed to Secure Payment</span>
-                </button>
             </div>
         </div>
         <div id="payment-status" class="mt-6 text-center text-lg font-semibold <?php echo ($paymentStatus === 'SUCCESS' ? 'success' : 'error'); ?>">
@@ -195,15 +190,14 @@ if ($httpCode == 200) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="assets/card.png" alt="bank logo" class="h-10">
+                <img src="/assets/card.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>
 
-    <script>
-        // No need for validateAndProceed since this is the response page
+    <!-- <script>
         document.getElementById('payment-status').classList.remove('hidden');
         document.getElementById('return-to-merchant-btn').classList.remove('hidden');
-    </script>
+    </script> -->
 </body>
 </html>

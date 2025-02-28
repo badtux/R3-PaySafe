@@ -3,15 +3,13 @@ require_once 'config/config.php';
 require 'vendor/autoload.php';
 
 // Start the session
-session_start();
+//session_start();
 
-// Get orderId from GET parameter or set a default
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
 $description = isset($_GET['description']) ? $_GET['description'] : "no description";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 
-// Store orderId in session
 $_SESSION['orderId'] = $orderId;
 
 $url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/" . MERCHANT_ID . "/session";
