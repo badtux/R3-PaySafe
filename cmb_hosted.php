@@ -173,6 +173,8 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 errorMessage.textContent = 'Please enter a valid email address.';
             }
         }
+
+   
     </script>
 </body>
 </html>

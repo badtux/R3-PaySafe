@@ -16,7 +16,7 @@ Mastercard
 //https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
 
 
-url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=n1l2vbg5LOKIoi23drfqae&description=test
+url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=n1l2vnjhykjnbKIoi23drfqae&description=test
 
  http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=n1l2vbg5LOKIoi23drfqae&description=test
 

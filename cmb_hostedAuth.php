@@ -27,7 +27,6 @@ if ($currency == 'LKR') {
     
 }
 
-
 $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/61";
 
 $data = http_build_query([
