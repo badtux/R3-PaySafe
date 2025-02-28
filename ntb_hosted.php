@@ -4,12 +4,10 @@ require_once "ntb_sessionAuth.php";
 if (!isset($sessionId)) {
     die("Session ID not available.");
 }
-
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
 $description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
-
 ?>
 
 <!DOCTYPE html>

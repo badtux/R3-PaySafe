@@ -8,29 +8,34 @@ require 'vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Validate and set email
+
 if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
     $email = $_POST['email'];
     $_SESSION['email'] = $email;
 } else {
-    $email = $_SESSION['email'] ?? 'example@example.com'; // Fallback if no POST email
+    $email = $_SESSION['email'] ?? 'example@example.com'; 
 }
+$orderId = $_SESSION['orderId'] ?? 'no-order-id';
+$currency = $_SESSION['currency'];
 
-// Payment gateway setup
-$merchantId = MERCHANT_ID;
-$apiPassword = API_PASSWORD;
-$orderId = $_SESSION['orderId'] ?? 'no-order-id'; // Fallback if not set
+if ($currency == 'LKR') {
+    $merchantId = MERCHANT_ID_LKR;
+    $apiUserName = API_USERNAME_LKR;
+    $apiPassword = API_PASSWORD_LKR;
+} else {
+    $merchantId = MERCHANT_ID_USD;
+    $apiUserName = API_USERNAME_USD;
+    $apiPassword = API_PASSWORD_USD;
+}
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
 
-// Initialize cURL
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); // Enable SSL verification for security
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
 
-// Execute request
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
@@ -44,12 +49,12 @@ if ($httpCode == 200) {
     if ($data) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
         $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
-        $orderId = $data['id'] ?? $orderId; // Use API response if available
+        $orderId = $data['id'] ?? $orderId;
         $amount = $data['amount'] ?? '';
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
 
-        // Determine email status
+       
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',
@@ -59,11 +64,10 @@ if ($httpCode == 200) {
 
         $subject = "Payment Status Update";
 
-        // Generate email body based on status
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/banklogo1.png" alt="Error Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img src="/assets/banklogo1.png" alt="bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -80,7 +84,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'payment canceled') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/banklogo1.png" alt="Cancel Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled <img src="/assets/banklogo1.png" alt="bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -93,7 +97,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/banklogo1.png" alt="Success Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="/assets/banklogo1.png" alt="bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>

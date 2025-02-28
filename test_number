@@ -35,7 +35,9 @@
 amex    340000099900051
      340353278080900
 
+cVV -1000
 
+EX DATE -01  39
 
 ; Expiry Date	Transaction Response Gateway Code
 
@@ -79,18 +81,13 @@ https://nationstrustbankplc.gateway.mastercard.com/api/documentation/integration
 
 
 
-config docker 
-   "# nano /etc/resolv.conf
-   #
-   "
-
 
 local 
 
-url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tests11&description=test
+url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tests20&description=test
+
+
 live 
 https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123
-
-
 
 

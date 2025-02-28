@@ -1,6 +1,6 @@
 <?php
 
-define('APP_LIVE', true);
+define('APP_LIVE', false);
 define('BASE_PATH', '/paysafe');
 
 
@@ -9,32 +9,34 @@ define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a
 
 
 
-if (!defined('APP_LIVE')) define('APP_LIVE', false); // Default to sandbox if not set
-
 if (APP_LIVE) {
     define('MERCHANT_ID_USD', '9170372718'); // live 
-    define('API_USERNAME_USD', 'merchant.TEST9170372718'); 
-    define('API_PASSWORD_USD', '2bc2cac63cef6ebf59c7c925e571ee49'); 
+    define('API_USERNAME_USD', 'merchant.9170372718');
+    define('API_PASSWORD_USD', '2bc2cac63cef6ebf59c7c925e571ee49');
 
-    define('MERCHANT_ID_LKR', '9170372718'); // live 
-    define('API_USERNAME_LKR', 'merchant.TEST9170372718'); 
-    define('API_PASSWORD_LKR', '2bc2cac63cef6ebf59c7c925e571ee49'); 
+    define('MERCHANT_ID_LKR', ''); // live 
+    define('API_USERNAME_LKR', '');
+    define('API_PASSWORD_LKR', '');
 } else {
-    define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
-    define('API_USERNAME_LKR', 'merchant.TESTMALKEYRENLKR'); 
-    define('API_PASSWORD_LKR', '0778afc55fa88712010a6e258f60c565'); 
+    define('MERCHANT_ID_LKR', ''); // sandbox 
+    define('API_USERNAME_LKR', '');
+    define('API_PASSWORD_LKR', '');
 
-    define('MERCHANT_ID_USD', 'TESTMALKEYRENUSD'); // sandbox 
-    define('API_USERNAME_USD', 'merchant.TESTMALKEYRENUSD'); 
-    define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4'); 
+    define('MERCHANT_ID_USD', 'TEST9170372718'); // sandbox 
+    define('API_USERNAME_USD', 'merchant.TEST9170372718');
+    define('API_PASSWORD_USD', '9561cde89b146e22afd2dbec7d145a4f');
 }
-define('NAME', 'Malkey Rent A Car'); 
+define('NAME', 'Malkey Rent A Car');
 
 
 
-//define('CC_LIST', ['thamara.dasun1@gmail.com']);
 
-define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
+
+
+
+define('CC_LIST', ['thamara.dasun1@gmail.com']);
+
+//define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
 define('MAIL_PORT', 465);
