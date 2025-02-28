@@ -92,8 +92,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
     </div>
     <script>
-      
-
         function validateEmail(email) {
             const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             return re.test(email);
@@ -107,7 +105,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
         function validateAndProceed() {
             let email = document.getElementById("email").value;
-            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Fixed regex pattern
+            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
             let errorMessage = document.getElementById("error-message");
             let emailInput = document.getElementById("email");
 
@@ -116,11 +114,36 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
 
-                Checkout.showPaymentPage(); // Proceed to payment if email is valid
+                fetch('response.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'email=' + encodeURIComponent(email)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        console.log('Success:', data);
+
+                        Checkout.showPaymentPage();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        emailInput.classList.remove("border-green-500");
+                        emailInput.classList.add("border-red-500");
+                        errorMessage.textContent = 'Failed to process email. Please try again.';
+                        errorMessage.classList.remove("hidden");
+                    });
             } else {
                 emailInput.classList.remove("border-green-500");
                 emailInput.classList.add("border-red-500");
                 errorMessage.classList.remove("hidden");
+                errorMessage.textContent = 'Please enter a valid email address.';
             }
         }
     </script>
