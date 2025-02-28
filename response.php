@@ -46,12 +46,7 @@ $paymentStatus = "";
 $emailMessage = "";
 
 if ($httpCode == 200) {
-    $data = json_decode($response, true);
-    if (json_last_error() === JSON_ERROR_NONE) {
-        error_log("Decoded JSON data:" . var_export($data, true));
-    } else {
-        error_log("JSON decode error: " . json_last_error_msg());
-    }
+    
     if ($data) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
         $transactionId = $data['3DSecure']['xid'] ?? 'not-set';
