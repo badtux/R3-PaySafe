@@ -9,16 +9,15 @@ define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a
 
 
 
-if (!defined('APP_LIVE')) define('APP_LIVE', false); // Default to sandbox if not set
-
+if (!defined('APP_LIVE')) define('APP_LIVE', false); 
 if (APP_LIVE) {
-    define('MERCHANT_ID_USD', '9170372718'); // live 
-    define('API_USERNAME_USD', 'merchant.TEST9170372718'); 
-    define('API_PASSWORD_USD', '2bc2cac63cef6ebf59c7c925e571ee49'); 
+    define('MERCHANT_ID_USD', ''); // live 
+    define('API_USERNAME_USD', ''); 
+    define('API_PASSWORD_USD', ''); 
 
-    define('MERCHANT_ID_LKR', '9170372718'); // live 
-    define('API_USERNAME_LKR', 'merchant.TEST9170372718'); 
-    define('API_PASSWORD_LKR', '2bc2cac63cef6ebf59c7c925e571ee49'); 
+    define('MERCHANT_ID_LKR', ''); //live 
+    define('API_USERNAME_LKR', ''); 
+    define('API_PASSWORD_LKR', ''); 
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
     define('API_USERNAME_LKR', 'merchant.TESTMALKEYRENLKR'); 
