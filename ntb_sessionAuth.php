@@ -13,18 +13,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 $_SESSION['orderId'] = $orderId;
 $_SESSION['currency'] = $currency;
 
-if ($currency == 'LKR') {
-
-   $merchantId = MERCHANT_ID_LKR;
-   $apiUserName =API_USERNAME_LKR;
-   $apiPassWord =API_PASSWORD_LKR;
-   
-} else {
-    $merchantId = MERCHANT_ID_USD;
-    $apiUserName =API_USERNAME_USD;
-    $apiPassWord =API_PASSWORD_USD;
-    
-}
+   $merchantId = MERCHANT_ID;
+   $apiUserName =API_USERNAME;
+   $apiPassWord =API_PASSWORD;
+     
 $url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/session";
 
 $data = [
@@ -39,8 +31,8 @@ $data = [
             "phone" => "+94-112365365",
             "email" => "info@malkey.lk"
         ],
-           "returnUrl" =>"https://malkey.go.digitable.io/paysafe/ntb/status",
-      //  "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
+        //   "returnUrl" =>"https://malkey.go.digitable.io/paysafe/ntb/status",
+              "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
 
 
 

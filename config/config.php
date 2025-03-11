@@ -25,21 +25,14 @@ define('BASE_PATH', '/paysafe');
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg'); 
 
 if (APP_LIVE) {
-    define('MERCHANT_ID_USD', '9170372718'); // live 
-    define('API_USERNAME_USD', 'merchant.9170372718');
-    define('API_PASSWORD_USD', '2bc2cac63cef6ebf59c7c925e571ee49');
+    define('MERCHANT_ID', '9170372718'); // live 
+    define('API_USERNAME', 'merchant.9170372718');
+    define('API_PASSWORD', '2bc2cac63cef6ebf59c7c925e571ee49');
 
-    define('MERCHANT_ID_LKR', ''); // live 
-    define('API_USERNAME_LKR', '');
-    define('API_PASSWORD_LKR', '');
 } else {
-    define('MERCHANT_ID_LKR', ''); // sandbox 
-    define('API_USERNAME_LKR', '');
-    define('API_PASSWORD_LKR', '');
-
-    define('MERCHANT_ID_USD', 'TEST9170372718'); // sandbox 
-    define('API_USERNAME_USD', 'merchant.TEST9170372718');
-    define('API_PASSWORD_USD', '9561cde89b146e22afd2dbec7d145a4f');
+    define('MERCHANT_ID', 'TEST9170372718'); // sandbox 
+    define('API_USERNAME', 'merchant.TEST9170372718');
+    define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f');
 }
 define('NAME', 'Malkey Rent A Car');
 

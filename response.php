@@ -18,15 +18,10 @@ if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'];
 
-if ($currency == 'LKR') {
-    $merchantId = MERCHANT_ID_LKR;
-    $apiUserName = API_USERNAME_LKR;
-    $apiPassword = API_PASSWORD_LKR;
-} else {
-    $merchantId = MERCHANT_ID_USD;
-    $apiUserName = API_USERNAME_USD;
-    $apiPassword = API_PASSWORD_USD;
-}
+    $merchantId = MERCHANT_ID;
+    $apiUserName = API_USERNAME;
+    $apiPassword = API_PASSWORD;
+
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
 
 $ch = curl_init();
