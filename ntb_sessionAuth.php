@@ -31,8 +31,8 @@ $data = [
             "phone" => "+94-112365365",
             "email" => "info@malkey.lk"
         ],
-        //   "returnUrl" =>"https://malkey.go.digitable.io/paysafe/ntb/status",
-              "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
+           "returnUrl" =>"https://malkey.go.digitable.io/paysafe/ntb/status",
+            //  "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
 
 
 
