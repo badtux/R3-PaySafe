@@ -3,6 +3,24 @@
 define('APP_LIVE', false);
 define('BASE_PATH', '/paysafe');
 
+// $baseUrl = APP_LIVE 
+//     ? "malkey.go.digitable.io/paysafe/ntb" 
+//     : "cmbgateway.loc";
+
+// $returnUrllive = "https://$baseUrl/status"; 
+// $returnUrllocal = "http://$baseUrl/response.php"; 
+
+
+// if(APP_LIVE){
+//     $returnUrl = $returnUrllive;
+// }
+// else{
+//     $returnUrl = $returnUrllocal;
+// }
+
+// echo $returnUrl;
+
+
 
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg'); 
 

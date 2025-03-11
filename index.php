@@ -17,8 +17,6 @@ $router->addRoute('GET', BASE_PATH.'/auth', function () {
 $router->addRoute('GET', BASE_PATH.'/status', function () {
     include 'response.php';
 });
-
-
 $router->setNotFound(function () {
     include '404.php';
 });
