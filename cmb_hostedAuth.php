@@ -39,8 +39,8 @@ $data = http_build_query([
     'order.currency' => $currency,
     'order.description' => $description,
     'interaction.operation' => 'PURCHASE',
-    'interaction.returnUrl' =>   //    "https://malkey.go.digitable.io/paysafe/cmb/status",
-                                       "http://cmbgateway.loc/paysafe/status",
+    'interaction.returnUrl' =>"https://malkey.go.digitable.io/paysafe/cmb/status",
+                                      // "http://cmbgateway.loc/paysafe/status",
     'interaction.merchant.name' => NAME
 ]);
 

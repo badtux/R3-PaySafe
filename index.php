@@ -9,10 +9,10 @@ $router = new Router();
 $router->addRoute('GET', BASE_PATH, function () {
     include 'cmb_hosted.php';
 });
-$router->addRoute('POST', BASE_PATH.'/auth', function () {
+$router->addRoute('GET', BASE_PATH.'/auth', function () {
     include 'cmb_hostedAuth.php';
 });
-$router->addRoute('POST', BASE_PATH.'/status', function () {
+$router->addRoute('GET', BASE_PATH.'/status', function () {
     include 'response.php';
 });
 $router->setNotFound(function () {
