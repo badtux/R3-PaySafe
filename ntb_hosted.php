@@ -112,13 +112,14 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
 
-                fetch('response.php', {
+                fetch('<?php echo BASE_PATH . "/status"; ?>', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: 'email=' + encodeURIComponent(email)
                     })
+
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
