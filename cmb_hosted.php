@@ -1,5 +1,7 @@
 <?php
 require_once "cmb_hostedAuth.php";
+require_once "config/config.php";
+
 
 if (!isset($sessionId)) {
     die("Session ID not available.");
@@ -13,6 +15,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,9 +23,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"></script>
-       
+
 
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
@@ -66,7 +70,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                     </div>
                 </div>
                 <button onclick="validateAndProceed()"
-                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
                     <i class='bx bx-lock-alt text-xl'></i>
                     <span>Proceed to Secure Payment</span>
                 </button>
@@ -75,7 +79,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
         <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
         <div class="flex justify-center">
             <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn"
-                    class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
                 Return to Merchant
             </button>
         </div>
@@ -132,7 +136,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
         function validateAndProceed() {
             let email = document.getElementById("email").value;
-            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
+            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             let errorMessage = document.getElementById("error-message");
             let emailInput = document.getElementById("email");
 
@@ -141,13 +145,14 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
 
-                fetch('/status', {
+                fetch('<?php echo BASE_PATH . "/status"; ?>', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: 'email=' + encodeURIComponent(email)
                     })
+
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
@@ -173,8 +178,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 errorMessage.textContent = 'Please enter a valid email address.';
             }
         }
-
-   
     </script>
 </body>
+
 </html>

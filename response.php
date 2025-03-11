@@ -32,14 +32,12 @@ if ($currency == 'LKR') {
 
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
 
-
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
-
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -58,8 +56,6 @@ if ($httpCode == 200) {
         $amount = $data['amount'] ?? '';
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
-
-    
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',
@@ -68,8 +64,6 @@ if ($httpCode == 200) {
         };
 
         $subject = "Payment Status Update";
-
-    
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
