@@ -32,7 +32,7 @@ $data = [
             "email" => "info@malkey.lk"
         ],
            "returnUrl" =>"https://malkey.go.digitable.io/paysafe/ntb/status",
-            //  "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
+             // "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
 
 
 
