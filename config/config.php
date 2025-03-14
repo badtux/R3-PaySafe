@@ -5,7 +5,7 @@ define('BASE_PATH', '/paysafe/ntb');
 
 if (APP_LIVE) {
 
-    define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/ntb');
+    define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/ntb/');
 } else {
     define('ASSET_PATH_URL', 'http://cmbgateway.loc/paysafe/');
 }
