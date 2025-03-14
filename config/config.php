@@ -1,6 +1,6 @@
 <?php
 
-define('APP_LIVE', true);
+define('APP_LIVE', false);
 define('BASE_PATH', '/paysafe/ntb');
 
 if (APP_LIVE) {
