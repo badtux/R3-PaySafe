@@ -175,7 +175,7 @@ if ($httpCode == 200) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="assets/card.png" alt="bank logo" class="h-10">
+            <img src="assets/card.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>

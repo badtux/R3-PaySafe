@@ -13,10 +13,10 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
 $_SESSION['orderId'] = $orderId;
 $_SESSION['currency'] = $currency;
 
-   $merchantId = MERCHANT_ID;
-   $apiUserName =API_USERNAME;
-   $apiPassWord =API_PASSWORD;
-     
+$merchantId = MERCHANT_ID;
+$apiUserName = API_USERNAME;
+$apiPassWord = API_PASSWORD;
+
 $url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/session";
 
 $data = [
@@ -31,8 +31,8 @@ $data = [
             "phone" => "+94-112365365",
             "email" => "info@malkey.lk"
         ],
-          // "returnUrl" =>"https://malkey.go.digitable.io/paysafe/ntb/status",
-             "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
+        "returnUrl" => "https://malkey.go.digitable.io/paysafe/ntb/status",
+        // "returnUrl" =>"http://cmbgateway.loc/paysafe/status",
 
 
 
@@ -56,7 +56,7 @@ $options = [
     CURLOPT_POSTFIELDS => json_encode($data),
     CURLOPT_HTTPHEADER => [
         "Content-Type: text/plain",
-        "Authorization: Basic " . base64_encode($apiUserName. ":" .$apiPassWord)
+        "Authorization: Basic " . base64_encode($apiUserName . ":" . $apiPassWord)
     ],
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_FAILONERROR => true
