@@ -1,7 +1,7 @@
 <?php
 
 define('APP_LIVE', false);
-define('BASE_PATH', '/paysafe/ntb');
+define('BASE_PATH', '/paysafe');
 
 // $baseUrl = APP_LIVE 
 //     ? "malkey.go.digitable.io/paysafe/ntb" 
