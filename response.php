@@ -67,7 +67,7 @@ if ($httpCode == 200) {
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img ?php echo ASSET_PATH_URL; ?>assets/banklogo1.png alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img ?php echo ASSET_PATH_URL; ?>assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -84,7 +84,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'payment canceled') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled  <img src="<?php echo ASSET_PATH_URL; ?>assets/banklogo1.png" "alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled  <img src="<?php echo ASSET_PATH_URL; ?>assets/combank.png" "alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -97,7 +97,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="<?php echo ASSET_PATH_URL; ?>assets/banklogo1.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="<?php echo ASSET_PATH_URL; ?>assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
