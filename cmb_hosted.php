@@ -68,6 +68,19 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                             <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
                         </div>
                     </div>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <span>I agree to the
+                            <a href="https://www.malkey.lk/terms-conditions.html"
+                                target="_blank"
+                                class="underline text-blue-600 hover:text-red-500 transition duration-300">
+                                Terms and Conditions
+                            </a>
+                        </span>
+                    </label>
+                    <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
+
+
                 </div>
                 <button onclick="validateAndProceed()"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
@@ -139,7 +152,14 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             let errorMessage = document.getElementById("error-message");
             let emailInput = document.getElementById("email");
+            let termsCheckbox = document.getElementById("termsCheckbox"); // Get the checkbox element
+            let termsErrorMessage = document.getElementById("terms-error-message"); // Get the terms error message element
 
+            termsErrorMessage.classList.add("hidden");
+            if (!termsCheckbox.checked) {
+                termsErrorMessage.classList.remove("hidden");
+                return;
+            }
             if (emailPattern.test(email)) {
                 emailInput.classList.remove("border-red-500");
                 emailInput.classList.add("border-green-500");
@@ -152,7 +172,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                         },
                         body: 'email=' + encodeURIComponent(email)
                     })
-
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Network response was not ok');
@@ -161,7 +180,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                     })
                     .then(data => {
                         console.log('Success:', data);
-
                         Checkout.showPaymentPage();
                     })
                     .catch(error => {
