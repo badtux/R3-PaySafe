@@ -163,7 +163,7 @@ if ($httpCode == 200) {
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
             <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
             <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
-            <p class="text-blue-100 text-sm">Protected by Nations Trust Bank</p>
+            <p class="text-blue-100 text-sm">Protected by Commercial Bank</p>
         </div>
         <div id="payment-status" class="mt-6 text-center text-lg font-semibold <?php echo ($paymentStatus === 'SUCCESS' ? 'success' : 'error'); ?>">
             Payment Status: <?php echo $paymentStatus; ?><br>
