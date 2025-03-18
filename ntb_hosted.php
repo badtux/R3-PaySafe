@@ -117,6 +117,14 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
             let errorMessage = document.getElementById("error-message");
             let emailInput = document.getElementById("email");
+            let termsCheckbox = document.getElementById("termsCheckbox"); // Get the checkbox element
+            let termsErrorMessage = document.getElementById("terms-error-message"); // Get the terms error message element
+
+            termsErrorMessage.classList.add("hidden");
+            if (!termsCheckbox.checked) {
+                termsErrorMessage.classList.remove("hidden");
+                return;
+            }
 
             if (emailPattern.test(email)) {
                 emailInput.classList.remove("border-red-500");
