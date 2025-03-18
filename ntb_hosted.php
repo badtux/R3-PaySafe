@@ -65,6 +65,17 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                             <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
                         </div>
                     </div>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <span>I agree to the
+                            <a href="https://www.malkey.lk/terms-conditions.html"
+                                target="_blank"
+                                class="underline text-blue-600 hover:text-red-500 transition duration-300">
+                                Terms and Conditions
+                            </a>
+                        </span>
+                    </label>
+                    <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
 
 
                 </div>
