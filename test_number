@@ -84,7 +84,7 @@ https://nationstrustbankplc.gateway.mastercard.com/api/documentation/integration
 
 local 
 
-url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=test309908&description=test
+url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tesbn76n808&description=test
 
 
 live 

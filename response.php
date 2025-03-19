@@ -1,6 +1,6 @@
 <?php
 // Start the session
-session_start();
+//session_start();
 
 require_once 'config/config.php';
 require 'vendor/autoload.php';
@@ -49,7 +49,7 @@ if ($httpCode == 200) {
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
 
-        error_log($data);
+      
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',
@@ -92,7 +92,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful  <img src="<?php echo ASSET_PATH_URL; ?>assets/banklogo1.png" alt="bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful  <img src=https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/042018/untitled-1_235.png?ccq.uKuBfgVDW6FzR8BS2JUug_Ulvx8Q&itok=Z3H3UayU alt="bank Icon" style="width: 30px; height: 30px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
