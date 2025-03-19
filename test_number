@@ -16,14 +16,15 @@ Mastercard
 //https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
 
 
-url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=n1lPghtynjhykjnbKIoi23drfqae&description=test
+url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=n1lPmnjkjnbKIoi23drfqae&description=test
 
- http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=n1lnbgg5LOKIoi23drfqae&description=test
-
-
-
-https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=2950&orderId=n1l2vnjhyvcgnbKIoi23drfqae&description=test
+ http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=n1bh4njbnby6jkhy6oi23drfqae&description=test
 
 
 
+https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=2950&orderId=n1io9vnjhNMBHgnbKIoi23drfqae&description=test
 
+
+
+
+<img ?php echo ASSET_PATH_URL; ?>assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;">

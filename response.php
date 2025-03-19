@@ -15,7 +15,6 @@ if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
 } else {
     $email = $_SESSION['email'] ?? 'example@example.com'; 
 }
-
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'];
 
@@ -28,8 +27,6 @@ if ($currency == 'LKR') {
     $apiUserName = API_USERNAME_USD;
     $apiPassword = API_PASSWORD_USD;
 }
-
-
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
 
 $ch = curl_init();
@@ -49,12 +46,12 @@ $emailMessage = "";
 if ($httpCode == 200) {
     $data = json_decode($response, true);
 
-    if ($data) {
+    if (!empty($data)) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
-        $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
-        $orderId = $data['id'] ?? $orderId; // Use API response if available
-        $amount = $data['amount'] ?? '';
-        $currency = $data['currency'] ?? '';
+        $transactionId = $data['3DSecure']['xid'] ?? 'not-set';
+        $orderId = $data['id'] ?? $orderId;
+        $amount = isset($data['amount']) ? number_format((float)$data['amount'], 2, '.', '') : '0.00';
+        $currency = htmlspecialchars($data['currency'] ?? 'N/A');
         $status = strtolower($data['result'] ?? '');
         $mailStatus = match ($status) {
             'success' => 'success',
@@ -62,12 +59,15 @@ if ($httpCode == 200) {
             'canceled' => 'payment canceled',
             default => 'unknown',
         };
+        //error_log("Response: $response");
+
+
 
         $subject = "Payment Status Update";
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error <img ?php echo ASSET_PATH_URL; ?>assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error </h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -84,7 +84,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'payment canceled') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled  <img src="<?php echo ASSET_PATH_URL; ?>assets/combank.png" "alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled </h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -97,7 +97,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src="<?php echo ASSET_PATH_URL; ?>assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;"></h2>
+                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src=https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-original-577x577/s3/052018/untitled-1_140.png?FIodUHBMSE1tE0IMRJ7U4E9kw9w3BiZg&itok=GqPUzdYf alt="Bank Icon" style="width: 30px; height: 30px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
