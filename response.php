@@ -49,7 +49,7 @@ if ($httpCode == 200) {
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
 
-       
+        error_log($data);
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',

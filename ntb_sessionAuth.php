@@ -2,7 +2,7 @@
 require_once 'config/config.php';
 require 'vendor/autoload.php';
 
-session_start();
+//session_start();
 
 
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
