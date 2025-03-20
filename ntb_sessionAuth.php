@@ -1,79 +1,100 @@
 <?php
-//require_once 'config/config.sample.php';
 require_once 'config/config.php';
 require 'vendor/autoload.php';
 
-$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
-$currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
-$description = isset($_GET['description']) ? $_GET['description'] : "no description";
-$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "no order id";
+class ntbToken {
+    private $amount = 0;
+    private $orderId = '';
+    private $description = 'N/A';
+    private $currency = 'USD';
 
-$_SESSION['orderId'] = $orderId;
-$_SESSION['currency'] = $currency;
+    public function __construct($isLive, $currency='USD')
+    {
+        $_SESSION['currency'] = $this->currency = $currency;
+    }
 
-$merchantId = MERCHANT_ID;
-$apiUserName = API_USERNAME;
-$apiPassWord = API_PASSWORD;
+    public function setOrderDetails(array $details){
+        $this->amount = $details['amount'];
+        $this->description = $details['description'];
+        $_SESSION['orderId'] = $this->orderId = $details['orderId']==''?'ORDR'.time():$details['orderId'];
+    }
 
-$url = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/session";
+    public function getOrderId() {
+        return $this->orderId;
+    }
+    public function getAmount() {
+        return $this->amount;
+    }
+    public function getDescreption() {
+        return $this->description;
+    }
+    public function getCurrency() {
+        return $this->currency;
+    }
 
-$data = [
-    "apiOperation" => "INITIATE_CHECKOUT",
-    "checkoutMode" => "WEBSITE",
-    "interaction" => [
-        "operation" => "AUTHORIZE",
-        "merchant" => [
-            "name" => NAME,
-            "logo" => LOGO,
-            "url" => "https://www.malkey.lk",
-            "phone" => "+94-112365365",
-            "email" => "info@malkey.lk"
-        ],
-        "returnUrl" => "https://malkey.go.digitable.io/paysafe/ntb/status",
-                     //"http://cmbgateway.loc/paysafe/status",
+    public function getSessionId() {
+        $sessionId = null;
+        
+        $url = 'https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/'.MERCHANT_ID.'/session';
 
-        "locale" => "en_US",
-        "style" => [
-            "theme" => "default"
-        ]
-    ],
-    "order" => [
-        "currency" => $currency,
-        "amount" => $amount,
-        "id" => $orderId,
-        "description" => $description
-    ]
-];
+        $data = [
+            "apiOperation" => "INITIATE_CHECKOUT",
+            "checkoutMode" => "WEBSITE",
+            "interaction" => [
+                "operation" => "AUTHORIZE",
+                "merchant" => [
+                    "name" => NAME,
+                    "logo" => LOGO,
+                    "url" => "https://www.malkey.lk",
+                    "phone" => "+94-112365365",
+                    "email" => "info@malkey.lk"
+                ],
+                "returnUrl" => RETURN_URL,
+                "locale" => "en_US",
+                "style" => [
+                    "theme" => "default"
+                ]
+            ],
+            "order" => [
+                "currency" => $this->currency,
+                "amount" => $this->amount,
+                "id" => $this->orderId,
+                "description" => $this->description
+            ]
+        ];
 
-$options = [
-    CURLOPT_URL => $url,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => json_encode($data),
-    CURLOPT_HTTPHEADER => [
-        "Content-Type: text/plain",
-        "Authorization: Basic " . base64_encode($apiUserName . ":" . $apiPassWord)
-    ],
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_FAILONERROR => true
-];
+        $options = [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_HTTPHEADER => [
+                "Content-Type: text/plain",
+                "Authorization: Basic " . base64_encode(API_USERNAME . ":" . API_PASSWORD)
+            ],
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FAILONERROR => true
+        ];
 
-$ch = curl_init();
-curl_setopt_array($ch, $options);
-$response = curl_exec($ch);
+        $ch = curl_init();
+        curl_setopt_array($ch, $options);
+        $response = curl_exec($ch);
 
-if ($response === false) {
-    $error_msg = curl_error($ch);
-    $error_msg = curl_strerror(curl_errno($ch));
-    error_log($error_msg);
-    curl_close($ch);
-    die("cURL error: " . $error_msg);
-}
-curl_close($ch);
+        if ($response === false) {
+            $error_msg = curl_error($ch);
+            $error_msg = curl_strerror(curl_errno($ch));
+            error_log($error_msg);
+            curl_close($ch);
+            throw new Exception('cURL error: : ' . $error_msg, 8);
+        }
+        curl_close($ch);
 
-$result = json_decode($response, true);
-if (isset($result['session']['id'])) {
-    $sessionId = $result['session']['id'];
-} else {
-    die("Failed to create session: " . json_encode($result));
+        $result = json_decode($response, true);
+
+        if (isset($result['session']['id'])) {
+            return $result['session']['id'];
+        } else {
+            throw new Exception('Failed to create session: ' . json_encode($result), 9);
+        }
+    }
 }

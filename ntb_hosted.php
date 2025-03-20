@@ -1,13 +1,21 @@
 <?php
 require_once "ntb_sessionAuth.php";
 
-if (!isset($sessionId)) {
-    die("Session ID not available.");
+try {
+    $ntbToken = new ntbToken(APP_LIVE);
+    $ntbToken->setOrderDetails([
+        'amount' => isset($_GET['amount']) ? $_GET['amount'] : 1.00,
+        'description' => isset($_GET['description']) ? $_GET['description'] : 'N/A',
+        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : ''
+    ]);
+
+    $sessionId = $ntbToken->getSessionId();
 }
-$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
-$currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
-$description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
-$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
+catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +26,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Payment | Nations Trust Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js">
     </script>
 </head>
@@ -37,7 +44,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                         <i class='bx bx-receipt text-2xl text-blue-600'></i>
                         <div class="text-left">
                             <p class="text-sm text-gray-500">Order Reference</p>
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($orderId); ?></p>
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($ntbToken->getOrderId()); ?></p>
                         </div>
                     </div>
 
@@ -45,7 +52,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                         <i class='bx bx-detail text-2xl text-blue-600'></i>
                         <div class="text-left">
                             <p class="text-sm text-gray-500">Description</p>
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
+                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($ntbToken->getDescreption()); ?></p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
@@ -53,7 +60,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                         <div class="text-left">
                             <p class="text-sm text-gray-500">Total Amount</p>
                             <p class="font-bold text-2xl text-blue-600">
-                                <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                                <?php echo htmlspecialchars($ntbToken->getCurrency()) . ' ' . htmlspecialchars($ntbToken->getAmount()); ?>
                             </p>
                         </div>
                     </div>
@@ -84,8 +91,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                     <i class='bx bx-lock-alt text-xl'></i>
                     <span>Proceed to Secure Payment</span>
                 </button>
-
-
             </div>
         </div>
 
@@ -101,6 +106,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
 
     </div>
     <script>
+
         function validateEmail(email) {
             const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             return re.test(email);
