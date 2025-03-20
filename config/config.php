@@ -1,18 +1,18 @@
 <?php
 
-define('APP_LIVE', false);
+define('APP_LIVE', true);
 define('BASE_PATH','/paysafe/cmb');
 
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg');
 
 if (APP_LIVE) {
-    define('MERCHANT_ID_USD', ''); // live 
-    define('API_USERNAME_USD', '');
-    define('API_PASSWORD_USD', '');
+    define('MERCHANT_ID_USD', 'MALKEYRENUSD'); // live 
+    define('API_USERNAME_USD', 'merchant.MALKEYRENUSD');
+    define('API_PASSWORD_USD', '5c20ea34cca4a7a383352b0056482568');
 
-    define('MERCHANT_ID_LKR', ''); //live 
-    define('API_USERNAME_LKR', '');
-    define('API_PASSWORD_LKR', '');
+    define('MERCHANT_ID_LKR', 'MALKEYRENLKR'); //live 
+    define('API_USERNAME_LKR', 'merchant.MALKEYRENLKR');
+    define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
     define('API_USERNAME_LKR', 'merchant.TESTMALKEYRENLKR');
