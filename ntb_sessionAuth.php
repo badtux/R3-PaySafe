@@ -1,9 +1,7 @@
 <?php
+//require_once 'config/config.sample.php';
 require_once 'config/config.php';
 require 'vendor/autoload.php';
-
-//session_start();
-
 
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "USD";
@@ -32,9 +30,7 @@ $data = [
             "email" => "info@malkey.lk"
         ],
         "returnUrl" => "https://malkey.go.digitable.io/paysafe/ntb/status",
-                        //"http://cmbgateway.loc/paysafe/status",
-
-
+                     //"http://cmbgateway.loc/paysafe/status",
 
         "locale" => "en_US",
         "style" => [

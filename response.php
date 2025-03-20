@@ -1,8 +1,7 @@
 <?php
-// Start the session
-//session_start();
 
 require_once 'config/config.php';
+//require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -13,14 +12,14 @@ if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
     $email = $_POST['email'];
     $_SESSION['email'] = $email;
 } else {
-    $email = $_SESSION['email'] ?? 'example@example.com'; 
+    $email = $_SESSION['email'] ?? 'example@example.com';
 }
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'];
 
-    $merchantId = MERCHANT_ID;
-    $apiUserName = API_USERNAME;
-    $apiPassword = API_PASSWORD;
+$merchantId = MERCHANT_ID;
+$apiUserName = API_USERNAME;
+$apiPassword = API_PASSWORD;
 
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
 
@@ -29,7 +28,7 @@ curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -49,7 +48,7 @@ if ($httpCode == 200) {
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
 
-      
+
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',
@@ -142,6 +141,7 @@ if ($httpCode == 200) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -149,10 +149,15 @@ if ($httpCode == 200) {
     <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #payment-status.success { color: #155724; }
-        #payment-status.error { color: #721c24; }
+        #payment-status.success {
+            color: #155724;
+        }
+        #payment-status.error {
+            color: #721c24;
+        }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
@@ -175,9 +180,10 @@ if ($httpCode == 200) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-            <img src="assets/card.png" alt="bank logo" class="h-10">
+                <img src="assets/card.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>
 </body>
+
 </html>
