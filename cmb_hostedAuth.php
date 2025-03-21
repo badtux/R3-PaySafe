@@ -1,5 +1,7 @@
 <?php
 require_once 'config/config.php';
+//require_once 'config/config.sample.php';
+
 require 'vendor/autoload.php';
 
 session_start();
@@ -39,8 +41,7 @@ $data = http_build_query([
     'order.currency' => $currency,
     'order.description' => $description,
     'interaction.operation' => 'PURCHASE',
-    'interaction.returnUrl' =>"https://malkey.go.digitable.io/paysafe/cmb/status",
-                                      // "http://cmbgateway.loc/paysafe/status",
+     'interaction.returnUrl' => REDIRECT_URL,                                  
     'interaction.merchant.name' => NAME
 ]);
 

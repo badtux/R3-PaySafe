@@ -1,6 +1,8 @@
 <?php
 require_once "cmb_hostedAuth.php";
 require_once "config/config.php";
+//require_once "config/config.sample.php";
+
 
 
 if (!isset($sessionId)) {
