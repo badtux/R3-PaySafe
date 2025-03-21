@@ -1,7 +1,6 @@
 <?php
 require_once 'config/config.php';
 //require_once 'config/config.sample.php';
-
 require 'vendor/autoload.php';
 
 class ntbToken {
@@ -10,15 +9,12 @@ class ntbToken {
     private $description = 'N/A';
     private $currency = 'USD';
 
-    public function __construct($isLive, $currency='USD')
-    {
-        $_SESSION['currency'] = $this->currency = $currency;
-    }
-
     public function setOrderDetails(array $details){
         $this->amount = $details['amount'];
+        $this->currency = $details['currency'];
         $this->description = $details['description'];
-        $_SESSION['orderId'] = $this->orderId = $details['orderId']==''?'ORDR'.time():$details['orderId'];
+        $_SESSION['orderId'] = $this->orderId = $details['orderId'] == '' ? 'ORDR' . time() : $details['orderId'];
+    
     }
 
     public function getOrderId() {

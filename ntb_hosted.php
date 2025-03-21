@@ -1,12 +1,16 @@
 <?php
 require_once "ntb_sessionAuth.php";
+require_once "config/config.php";
+//require_once "config/config.sample.php";
 
 try {
     $ntbToken = new ntbToken(APP_LIVE);
     $ntbToken->setOrderDetails([
         'amount' => isset($_GET['amount']) ? $_GET['amount'] : 1.00,
         'description' => isset($_GET['description']) ? $_GET['description'] : 'N/A',
-        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : ''
+        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : '',
+        'currency' => isset($_GET['currency']) ? $_GET['currency'] : 'USD'
+
     ]);
 
     $sessionId = $ntbToken->getSessionId();
@@ -15,9 +19,7 @@ catch (Exception $e) {
     echo json_encode(['error' => $e->getMessage()]);
     exit;
 }
-
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -117,7 +119,6 @@ catch (Exception $e) {
                 id: sessionId
             }
         });
-
         function validateAndProceed() {
             let email = document.getElementById("email").value;
             let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
