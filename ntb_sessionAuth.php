@@ -1,5 +1,7 @@
 <?php
 require_once 'config/config.php';
+//require_once 'config/config.sample.php';
+
 require 'vendor/autoload.php';
 
 class ntbToken {

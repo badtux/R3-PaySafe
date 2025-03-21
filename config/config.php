@@ -21,8 +21,7 @@ if (APP_LIVE) {
 }
 define('NAME', 'Malkey Rent A Car');
 
-define('CC_LIST', ['thamara.dasun1@gmail.com']);
-//define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
+define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' ,'piumal0713@gmail.com']);
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
 define('MAIL_PORT', 465);
