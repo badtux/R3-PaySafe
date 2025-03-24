@@ -20,8 +20,6 @@ if (isset($_POST['email'])) {
     $email = $_SESSION['email'] ?? 'example@example.com';
 }
 
-
-$orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'] ?? 'USD'; 
 error_log("Email: $email");
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
