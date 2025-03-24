@@ -28,3 +28,37 @@ https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SWED12
 
 
 <img ?php echo ASSET_PATH_URL; ?>assets/combank.png" alt="Bank Icon" style="width: 24px; height: 24px; vertical-align: middle;">
+
+
+
+
+
+
+<?php
+require_once "ntb_sessionAuth.php";
+require_once "config/config.php";
+//require_once "config/config.sample.php";
+
+try {
+    $ntbToken = new ntbToken(APP_LIVE);
+    $ntbToken->setOrderDetails([
+        'amount' => isset($_GET['amount']) ? $_GET['amount'] : 1.00,
+        'description' => isset($_GET['description']) ? $_GET['description'] : 'N/A',
+        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : '',
+        'currency' => isset($_GET['currency']) ? $_GET['currency'] : 'USD'
+
+    ]);
+
+    $sessionId = $ntbToken->getSessionId();
+}
+catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+}
+?>
+
+
+
+
+
+
