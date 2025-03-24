@@ -3,17 +3,25 @@ require_once "cmb_hostedAuth.php";
 require_once "config/config.php";
 //require_once "config/config.sample.php";
 
+try {
+    $PaymentcmbSession = new PaymentcmbSession(APP_LIVE);
+    $PaymentcmbSession->__construct([
+        'amount' => isset($_GET['amount']) ? $_GET['amount'] : 1.00,
+        'description' => isset($_GET['description']) ? $_GET['description'] : 'N/A',
+        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : '',
+        'currency' => isset($_GET['currency']) ? $_GET['currency'] : 'USD'
 
+    ]);
 
-if (!isset($sessionId)) {
-    die("Session ID not available.");
+    $sessionId = $PaymentcmbSession->getSessionId();
 }
-
-$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
-$currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
-$description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
-$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
+catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+    exit;
+}
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
