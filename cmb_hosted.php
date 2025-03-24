@@ -1,7 +1,7 @@
 <?php
 require_once "cmb_hostedAuth.php";
-//require_once "config/config.php";
-require_once "config/config.sample.php";
+require_once "config/config.php";
+//require_once "config/config.sample.php";
 
 
 
@@ -154,8 +154,8 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             let errorMessage = document.getElementById("error-message");
             let emailInput = document.getElementById("email");
-            let termsCheckbox = document.getElementById("termsCheckbox"); // Get the checkbox element
-            let termsErrorMessage = document.getElementById("terms-error-message"); // Get the terms error message element
+            let termsCheckbox = document.getElementById("termsCheckbox"); 
+            let termsErrorMessage = document.getElementById("terms-error-message"); 
 
             termsErrorMessage.classList.add("hidden");
             if (!termsCheckbox.checked) {
@@ -166,16 +166,14 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.remove("border-red-500");
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
-                
-                console.log('Email:', email);
 
-                fetch('<?php echo BASE_PATH . "/status"; ?>', {
+             
+               fetch('response.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: 'email=' + encodeURIComponent(email),
-                       
+                        body: 'email=' + encodeURIComponent(email)
                     })
                     .then(response => {
                         if (!response.ok) {

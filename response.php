@@ -1,14 +1,16 @@
 <?php
-//require_once 'config/config.php';
-require_once 'config/config.sample.php';
+
+require_once 'config/config.php';
+//require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-session_start();
+session_start(); // Ensure session is started
 
 error_log("POST Data: " . print_r($_POST, true));
+
 if (isset($_POST['email'])) {
     $email = $_POST['email'];
     error_log("Email received: " . $email);
@@ -17,9 +19,14 @@ if (isset($_POST['email'])) {
     error_log("No email in POST");
     $email = $_SESSION['email'] ?? 'example@example.com';
 }
+
+
+$orderId = $_SESSION['orderId'] ?? 'no-order-id';
+$currency = $_SESSION['currency'] ?? 'USD'; 
+error_log("Email: $email");
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'];
-error_log("Email: $email");
+
 if ($currency == 'LKR') {
     $merchantId = MERCHANT_ID_LKR;
     $apiUserName = API_USERNAME_LKR;
@@ -61,7 +68,7 @@ if ($httpCode == 200) {
             'canceled' => 'payment canceled',
             default => 'unknown',
         };
-        //error_log("Response: $response");
+       // error_log("Response: $response");
 
 
 
@@ -188,3 +195,4 @@ if ($httpCode == 200) {
     </div>
 </body>
 </html>
+

@@ -1,10 +1,9 @@
 <?php
-//require_once 'config/config.php';
-require_once 'config/config.sample.php';
-
+require_once 'config/config.php';
+//require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 
-session_start();
+
 
 $amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
