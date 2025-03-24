@@ -1,27 +1,19 @@
 <?php
 require_once "cmb_hostedAuth.php";
-require_once "config/config.php";
-//require_once "config/config.sample.php";
+//require_once "config/config.php";
+require_once "config/config.sample.php";
 
-try {
-    $PaymentcmbSession = new PaymentcmbSession(APP_LIVE);
-    $PaymentcmbSession->__construct([
-        'amount' => isset($_GET['amount']) ? $_GET['amount'] : 1.00,
-        'description' => isset($_GET['description']) ? $_GET['description'] : 'N/A',
-        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : '',
-        'currency' => isset($_GET['currency']) ? $_GET['currency'] : 'USD'
 
-    ]);
 
-    $sessionId = $PaymentcmbSession->getSessionId();
+if (!isset($sessionId)) {
+    die("Session ID not available.");
 }
-catch (Exception $e) {
-    echo json_encode(['error' => $e->getMessage()]);
-    exit;
-}
+
+$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
+$currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
+$description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
+$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -174,13 +166,16 @@ catch (Exception $e) {
                 emailInput.classList.remove("border-red-500");
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
+                
+                console.log('Email:', email);
 
                 fetch('<?php echo BASE_PATH . "/status"; ?>', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: 'email=' + encodeURIComponent(email)
+                        body: 'email=' + encodeURIComponent(email),
+                       
                     })
                     .then(response => {
                         if (!response.ok) {

@@ -1,25 +1,25 @@
 <?php
-// Start the session
-session_start();
-
-require_once 'config/config.php';
-//require_once 'config/config.sample.php';
-
+//require_once 'config/config.php';
+require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+session_start();
 
-if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+error_log("POST Data: " . print_r($_POST, true));
+if (isset($_POST['email'])) {
     $email = $_POST['email'];
+    error_log("Email received: " . $email);
     $_SESSION['email'] = $email;
 } else {
-    $email = $_SESSION['email'] ?? 'example@example.com'; 
+    error_log("No email in POST");
+    $email = $_SESSION['email'] ?? 'example@example.com';
 }
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'];
-
+error_log("Email: $email");
 if ($currency == 'LKR') {
     $merchantId = MERCHANT_ID_LKR;
     $apiUserName = API_USERNAME_LKR;
