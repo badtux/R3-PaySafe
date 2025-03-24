@@ -29,4 +29,4 @@ define('MAIL_ENCRYPTION', 'ssl');
 define('MAIL_USERNAME', 'AKIA5K7Q37VYYJEFNMN2');
 define('MAIL_PASSWORD', 'BHwtncYWVjdoVtd5Y9Epu1/UBPV7fRi+zbblftJlqabg');
 define('MAIL_ADDRESS', 'rype3-dtaas-platform@rype3.com');
-define('MAIL_NAME', 'DT Plutos');
+define('MAIL_NAME', 'malkey rent a car');
