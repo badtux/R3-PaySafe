@@ -18,11 +18,11 @@ Mastercard
 
 url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=123wew76mnk89&description=test
 
- http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=nbqw28j&description=test
+ http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=nbvg28j&description=test
 
 
 
-https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SWED123&description=test
+https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SW12123&description=test
 
 
 
