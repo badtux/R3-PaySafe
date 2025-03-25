@@ -88,6 +88,6 @@ url http://cmbgateway.loc/paysafe?currency=USD&amount=2950&orderId=tesbn76n808&d
 
 
 live 
-https://malkey.go.digitable.io/paysafe/?currency=LKR&amount=100&email=abc@gmail.com&reference=123
+https://malkey.go.digitable.io/paysafe/ntb?currency=LKR&amount=100&email=abc@gmail.com&orderId=123
 
 
