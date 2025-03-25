@@ -39,7 +39,7 @@ class ntbToken {
             "apiOperation" => "INITIATE_CHECKOUT",
             "checkoutMode" => "WEBSITE",
             "interaction" => [
-                "operation" => "AUTHORIZE",
+                "operation" => "PURCHASE",
                 "merchant" => [
                     "name" => NAME,
                     "logo" => LOGO,
@@ -48,10 +48,6 @@ class ntbToken {
                     "email" => "info@malkey.lk"
                 ],
                 "returnUrl" => RETURN_URL,
-                "locale" => "en_US",
-                "style" => [
-                    "theme" => "default"
-                ]
             ],
             "order" => [
                 "currency" => $this->currency,
