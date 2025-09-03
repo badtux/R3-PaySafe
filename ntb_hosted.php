@@ -14,8 +14,7 @@ try {
     ]);
 
     $sessionId = $ntbToken->getSessionId();
-}
-catch (Exception $e) {
+} catch (Exception $e) {
     echo json_encode(['error' => $e->getMessage()]);
     exit;
 }
@@ -42,14 +41,25 @@ catch (Exception $e) {
         <div id="main_2">
             <div class="px-6 pt-8">
                 <div class="space-y-6 mb-8">
-                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                        <i class='bx bx-receipt text-2xl text-blue-600'></i>
-                        <div class="text-left">
-                            <p class="text-sm text-gray-500">Order Reference</p>
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($ntbToken->getOrderId()); ?></p>
+                    <div class="flex space-x-3">
+                        <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
+                            <i class='bx bx-receipt text-lg text-blue-600'></i>
+                            <div class="text-left">
+                                <p class="text-sm text-gray-500">Order Reference</p>
+                                <p class="font-semibold text-gray-800 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
+                            <i class='bx bx-credit-card text-lg text-blue-600'></i>
+                            <div class="text-left">
+                                <p class="text-sm text-gray-500">Total Amount</p>
+                                <p class="font-bold text-blue-600 text-sm pl-4">
+                                    <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                                </p>
+                            </div>
                         </div>
                     </div>
-
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
                         <i class='bx bx-detail text-2xl text-blue-600'></i>
                         <div class="text-left">
@@ -57,15 +67,7 @@ catch (Exception $e) {
                             <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($ntbToken->getDescreption()); ?></p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                        <i class='bx bx-credit-card text-2xl text-blue-600'></i>
-                        <div class="text-left">
-                            <p class="text-sm text-gray-500">Total Amount</p>
-                            <p class="font-bold text-2xl text-blue-600">
-                                <?php echo htmlspecialchars($ntbToken->getCurrency()) . ' ' . htmlspecialchars($ntbToken->getAmount()); ?>
-                            </p>
-                        </div>
-                    </div>
+
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
                         <i class='bx bx-detail text-2xl text-blue-600'></i>
                         <div class="text-left w-full">
@@ -102,13 +104,12 @@ catch (Exception $e) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="assets/card.png" alt="bank logo" class="h-10 ">
+                <img src="/assets/card.png" alt="bank logo" class="h-10 ">
             </div>
         </div>
 
     </div>
     <script>
-
         function validateEmail(email) {
             const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             return re.test(email);
@@ -119,6 +120,7 @@ catch (Exception $e) {
                 id: sessionId
             }
         });
+
         function validateAndProceed() {
             let email = document.getElementById("email").value;
             let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
