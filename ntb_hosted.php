@@ -27,6 +27,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Payment | Nations Trust Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <script src="https://nationstrustbankplc.gateway.mastercard.com/static/checkout/checkout.min.js">
     </script>
 </head>
