@@ -52,14 +52,17 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                             <i class='bx bx-credit-card text-lg text-blue-600'></i>
                             <div class="text-left">
                                 <p class="text-sm text-gray-500">Total Amount</p>
-                                <p class="font-bold text-blue-600 text-sm pl-4">
-                                    <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                                   <p class="font-bold text-blue-600 text-sm pl-4">
+                                    <?php
+                                    $formattedAmount = (fmod($amount, 1) == 0)
+                                        ? number_format($amount, 0, '.', ',')
+                                        : number_format($amount, 2, '.', ',');
+                                    echo htmlspecialchars($currency) . ' ' . $formattedAmount;
+                                    ?>
                                 </p>
                             </div>
                         </div>
                     </div>
-
-
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
                         <i class='bx bx-detail text-2xl text-blue-600'></i>
                         <div class="text-left">
