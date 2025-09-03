@@ -86,8 +86,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                         </span>
                     </label>
                     <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
-
-
                 </div>
                 <button onclick="validateAndProceed()"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
@@ -109,7 +107,7 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="assets/sponser.png" alt="bank logo" class="h-10">
+                <img src="/assets/sponser.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>
