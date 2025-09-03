@@ -56,8 +56,14 @@ try {
                             <div class="text-left">
                                 <p class="text-sm text-gray-500">Total Amount</p>
                                 <p class="font-bold text-blue-600 text-sm pl-4">
-                                    <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                                    <?php
+                                    $formattedAmount = (fmod($amount, 1) == 0)
+                                        ? number_format($amount, 0, '.', ',')
+                                        : number_format($amount, 2, '.', ',');
+                                    echo htmlspecialchars($currency) . ' ' . $formattedAmount;
+                                    ?>
                                 </p>
+
                             </div>
                         </div>
                     </div>
