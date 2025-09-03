@@ -27,4 +27,3 @@ https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SW1212
 
 
 
-   fetch('<?php echo BASE_PATH . "status"; ?>', {

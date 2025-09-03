@@ -39,27 +39,32 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
         <div id="main_2">
             <div class="px-6 pt-8">
                 <div class="space-y-6 mb-8">
-                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                        <i class='bx bx-receipt text-2xl text-blue-600'></i>
-                        <div class="text-left">
-                            <p class="text-sm text-gray-500">Order Reference</p>
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($orderId); ?></p>
+                    <div class="flex space-x-3">
+                        <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
+                            <i class='bx bx-receipt text-lg text-blue-600'></i>
+                            <div class="text-left">
+                                <p class="text-sm text-gray-500">Order Reference</p>
+                                <p class="font-semibold text-gray-800 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
+                            <i class='bx bx-credit-card text-lg text-blue-600'></i>
+                            <div class="text-left">
+                                <p class="text-sm text-gray-500">Total Amount</p>
+                                <p class="font-bold text-blue-600 text-sm pl-4">
+                                    <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
+                                </p>
+                            </div>
                         </div>
                     </div>
+
+
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
                         <i class='bx bx-detail text-2xl text-blue-600'></i>
                         <div class="text-left">
                             <p class="text-sm text-gray-500">Description</p>
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($description); ?></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                        <i class='bx bx-credit-card text-2xl text-blue-600'></i>
-                        <div class="text-left">
-                            <p class="text-sm text-gray-500">Total Amount</p>
-                            <p class="font-bold text-2xl text-blue-600">
-                                <?php echo htmlspecialchars($currency) . ' ' . htmlspecialchars($amount); ?>
-                            </p>
+                            <p class="font-semibold text-gray-800 pl-4"><?php echo htmlspecialchars($description); ?></p>
                         </div>
                     </div>
                     <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
@@ -154,8 +159,8 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             let errorMessage = document.getElementById("error-message");
             let emailInput = document.getElementById("email");
-            let termsCheckbox = document.getElementById("termsCheckbox"); 
-            let termsErrorMessage = document.getElementById("terms-error-message"); 
+            let termsCheckbox = document.getElementById("termsCheckbox");
+            let termsErrorMessage = document.getElementById("terms-error-message");
 
             termsErrorMessage.classList.add("hidden");
             if (!termsCheckbox.checked) {
@@ -167,8 +172,8 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
 
-             
-               fetch('response.php', {
+
+                fetch('response.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
