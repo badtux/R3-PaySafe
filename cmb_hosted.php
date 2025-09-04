@@ -46,11 +46,11 @@ elseif (!isset($sessionId)) {
             <div class="p-6 text-center">
                 <h2 class="text-xl font-bold text-red-600">Error</h2>
                 <p class="text-red-500 mt-2"><?php echo htmlspecialchars($errorMessage); ?></p>
-                <button onclick="window.location.href='https://www.malkey.lk/'"
+                <!-- <button onclick="window.location.href='https://www.malkey.lk/'"
                         class="mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center mx-auto space-x-2">
                     <i class='bx bx-arrow-back text-xl'></i>
                     <span>Return to Merchant</span>
-                </button>
+                </button> -->
             </div>
         <?php else: ?>
             <!-- Display the payment form if amount and sessionId are valid -->
@@ -62,7 +62,7 @@ elseif (!isset($sessionId)) {
                                 <i class='bx bx-receipt text-lg text-blue-600'></i>
                                 <div class="text-left">
                                     <p class="text-sm text-gray-500">Order Reference</p>
-                                    <p class="font-semibold text-gray-800 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                                    <p class="font-bold text-blue-600 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
@@ -84,7 +84,7 @@ elseif (!isset($sessionId)) {
                             <i class='bx bx-detail text-2xl text-blue-600'></i>
                             <div class="text-left">
                                 <p class="text-sm text-gray-500">Description</p>
-                                <p class="font-semibold text-gray-800 pl-4"><?php echo htmlspecialchars($description); ?></p>
+                                <p class="font-bold text-blue-600 text-sm pl-4"><?php echo htmlspecialchars($description); ?></p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
