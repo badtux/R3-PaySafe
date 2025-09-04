@@ -1,6 +1,8 @@
 <?php
 require_once "cmb_hostedAuth.php";
-require_once "config/config.sample.php";
+//require_once "config/config.sample.php";
+require_once "config/config.php";
+require "vendor/autoload.php";
 
 // Validate input parameters
 $amount = isset($_GET['amount']) ? $_GET['amount'] : null;
