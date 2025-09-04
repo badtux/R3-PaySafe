@@ -1,109 +1,125 @@
 <?php
 require_once "cmb_hostedAuth.php";
-require_once "config/config.php";
-//require_once "config/config.sample.php";
+require_once "config/config.sample.php";
 
-
-
-if (!isset($sessionId)) {
-    die("Session ID not available.");
-}
-
-$amount = isset($_GET['amount']) ? $_GET['amount'] : "1.00";
+// Validate input parameters
+$amount = isset($_GET['amount']) ? $_GET['amount'] : null;
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
 $description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
 $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
+
+// Check if amount is valid (non-empty, numeric, and positive)
+$isValidAmount = !empty($amount) && is_numeric($amount) && $amount > 0;
+
+if (!$isValidAmount) {
+    $errorMessage = "Error: Amount is required.";
+}
+elseif (!isset($sessionId)) {
+    $errorMessage = "Error: Session could not be created. Please try again.";
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Payment | Commercial Bank</title>
+    <title><?php echo isset($errorMessage) ? 'Payment Error | Commercial Bank' : 'Secure Payment | Commercial Bank'; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
-    <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"></script>
-
-
+    <?php if (!isset($errorMessage)): ?>
+        <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"></script>
+    <?php endif; ?>
 </head>
-
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
             <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
-            <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
+            <h1 class="text-2xl font-bold text-blue-100"><?php echo isset($errorMessage) ? 'Payment Error' : 'Secure Payment'; ?></h1>
             <p class="text-blue-100 text-sm">Protected by Commercial Bank</p>
         </div>
-        <div id="main_2">
-            <div class="px-6 pt-8">
-                <div class="space-y-6 mb-8">
-                    <div class="flex space-x-3">
-                        <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
-                            <i class='bx bx-receipt text-lg text-blue-600'></i>
-                            <div class="text-left">
-                                <p class="text-sm text-gray-500">Order Reference</p>
-                                <p class="font-semibold text-gray-800 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
-                            </div>
-                        </div>
 
-                        <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
-                            <i class='bx bx-credit-card text-lg text-blue-600'></i>
-                            <div class="text-left">
-                                <p class="text-sm text-gray-500">Total Amount</p>
-                                   <p class="font-bold text-blue-600 text-sm pl-4">
-                                    <?php
-                                    $formattedAmount = (fmod($amount, 1) == 0)
-                                        ? number_format($amount, 0, '.', ',')
-                                        : number_format($amount, 2, '.', ',');
-                                    echo htmlspecialchars($currency) . ' ' . $formattedAmount;
-                                    ?>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                        <i class='bx bx-detail text-2xl text-blue-600'></i>
-                        <div class="text-left">
-                            <p class="text-sm text-gray-500">Description</p>
-                            <p class="font-semibold text-gray-800 pl-4"><?php echo htmlspecialchars($description); ?></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                        <i class='bx bx-detail text-2xl text-blue-600'></i>
-                        <div class="text-left w-full">
-                            <p class="text-sm text-gray-500">Your Email</p>
-                            <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full" placeholder="Enter your email">
-                            <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
-                        </div>
-                    </div>
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <span>I agree to the
-                            <a href="https://www.malkey.lk/terms-conditions.html"
-                                target="_blank"
-                                class="underline text-blue-600 hover:text-red-500 transition duration-300">
-                                Terms and Conditions
-                            </a>
-                        </span>
-                    </label>
-                    <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
-                </div>
-                <button onclick="validateAndProceed()"
-                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                    <i class='bx bx-lock-alt text-xl'></i>
-                    <span>Proceed to Secure Payment</span>
+        <?php if (isset($errorMessage)): ?>
+            <!-- Display error message if amount is invalid or sessionId is missing -->
+            <div class="p-6 text-center">
+                <h2 class="text-xl font-bold text-red-600">Error</h2>
+                <p class="text-red-500 mt-2"><?php echo htmlspecialchars($errorMessage); ?></p>
+                <button onclick="window.location.href='https://www.malkey.lk/'"
+                        class="mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center mx-auto space-x-2">
+                    <i class='bx bx-arrow-back text-xl'></i>
+                    <span>Return to Merchant</span>
                 </button>
             </div>
-        </div>
-        <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
-        <div class="flex justify-center">
-            <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn"
-                class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                Return to Merchant
-            </button>
-        </div>
+        <?php else: ?>
+            <!-- Display the payment form if amount and sessionId are valid -->
+            <div id="main_2">
+                <div class="px-6 pt-8">
+                    <div class="space-y-6 mb-8">
+                        <div class="flex space-x-3">
+                            <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
+                                <i class='bx bx-receipt text-lg text-blue-600'></i>
+                                <div class="text-left">
+                                    <p class="text-sm text-gray-500">Order Reference</p>
+                                    <p class="font-semibold text-gray-800 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
+                                <i class='bx bx-credit-card text-lg text-blue-600'></i>
+                                <div class="text-left">
+                                    <p class="text-sm text-gray-500">Total Amount</p>
+                                    <p class="font-bold text-blue-600 text-sm pl-4">
+                                        <?php
+                                        $formattedAmount = (fmod($amount, 1) == 0)
+                                            ? number_format($amount, 0, '.', ',')
+                                            : number_format($amount, 2, '.', ',');
+                                        echo htmlspecialchars($currency) . ' ' . $formattedAmount;
+                                        ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                            <i class='bx bx-detail text-2xl text-blue-600'></i>
+                            <div class="text-left">
+                                <p class="text-sm text-gray-500">Description</p>
+                                <p class="font-semibold text-gray-800 pl-4"><?php echo htmlspecialchars($description); ?></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
+                            <i class='bx bx-detail text-2xl text-blue-600'></i>
+                            <div class="text-left w-full">
+                                <p class="text-sm text-gray-500">Your Email</p>
+                                <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full" placeholder="Enter your email">
+                                <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
+                            </div>
+                        </div>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <span>I agree to the
+                                <a href="https://www.malkey.lk/terms-conditions.html"
+                                   target="_blank"
+                                   class="underline text-blue-600 hover:text-red-500 transition duration-300">
+                                    Terms and Conditions
+                                </a>
+                            </span>
+                        </label>
+                        <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
+                    </div>
+                    <button onclick="validateAndProceed()"
+                            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                        <i class='bx bx-lock-alt text-xl'></i>
+                        <span>Proceed to Secure Payment</span>
+                    </button>
+                </div>
+            </div>
+            <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
+            <div class="flex justify-center">
+                <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn"
+                        class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                    <span>Return to Merchant</span>
+                </button>
+            </div>
+        <?php endif; ?>
         <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
             <div class="flex items-center">
                 <i class='bx bx-shield-quarter text-green-500'></i>
@@ -115,8 +131,9 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
         </div>
     </div>
 
+    <?php if (!isset($errorMessage)): ?>
     <script>
-        const sessionId = "<?php echo $sessionId; ?>";
+        const sessionId = "<?php echo htmlspecialchars($sessionId); ?>";
 
         // Configure Checkout.js
         Checkout.configure({
@@ -173,31 +190,30 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
                 emailInput.classList.add("border-green-500");
                 errorMessage.classList.add("hidden");
 
-
                 fetch('response.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: 'email=' + encodeURIComponent(email)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.text();
-                    })
-                    .then(data => {
-                        console.log('Success:', data);
-                        Checkout.showPaymentPage();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        emailInput.classList.remove("border-green-500");
-                        emailInput.classList.add("border-red-500");
-                        errorMessage.textContent = 'Failed to process email. Please try again.';
-                        errorMessage.classList.remove("hidden");
-                    });
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'email=' + encodeURIComponent(email)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    Checkout.showPaymentPage();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    emailInput.classList.remove("border-green-500");
+                    emailInput.classList.add("border-red-500");
+                    errorMessage.textContent = 'Failed to process email. Please try again.';
+                    errorMessage.classList.remove("hidden");
+                });
             } else {
                 emailInput.classList.remove("border-green-500");
                 emailInput.classList.add("border-red-500");
@@ -206,6 +222,6 @@ $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available."
             }
         }
     </script>
+    <?php endif; ?>
 </body>
-
 </html>
