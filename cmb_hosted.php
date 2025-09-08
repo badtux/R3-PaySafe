@@ -4,7 +4,6 @@ require_once "cmb_hostedAuth.php";
 require_once "config/config.php";
 require "vendor/autoload.php";
 
-// Validate input parameters
 $amount = isset($_GET['amount']) ? $_GET['amount'] : null;
 $currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
 $description = isset($_GET['description']) ? $_GET['description'] : "No description available.";

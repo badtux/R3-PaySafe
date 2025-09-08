@@ -1,12 +1,49 @@
-
 Mastercard
-
-
-
 5123450000000008
 2223000000000007
 5111111111111118
 2223000000000023
+
+
+Visa
+4508750015741019
+4012000033330026
+
+
+
+American Express (AMEX)
+
+373708623186001
+372280864074008
+377222581193005
+3723994278750063
+371316662951004
+
+
+Expiry Date 
+
+01/39 APPROVED
+05/39 DECLINED
+04/27 EXPIRED_CARD
+08/28  TIMED_OUT
+01/37	ACQUIRER_SYSTEM_ERROR
+02/37	UNSPECIFIED_FAILURE
+05/37	UNKNOWN
+
+
+CSC/CVV
+
+
+100  MATCH
+101 NOT_PROCESSED
+102  NO_MATCH
+
+
+For American Express cards
+
+1000	MATCH
+1010	NOT_PROCESSED
+1020	NO_MATCH
 
 
 
@@ -18,7 +55,7 @@ Mastercard
 
 url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=123wew76mnk89&description=test
 
- http://cmbgateway.loc/paysafe?currency=LKR&amount=&orderId=SW12123&description=test
+ http://cmbgateway.loc/paysafe?currency=LKR&amount=120&orderId=SW1223&description=test
 
 
 
@@ -27,3 +64,13 @@ https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SW1212
 
 
 
+docker start {
+    /etc/init.d/apache2 restart
+    nvm use 16.10.0
+    service php8.2-fpm start
+    /etc/init.d/memcached start
+    }
+
+error log {
+    tail -f /var/log/apache2/error.log
+}
