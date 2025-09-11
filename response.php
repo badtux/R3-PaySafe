@@ -1,29 +1,56 @@
 <?php
 
-require_once 'config/config.php';
-//require_once 'config/config.sample.php';
+  session_start();
+require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use MongoDB\Client;
+use MongoDB\BSON\UTCDateTime;
 
-session_start(); // Ensure session is started
-
-error_log("POST Data: " . print_r($_POST, true));
+// error_log("POST Data: " . print_r($_POST, true));
+// error_log("Session ID: " . session_id());
+// error_log("Session Data: " . print_r($_SESSION, true));
 
 if (isset($_POST['email'])) {
-    $email = $_POST['email'];
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     error_log("Email received: " . $email);
     $_SESSION['email'] = $email;
 } else {
     error_log("No email in POST");
-    $email = $_SESSION['email'] ?? 'example@example.com';
+    if (isset($_SESSION['email'])) {
+        $email = $_SESSION['email'];
+        error_log("Email retrieved from session: $email");
+    } 
+    elseif ($uuid = ($_SESSION['uuid'] ?? null)) {
+
+        try {
+            $client = new Client(DATABASE_URL);
+            $collection = $client->mulky->pyment;
+            $document = $collection->findOne(['uuid' => $uuid]);
+            if ($document && isset($document['email'])) {
+                $email = $document['email'];
+                $_SESSION['email'] = $email;
+                error_log("Email retrieved from MongoDB: $email");
+            } else {
+                $email = 'example@example.com';
+                error_log("No email found in MongoDB, using fallback: $email");
+            }
+        } catch (Exception $e) {
+            error_log("MongoDB Query Error: " . $e->getMessage());
+            $email = 'example@example.com';
+        }
+    } else {
+        $email = 'example@example.com';
+        error_log("No email in session or MongoDB, using fallback: $email");
+    }
 }
 
-$currency = $_SESSION['currency'] ?? 'USD'; 
-error_log("Email: $email");
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
-$currency = $_SESSION['currency'];
+$currency = $_SESSION['currency'] ?? 'USD';
+$uuid = $_SESSION['uuid'] ?? null;
+$database_url = DATABASE_URL;
 
 if ($currency == 'LKR') {
     $merchantId = MERCHANT_ID_LKR;
@@ -34,14 +61,18 @@ if ($currency == 'LKR') {
     $apiUserName = API_USERNAME_USD;
     $apiPassword = API_PASSWORD_USD;
 }
+error_log($orderId);
+error_log($merchantId);
+
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
+error_log('-------------'.$gatewayUrl);
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -55,8 +86,14 @@ if ($httpCode == 200) {
 
     if (!empty($data)) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
-        $transactionId = $data['3DSecure']['xid'] ?? 'not-set';
+        $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
+        $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard'] ?? 'not-set';
+        $merchant = $data['merchant'] ?? 'not-set';
+        $device = $data['device'] ?? [];
+        $cardBrand = $data['sourceOfFunds']['provided']['card']['brand'] ?? 'N/A';
         $orderId = $data['id'] ?? $orderId;
+        $fundingMethord = $data['sourceOfFunds']['provided']['card']['fundingMethod'] ?? 'N/A';
+        $lastUpdated = $data['lastUpdatedTime'] ? new UTCDateTime(strtotime($data['lastUpdatedTime']) * 1000) : new UTCDateTime();
         $amount = isset($data['amount']) ? number_format((float)$data['amount'], 2, '.', '') : '0.00';
         $currency = htmlspecialchars($data['currency'] ?? 'N/A');
         $status = strtolower($data['result'] ?? '');
@@ -66,9 +103,36 @@ if ($httpCode == 200) {
             'canceled' => 'payment canceled',
             default => 'unknown',
         };
-       // error_log("Response: $response");
+        error_log("Response: $response");
+        error_log("uuid:$uuid");
+        try {
+            $client = new Client($database_url);
+            $collection = $client->mulky->pyment;
 
-
+            $updateData = [
+                'paymentStatus' => $paymentStatus,
+                'transactionId' => $transactionId,
+                'nameOnCard' => $nameOnCard,
+                'merchantId' => $merchant,
+                'device' => $device,
+                'cardBrand' => $cardBrand,
+                'orderId' => $orderId,
+                'fundingMethord' => $fundingMethord,
+                'email' => $email,
+                'updatedAt' => $lastUpdated,
+            ];
+            if (!$uuid) {
+                error_log("UUID not set in session! Cannot update MongoDB.");
+            } else {
+                $collection->updateOne(
+                    ['uuid' => $uuid],
+                    ['$set' => $updateData]
+                );
+                error_log("set: " . json_encode($updateData));
+            }
+        } catch (Exception $e) {
+            error_log("MongoDB Update Error: " . $e->getMessage());
+        }
 
         $subject = "Payment Status Update";
         if ($mailStatus == 'payment error') {
@@ -122,6 +186,9 @@ if ($httpCode == 200) {
         // Send email using PHPMailer
         $mail = new PHPMailer(true);
         try {
+
+            error_log('---------------------------------------------'.$email);
+
             $mail->SMTPDebug = 0;
             $mail->isSMTP();
             $mail->Host = MAIL_HOST;
@@ -187,7 +254,7 @@ if ($httpCode == 200) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="assets/sponser.png" alt="bank logo" class="h-10">
+                <img src="/assets/sponser.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>

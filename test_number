@@ -37,10 +37,10 @@ CSC/CVV
 100  MATCH
 101 NOT_PROCESSED
 102  NO_MATCH
-
+9f78b106-ebd3-465d-bc8c-f8cd581d66a4
 
 For American Express cards
-
+merchanrtsales@combank.com
 1000	MATCH
 1010	NOT_PROCESSED
 1020	NO_MATCH
@@ -53,15 +53,19 @@ For American Express cards
 //https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
 
 
-url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=123wew76mnk89&description=test
+url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=167212ew76mnk89&description=test
 
- http://cmbgateway.loc/paysafe?currency=LKR&amount=120&orderId=SW1223&description=test
+ http://cmbgateway.loc/paysafe?currency=LKR&amount=5644&orderId=898987767854&description=test
 
 
 
 https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SW12123&description=test
 
 
+change server name in deb 
+{
+    nano /etc/resolv.conf
+}
 
 
 docker start {

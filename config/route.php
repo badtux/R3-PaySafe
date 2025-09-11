@@ -1,4 +1,3 @@
-
 <?php
 class Router
 {
@@ -9,7 +8,7 @@ class Router
     {
         $this->routes[] = [
             'method' => $method,
-            'path' => $path,
+            'path'   => $path,
             'callback' => $callback
         ];
     }
@@ -21,7 +20,12 @@ class Router
 
     public function handleRequest()
     {
-        $requestedPath = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+        $requestedPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+        // normalize: strip trailing slash and ".php"
+        $requestedPath = rtrim($requestedPath, '/');
+        $requestedPath = preg_replace('/\.php$/', '', $requestedPath);
+
         $requestMethod = $_SERVER['REQUEST_METHOD'];
 
         foreach ($this->routes as $route) {

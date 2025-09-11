@@ -14,6 +14,11 @@ if (APP_LIVE) {
     define('MERCHANT_ID_LKR', 'MALKEYRENLKR'); //live 
     define('API_USERNAME_LKR', 'merchant.MALKEYRENLKR');
     define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
+
+    define('DATABASE_URL', 'mongodb://172.0.0.1:27017');
+    define('COLLECTION', 'paysafe');
+    define('DB', 'malky');
+
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
     define('API_USERNAME_LKR', 'merchant.TESTMALKEYRENLKR');
@@ -23,6 +28,12 @@ if (APP_LIVE) {
     define('API_USERNAME_USD', 'merchant.TESTMALKEYRENUSD');
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
     define('REDIRECT_URL', 'http://cmbgateway.loc/paysafe/status');
+
+
+   define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
+    define('COLLECTION', 'pyment');
+    define('DB', 'mulky');
+    
 }
 
 

@@ -1,22 +1,27 @@
 <?php
-require_once "cmb_hostedAuth.php";
-//require_once "config/config.sample.php";
-require_once "config/config.php";
-require "vendor/autoload.php";
+session_start();
+require_once 'config/config.sample.php';
+require 'vendor/autoload.php';
+require 'cmb_hostedAuth.php';
 
-$amount = isset($_GET['amount']) ? $_GET['amount'] : null;
-$currency = isset($_GET['currency']) ? $_GET['currency'] : "LKR";
-$description = isset($_GET['description']) ? $_GET['description'] : "No description available.";
-$orderId = isset($_GET['orderId']) ? $_GET['orderId'] : "No order ID available.";
+$errorMessage = null;
+$txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
 
-// Check if amount is valid (non-empty, numeric, and positive)
-$isValidAmount = !empty($amount) && is_numeric($amount) && $amount > 0;
+if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
+    $errorMessage = "Error: order Id or amount is missing. ";
+} else {
+    $payment = $_SESSION['payments'][$txnId];
+    $amount = $payment['amount'];
+    $currency = $payment['currency'];
+    $description = $payment['description'];
+    $orderId = $payment['orderId'];
+    $sessionId = isset($payment['sessionId']) ? $payment['sessionId'] : null;
 
-if (!$isValidAmount) {
-    $errorMessage = "Error: Amount is required.";
-}
-elseif (!isset($sessionId)) {
-    $errorMessage = "Error: Session could not be created. Please try again.";
+    if (!$sessionId) {
+        $errorMessage = "Error: Session could not be created. Please try again.";
+    } elseif (!is_numeric($amount) || $amount <= 0) {
+        $errorMessage = "Error: Invalid amount.";
+    }
 }
 ?>
 
@@ -41,18 +46,11 @@ elseif (!isset($sessionId)) {
         </div>
 
         <?php if (isset($errorMessage)): ?>
-            <!-- Display error message if amount is invalid or sessionId is missing -->
             <div class="p-6 text-center">
                 <h2 class="text-xl font-bold text-red-600">Error</h2>
                 <p class="text-red-500 mt-2"><?php echo htmlspecialchars($errorMessage); ?></p>
-                <!-- <button onclick="window.location.href='https://www.malkey.lk/'"
-                        class="mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center mx-auto space-x-2">
-                    <i class='bx bx-arrow-back text-xl'></i>
-                    <span>Return to Merchant</span>
-                </button> -->
             </div>
         <?php else: ?>
-            <!-- Display the payment form if amount and sessionId are valid -->
             <div id="main_2">
                 <div class="px-6 pt-8">
                     <div class="space-y-6 mb-8">
@@ -127,16 +125,15 @@ elseif (!isset($sessionId)) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="/assets/sponser.png" alt="bank logo" class="h-10">
+                <img src="assets/sponser.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>
 
     <?php if (!isset($errorMessage)): ?>
     <script>
-        const sessionId = "<?php echo htmlspecialchars($sessionId); ?>";
-
-        // Configure Checkout.js
+        const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
+        
         Checkout.configure({
             session: {
                 id: sessionId
