@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once 'config/config.sample.php';
+//require_once 'config/config.sample.php';
+require_once('config/config.php');
 require 'vendor/autoload.php';
 require 'cmb_hostedAuth.php';
 

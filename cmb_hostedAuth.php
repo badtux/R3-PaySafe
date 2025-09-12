@@ -1,8 +1,10 @@
 <?php
 session_start();
 require_once "cmb_hostedAuth.php";
-require_once "config/config.sample.php";
+//require_once "config/config.sample.php";
 require "vendor/autoload.php";
+require_once('config/config.php');
+
 
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;

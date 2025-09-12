@@ -1,8 +1,10 @@
 <?php
 
   session_start();
-require_once 'config/config.sample.php';
+//require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
+require_once('config/config.php');
+
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
