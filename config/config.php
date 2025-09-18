@@ -46,6 +46,7 @@ if (APP_LIVE) {
 
 
 
+
 define('NAME', 'Malkey Rent A Car');
 define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk']);
 define('MAIL_DRIVER', 'smtp');
