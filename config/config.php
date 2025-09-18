@@ -16,7 +16,7 @@ if (APP_LIVE) {
     define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
 
 
-    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
+    define('DATABASE_URL', 'mongodb://172.0.0.1:27017');
     define('COLLECTION', 'paysafe');
     define('DB', 'malky');
 
@@ -31,8 +31,8 @@ if (APP_LIVE) {
     define('REDIRECT_URL', 'http://cmbgateway.loc/paysafe/status');
 
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
-    define('COLLECTION', 'payment');
-    define('DB', 'malky');
+    define('COLLECTION', 'pyment');
+    define('DB', 'mulky');
 }
 
 

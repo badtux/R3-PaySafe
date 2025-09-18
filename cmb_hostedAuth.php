@@ -6,11 +6,11 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 // Define constants for error types
-define('ERROR_VALIDATION', 'VALIDATION_ERROR');
-define('ERROR_NETWORK', 'NETWORK_ERROR');
-define('ERROR_DATABASE', 'DATABASE_ERROR');
-define('ERROR_GATEWAY', 'GATEWAY_ERROR');
-define('ERROR_UNKNOWN', 'UNKNOWN_ERROR');
+define('ERROR_VALIDATION', 1000);
+define('ERROR_NETWORK', 1001);
+define('ERROR_DATABASE', 1002);
+define('ERROR_GATEWAY', 1003);
+define('ERROR_UNKNOWN', 1004);
 
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;

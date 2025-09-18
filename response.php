@@ -11,10 +11,6 @@ use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 
-// error_log("POST Data: " . print_r($_POST, true));
-// error_log("Session ID: " . session_id());
-// error_log("Session Data: " . print_r($_SESSION, true));
-
 if (isset($_POST['email'])) {
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     error_log("Email received: " . $email);
