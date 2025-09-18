@@ -127,6 +127,7 @@
                     </select>
                 </div>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -153,6 +154,7 @@
             <div class="table-container">
                 <table class="w-full">
                     <thead class="bg-gray-50">
+                        
                         <tr>
                             <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                             <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant ID</th>
