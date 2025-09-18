@@ -18,7 +18,7 @@ if (APP_LIVE) {
 
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
     define('COLLECTION', 'paysafe');
-    define('DB', 'malky');
+    define('DB', 'paysafe_malky');
 
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 

@@ -24,3 +24,4 @@ module.exports = {
     connectToMongo,
     getPaymentCollection: () => paymentCollection
 };
+

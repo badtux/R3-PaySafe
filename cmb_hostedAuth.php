@@ -212,7 +212,7 @@ try {
             $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
 
 
-            header("Location: paysafe?txnId=" . urlencode($txnId));
+           header("Location: " . BASE_PATH . "?txnId=" . urlencode($txnId));
             exit;
         } catch (Exception $e) {
             $errorDetails['mongo_error'] = $e->getMessage();
