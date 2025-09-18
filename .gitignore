@@ -4,3 +4,4 @@ composer.lock
 .DS_Store
 config/config.php
 test_numbers.txt
+test.php
