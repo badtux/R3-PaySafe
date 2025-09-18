@@ -53,9 +53,9 @@ merchanrtsales@combank.com
 //https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
 
 
-url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=167212ew76mnk89&description=test
+url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=167uiu212ew76mnk89&description=test
 
- http://cmbgateway.loc/paysafe?currency=LKR&amount=5644&orderId=898987767854&description=test
+ http://cmbgateway.loc/paysafe?currency=LKR&amount=5644&orderId=88989nmj67854&description=test
 
 
 

@@ -1,9 +1,8 @@
 <?php
 session_start();
 
-// Error reporting for development (disable in production)
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Don't display errors to users
+ini_set('display_errors', 0); 
 ini_set('log_errors', 1);
 
 // Define constants for error types
@@ -29,7 +28,8 @@ try {
     $requiredFiles = [
         'cmb_hostedAuth.php',
         'vendor/autoload.php',
-        'config/config.php'
+       'config/config.php'
+       // 'config/config.sample.php'
     ];
 
     foreach ($requiredFiles as $file) {
@@ -182,7 +182,6 @@ try {
 
         $sessionId = $result['session_id'];
 
-        // Database operations with error handling
         try {
             if (!defined('DATABASE_URL') || !defined('DB') || !defined('COLLECTION')) {
                 throw new Exception("Database configuration missing", ERROR_DATABASE);
@@ -212,7 +211,7 @@ try {
 
             $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
 
-            // Redirect to payment page
+
             header("Location: paysafe?txnId=" . urlencode($txnId));
             exit;
         } catch (Exception $e) {
@@ -224,14 +223,11 @@ try {
     $errorMessage = $e->getMessage();
     $errorType = $e->getCode() ?: ERROR_UNKNOWN;
 
-    // Log the error with details
     error_log("Payment Error [{$errorType}]: {$errorMessage} " .
         (!empty($errorDetails) ? json_encode($errorDetails) : ''));
 }
 
-// If we reach here, there was an error - display user-friendly message
 if ($errorMessage) {
-    // Clear any output buffers
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
