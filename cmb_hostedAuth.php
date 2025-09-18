@@ -50,24 +50,6 @@ try {
         $description = isset($_GET['description']) ? trim($_GET['description']) : 'No description provided.';
         $orderId = isset($_GET['orderId']) ? trim($_GET['orderId']) : '';
 
-        // Validate inputs
-        if (empty($amount)) {
-            throw new Exception("Amount is required", ERROR_VALIDATION);
-        }
-
-        if (!is_numeric($amount) || $amount <= 0) {
-            throw new Exception("Amount must be a valid number greater than 0", ERROR_VALIDATION);
-        }
-
-        if (empty($orderId)) {
-            throw new Exception("Order ID is required", ERROR_VALIDATION);
-        }
-
-        // Validate currency
-        $validCurrencies = ['LKR', 'USD'];
-        if (!in_array($currency, $validCurrencies)) {
-            throw new Exception("Invalid currency. Supported currencies: " . implode(', ', $validCurrencies), ERROR_VALIDATION);
-        }
 
         // Store session data
         $_SESSION['uuid'] = $uuid;
