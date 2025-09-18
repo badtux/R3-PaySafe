@@ -16,7 +16,7 @@ if (APP_LIVE) {
     define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
 
 
-    define('DATABASE_URL', 'mongodb://172.0.0.1:27017');
+    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'paysafe');
     define('DB', 'malky');
 
