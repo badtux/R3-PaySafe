@@ -93,7 +93,7 @@
         <a href="<?= BASE_PATH ?>" class="btn">Go Back Home</a>
 
         <div class="footer">
-            <p>&copy; 2024 Your Website. All rights reserved.</p>
+            <p>&copy; 2025 digitable.io. All rights reserved.</p>
         </div>
     </div>
 </body>
