@@ -59,7 +59,7 @@ url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=167uiu212ew76
 
 
 
-https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=50&orderId=SW1288123&description=test
+https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=&orderId=SW1288123&description=test
 
 
 change server name in deb 
