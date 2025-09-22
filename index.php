@@ -14,26 +14,12 @@ if (!isset($_SERVER['PHP_AUTH_USER']) ||
 }
 
 ?>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Protected Page</title>
-</head>
-<body>
-    <h1>Welcome, <?php echo htmlspecialchars($USERNAME); ?>!</h1>
-    <p>This page is protected by a simple login.</p>
-</body>
-</html>
-
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Transactions Dashboard</title>
+    <title>Dashboard &raquo; Transactions</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- Favicon added -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="pay_script.js"></script>
