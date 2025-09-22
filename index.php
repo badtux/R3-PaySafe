@@ -1,8 +1,8 @@
 
 <?php
 // Simple username and password
-$USERNAME = "admin";
-$PASSWORD = "1234";
+$USERNAME = "malkey";
+$PASSWORD = "mal@1234";
 
 if (!isset($_SERVER['PHP_AUTH_USER']) || 
     $_SERVER['PHP_AUTH_USER'] !== $USERNAME || 
