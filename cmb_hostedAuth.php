@@ -1,5 +1,9 @@
 <?php
-session_start();
+
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once "cmb_hostedAuth.php";
 //require_once "config/config.sample.php";
 require "vendor/autoload.php";

@@ -48,18 +48,18 @@ merchanrtsales@combank.com
 
 
 
-//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=100&email=abc@gmail.com&reference=123LKRTX
+//https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&price=10&email=abc@gmail.com&reference=123LKRTX
 
-//https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
+//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=10&email=abc@gmail.com&reference=123USDTX
 
 
-url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=123@3291&description=test
+url http://cmbgateway.loc/paysafe?currency=LKR&amount=2950&orderId=09097&description=test
 
  http://cmbgateway.loc/paysafe?currency=LKR&amount=909&orderId=88978789nmj67854&description=test
 
 
 
-https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=45&orderId=SW1288123&description=test
+https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=45&orderId=SW1254&description=test
 
 
 change server name in deb 
