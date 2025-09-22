@@ -1,3 +1,34 @@
+
+<?php
+// Simple username and password
+$USERNAME = "admin";
+$PASSWORD = "1234";
+
+if (!isset($_SERVER['PHP_AUTH_USER']) || 
+    $_SERVER['PHP_AUTH_USER'] !== $USERNAME || 
+    $_SERVER['PHP_AUTH_PW'] !== $PASSWORD) {
+    
+    // Ask browser for login
+    header('WWW-Authenticate: Basic realm="Restricted Area"');
+    header('HTTP/1.0 401 Unauthorized');
+    echo "Unauthorized access";
+    exit;
+}
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Protected Page</title>
+</head>
+<body>
+    <h1>Welcome, <?php echo htmlspecialchars($USERNAME); ?>!</h1>
+    <p>This page is protected by a simple login.</p>
+</body>
+</html>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
