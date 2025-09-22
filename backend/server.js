@@ -18,7 +18,7 @@ async function startServer() {
     await connectToMongo();
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
-        console.log(`LIVE mode: ${process.env.LIVE === 'true'}`);
+        console.log(`LIVE mode: ${process.env.APP_LIVE === 'true'}`);
     });
 }
 

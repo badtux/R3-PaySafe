@@ -5,13 +5,13 @@ const healthCheck = async (req, res) => {
     try {
         const collection = getCollection();
         const collections = await collection.db.listCollections().toArray();
-        const collectionExists = collections.some(c => c.name === 'pyment');
+        const collectionExists = collections.some(c => c.name === 'payments');
         const documentCount = collectionExists ? await collection.countDocuments() : 0;
         res.status(200).json({
             status: 'ok',
             connected: true,
-            database: 'mulky',
-            collection: 'pyment',
+            database: 'paysafe_malky',
+            collection: 'payments',
             collectionExists,
             documentCount
         });
