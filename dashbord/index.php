@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Transactions Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- Favicon added -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="pay_script.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -51,8 +52,7 @@
             background: #a8a8a8;
         }
 
-        /* Tooltip styling 
-        [title]:hover:after {
+        /* Tooltip styling [title]:hover:after {
             content: attr(title);
             position: absolute;
             top: -30px;
@@ -64,10 +64,12 @@
             border-radius: 4px;
             font-size: 12px;
             white-space: nowrap;
-            z-index: 10;)
-        }*/
+            z-index: 10;
+        
+        } */
     </style>
 </head>
+
 
 <body class="bg-gray-50 text-gray-700 font-sans antialiased">
     <header class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md">
@@ -154,7 +156,7 @@
             <div class="table-container">
                 <table class="w-full">
                     <thead class="bg-gray-50">
-                        
+
                         <tr>
                             <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                             <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant ID</th>

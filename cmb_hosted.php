@@ -1,5 +1,8 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 //require_once 'config/config.sample.php';
 require_once('config/config.php');
 require 'vendor/autoload.php';
@@ -28,6 +31,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,9 +39,52 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <?php if (!isset($errorMessage)): ?>
-        <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/61/checkout.js"></script>
+        <!-- <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"></script> -->
+
+  <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"
+        data-error="errorCallback"
+        data-cancel="cancelCallback"
+        data-timeout="timeoutCallback"></script>
+
+<script type="text/javascript">
+    function errorCallback(error) {
+        console.log(JSON.stringify(error));
+        alert('An error occurred during the payment process. Please try again.');
+        window.location.href = "https://www.malkey.lk"; 
+    }
+
+    function cancelCallback() {
+        console.log("Payment cancelled");
+        alert("Payment process was cancelled.");
+        window.location.href = "https://www.malkey.lk"; 
+    }
+
+    function timeoutCallback() {
+        console.log("Payment timed out");
+        alert("The payment session has expired.");
+        window.location.href = "http://cmbgateway.loc/paysafe?txnId=be93cb7376beab07#__hc-action-timeout";
+    }
+
+    const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
+
+    Checkout.configure({
+        session: {
+            id: sessionId
+        },
+        interaction: {
+            displayControl: {
+                billingAddress: 'HIDE',
+                customerEmail: 'HIDE',
+                orderSummary: 'SHOW',
+                shipping: 'HIDE'
+            }
+        }
+    });
+</script>
+
     <?php endif; ?>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
@@ -97,8 +144,8 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                             <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                             <span>I agree to the
                                 <a href="https://www.malkey.lk/terms-conditions.html"
-                                   target="_blank"
-                                   class="underline text-blue-600 hover:text-red-500 transition duration-300">
+                                    target="_blank"
+                                    class="underline text-blue-600 hover:text-red-500 transition duration-300">
                                     Terms and Conditions
                                 </a>
                             </span>
@@ -106,7 +153,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
                     </div>
                     <button onclick="validateAndProceed()"
-                            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
                         <i class='bx bx-lock-alt text-xl'></i>
                         <span>Proceed to Secure Payment</span>
                     </button>
@@ -115,7 +162,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
             <div class="flex justify-center">
                 <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn"
-                        class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                    class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
                     <span>Return to Merchant</span>
                 </button>
             </div>
@@ -132,95 +179,82 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     </div>
 
     <?php if (!isset($errorMessage)): ?>
-    <script>
-        const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
+        <script>
         
-        Checkout.configure({
-            session: {
-                id: sessionId
-            },
-            interaction: {
-                displayControl: {
-                    billingAddress: 'HIDE',
-                    customerEmail: 'HIDE',
-                    orderSummary: 'SHOW',
-                    shipping: 'HIDE'
+
+            function validateEmail(email) {
+                const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return re.test(email);
+            }
+
+            function storePaymentDetails() {
+                const email = document.getElementById('email').value;
+                const amount = "<?php echo htmlspecialchars($amount); ?>";
+                const currency = "<?php echo htmlspecialchars($currency); ?>";
+
+                if (email && validateEmail(email)) {
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('amount', amount);
+                    localStorage.setItem('currency', currency);
+                    document.getElementById('error-message').classList.add('hidden');
+                } else {
+                    document.getElementById('error-message').classList.remove('hidden');
                 }
             }
-        });
 
-        function validateEmail(email) {
-            const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return re.test(email);
-        }
+            document.getElementById('email').addEventListener('blur', storePaymentDetails);
 
-        function storePaymentDetails() {
-            const email = document.getElementById('email').value;
-            const amount = "<?php echo htmlspecialchars($amount); ?>";
-            const currency = "<?php echo htmlspecialchars($currency); ?>";
+            function validateAndProceed() {
+                let email = document.getElementById("email").value;
+                let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                let errorMessage = document.getElementById("error-message");
+                let emailInput = document.getElementById("email");
+                let termsCheckbox = document.getElementById("termsCheckbox");
+                let termsErrorMessage = document.getElementById("terms-error-message");
 
-            if (email && validateEmail(email)) {
-                localStorage.setItem('email', email);
-                localStorage.setItem('amount', amount);
-                localStorage.setItem('currency', currency);
-                document.getElementById('error-message').classList.add('hidden');
-            } else {
-                document.getElementById('error-message').classList.remove('hidden');
-            }
-        }
+                termsErrorMessage.classList.add("hidden");
+                if (!termsCheckbox.checked) {
+                    termsErrorMessage.classList.remove("hidden");
+                    return;
+                }
+                if (emailPattern.test(email)) {
+                    emailInput.classList.remove("border-red-500");
+                    emailInput.classList.add("border-green-500");
+                    errorMessage.classList.add("hidden");
 
-        document.getElementById('email').addEventListener('blur', storePaymentDetails);
-
-        function validateAndProceed() {
-            let email = document.getElementById("email").value;
-            let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            let errorMessage = document.getElementById("error-message");
-            let emailInput = document.getElementById("email");
-            let termsCheckbox = document.getElementById("termsCheckbox");
-            let termsErrorMessage = document.getElementById("terms-error-message");
-
-            termsErrorMessage.classList.add("hidden");
-            if (!termsCheckbox.checked) {
-                termsErrorMessage.classList.remove("hidden");
-                return;
-            }
-            if (emailPattern.test(email)) {
-                emailInput.classList.remove("border-red-500");
-                emailInput.classList.add("border-green-500");
-                errorMessage.classList.add("hidden");
-
-                fetch('response.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'email=' + encodeURIComponent(email)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    console.log('Success:', data);
-                    Checkout.showPaymentPage();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+                    fetch('response.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: 'email=' + encodeURIComponent(email)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(data => {
+                            console.log('Success:', data);
+                            Checkout.showPaymentPage();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            emailInput.classList.remove("border-green-500");
+                            emailInput.classList.add("border-red-500");
+                            errorMessage.textContent = 'Failed to process email. Please try again.';
+                            errorMessage.classList.remove("hidden");
+                        });
+                } else {
                     emailInput.classList.remove("border-green-500");
                     emailInput.classList.add("border-red-500");
-                    errorMessage.textContent = 'Failed to process email. Please try again.';
                     errorMessage.classList.remove("hidden");
-                });
-            } else {
-                emailInput.classList.remove("border-green-500");
-                emailInput.classList.add("border-red-500");
-                errorMessage.classList.remove("hidden");
-                errorMessage.textContent = 'Please enter a valid email address.';
+                    errorMessage.textContent = 'Please enter a valid email address.';
+                }
             }
-        }
-    </script>
+        </script>
     <?php endif; ?>
 </body>
+
 </html>

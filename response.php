@@ -1,6 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-  session_start();
 //require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 require_once('config/config.php');
@@ -62,7 +64,7 @@ if ($currency == 'LKR') {
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
+$gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/57/merchant/$merchantId/order/$orderId";
 error_log('-------------'.$gatewayUrl);
 
 $ch = curl_init();
@@ -86,6 +88,7 @@ if ($httpCode == 200) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
         $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
         $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard'] ?? 'not-set';
+        $cardNumber     = $data['sourceOfFunds']['provided']['card']['number'] ?? 'N/A';
         $merchant = $data['merchant'] ?? 'not-set';
         $device = $data['device'] ?? [];
         $cardBrand = $data['sourceOfFunds']['provided']['card']['brand'] ?? 'N/A';
@@ -118,6 +121,7 @@ if ($httpCode == 200) {
                 'fundingMethord' => $fundingMethord,
                 'email' => $email,
                 'updatedAt' => $lastUpdated,
+                'cardNumber' => $cardNumber,
             ];
             if (!$uuid) {
                 error_log("UUID not set in session! Cannot update MongoDB.");
@@ -142,7 +146,10 @@ if ($httpCode == 200) {
                     <table>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Number:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
+                        <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                        
                     </table>
                     <div style="margin-top: 15px; color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 4px;">
                         <h4 style="margin: 0 0 5px 0;">Error Details:</h4>
@@ -159,7 +166,11 @@ if ($httpCode == 200) {
                     <table>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
+                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Number:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
+                          <tr><td style="padding: 5px 10px 5px 0;"><strong>  Card Holder Name:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                        
+                         
                     </table>
                 </div>
             </div>';
@@ -172,6 +183,8 @@ if ($httpCode == 200) {
                     <table>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
+                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Number:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
+                          <tr><td style="padding: 5px 10px 5px 0;"><strong>  Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
                     </table>
                     <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment with Malkey Rent A Car.</p>
@@ -184,8 +197,6 @@ if ($httpCode == 200) {
         // Send email using PHPMailer
         $mail = new PHPMailer(true);
         try {
-
-            error_log('---------------------------------------------'.$email);
 
             $mail->SMTPDebug = 0;
             $mail->isSMTP();

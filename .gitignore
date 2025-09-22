@@ -5,4 +5,4 @@ composer.lock
 test_numbers.txt
 test.php
 dashboard/backend/node_modules/
-
+config/config.php

@@ -1,5 +1,5 @@
 
-        const today = new Date().toISOString().split('T')[0]; // e.g., "2025-09-10"
+        const today = new Date().toISOString().split('T')[0]; 
 
         let currentFilters = {
             from: '',
@@ -31,7 +31,7 @@
 
         async function checkHealth() {
             try {
-                const response = await fetch('http://localhost:3000/api/health');
+                const response = await fetch('https://malkey.go.digitable.io/cmb/api/health');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const health = await response.json();
                 console.log('Health check:', health);
@@ -61,7 +61,7 @@
                         params.append(key, value);
                     }
                 }
-                const response = await fetch(`http://localhost:3000/api/payments?${params}`);
+                const response = await fetch(`https://malkey.go.digitable.io/cmb/api/payments?${params}`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const {
                     transactions,
@@ -145,7 +145,6 @@
 
 function updateTable(transactions, total) {
     document.getElementById('transactionTable').innerHTML = transactions.length > 0 ? transactions.map(t => {
-        // Get first and last 4 characters of transactionId, or 'N/A' if undefined
         const transactionId = t.transactionId || 'N/A';
         const displayId = transactionId === 'N/A' ? 'N/A' : 
             (transactionId.length > 8 ? 
@@ -204,7 +203,7 @@ function updateTable(transactions, total) {
                         params.append(key, currentFilters[key]);
                     }
                 });
-                const response = await fetch(`http://localhost:3000/api/payments/export?${params}`);
+                const response = await fetch(`https://malkey.go.digitable.io/cmb/api/payments/export?${params}`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const transactions = await response.json();
 

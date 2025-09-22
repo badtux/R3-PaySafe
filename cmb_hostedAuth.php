@@ -54,7 +54,7 @@ if (!$txnId) {
         }
 
         // Prepare request for checkout session
-        $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/61";
+        $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/57";
         $data = http_build_query([
             'apiOperation' => 'CREATE_CHECKOUT_SESSION',
             'apiUsername' => $apiUserName,
@@ -66,6 +66,9 @@ if (!$txnId) {
             'order.description' => $description,
             'interaction.operation' => 'PURCHASE',
             'interaction.returnUrl' => REDIRECT_URL,
+            'interaction.cancelUrl' => REDIRECT_URL,
+            'interaction.timeoutUrl' => REDIRECT_URL,
+           // 'interaction.errorUrl'     => REDIRECT_URL,
             'interaction.merchant.name' => NAME
         ]);
 
