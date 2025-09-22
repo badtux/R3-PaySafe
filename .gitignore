@@ -2,7 +2,7 @@
 vendor/
 composer.lock
 .DS_Store
-test_numbers.txt
+test_number.txt
 test.php
 dashboard/backend/node_modules/
 config/config.php
