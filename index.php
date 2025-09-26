@@ -165,7 +165,7 @@ if (!isset($_SERVER['PHP_AUTH_USER']) ||
             <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4">
                 <h2 class="text-lg font-semibold text-gray-700"><i class="fas fa-list mr-2 text-primary"></i>Transaction History</h2>
                 <button id="exportData" class="border border-primary text-primary hover:bg-blue-50 px-3 py-1 rounded-md text-sm flex items-center">
-                    <i class="fas fa-download mr-2"></i> Export
+                    <i class="fas fa-download mr-2"></i> Exporytuytuytyut
                 </button>
             </div>
             <div class="table-container">
