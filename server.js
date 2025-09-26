@@ -17,7 +17,7 @@ require("dotenv").config();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static("public"));
+app.use(express.static("public")); // Serve static files
 
 // CORS
 app.use(
@@ -25,7 +25,7 @@ app.use(
     origin: (origin, callback) => {
       const allowedOrigins = [
         "http://localhost:3008",
-        "https://malkey.go.digitable.io",
+        "https://malkey.go.digitable.io:3008",
       ];
       console.log("CORS Origin:", origin);
       if (!origin || allowedOrigins.includes(origin)) {
@@ -58,14 +58,16 @@ app.use(
     saveUninitialized: false,
     store: store,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, 
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
       secure: process.env.LIVE === "true",
       sameSite: "lax",
       path: "/",
+      httpOnly: true, // Prevent client-side access to cookie
     },
   })
 );
 
+// Authentication middleware
 const isAuthenticated = (req, res, next) => {
   console.log("Request URL:", req.url);
   console.log("Session ID:", req.sessionID);
@@ -76,17 +78,30 @@ const isAuthenticated = (req, res, next) => {
   res.status(401).json({ message: "Unauthorized" });
 };
 
+// Auth check endpoint
+app.get("/api/auth/check", (req, res) => {
+  if (req.session.user) {
+    return res.status(200).json({ authenticated: true, user: req.session.user });
+  }
+  return res.status(401).json({ authenticated: false });
+});
 
+// Protect dashboard route
+app.get("/dashboard.html", isAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
+// Root route
 app.get("/", (req, res) => {
   if (req.session.user) {
-    res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+    res.redirect("/dashboard.html");
   } else {
     res.sendFile(path.join(__dirname, "public", "login.html"));
   }
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api", isAuthenticated, paymentRoutes); 
+app.use("/api", isAuthenticated, paymentRoutes);
 
 // Start server
 async function startServer() {

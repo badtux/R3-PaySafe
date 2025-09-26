@@ -1,20 +1,66 @@
-// pay_script.js
-
-//const BASE_URL = "http://localhost:3008/api";
-const BASE_URL = "https://malkey.go.digitable.io:3008/api";
+const BASE_URL = "http://localhost:3008/api"; // Use local URL for testing
 
 const today = new Date().toISOString().split('T')[0];
+
+async function authFetch(url, options = {}) {
+    console.log('Making request to:', url);
+    const response = await fetch(url, { ...options, credentials: 'include' });
+    console.log('Response status:', response.status);
+    if (response.status === 401 || response.status === 403) {
+        console.log('Unauthorized or Forbidden, redirecting to /login.html');
+        if (window.location.pathname !== '/login.html') {
+            window.location.href = '/login.html';
+        }
+        throw new Error('Not authenticated');
+    }
+    return response;
+}
+
+async function checkAuth() {
+    try {
+        console.log('Checking authentication...');
+        const response = await fetch(`${BASE_URL}/auth/check`, { credentials: 'include' });
+        console.log('Auth check status:', response.status);
+        if (!response.ok) {
+            console.log('Auth check failed, redirecting to /login.html');
+            if (window.location.pathname !== '/login.html') {
+                window.location.href = '/login.html';
+            }
+            return false;
+        }
+        const data = await response.json();
+        console.log('Auth check response:', data);
+        return data.authenticated === true;
+    } catch (error) {
+        console.error('Error during auth check:', error);
+        if (window.location.pathname !== '/login.html') {
+            window.location.href = '/login.html';
+        }
+        return false;
+    }
+}
 
 let currentFilters = {
     from: '',
     to: '',
-    status: 'SUCCESS', // Default to SUCCESS
+    status: 'SUCCESS',
     search: '',
     page: 1,
     limit: 10
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check authentication before any UI rendering or API calls
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+        console.log('User not authenticated, redirection handled in checkAuth');
+        return; // Stop further execution
+    }
+
+    // Initialize dashboard only if authenticated
+    document.getElementById('transactionTable').innerHTML = `
+        <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
+    `;
     checkHealth();
     loadData();
     setupEventListeners();
@@ -35,7 +81,7 @@ function setupEventListeners() {
 
 async function checkHealth() {
     try {
-        const response = await fetch(`${BASE_URL}/health`, { credentials: 'include' }); // Fixed endpoint to /health
+        const response = await authFetch(`${BASE_URL}/health`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const health = await response.json();
         console.log('Health check:', health);
@@ -55,9 +101,6 @@ async function checkHealth() {
 }
 
 async function loadData() {
-    document.getElementById('transactionTable').innerHTML = `
-        <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
-    `;
     try {
         const params = new URLSearchParams();
         for (const [key, value] of Object.entries(currentFilters)) {
@@ -65,8 +108,8 @@ async function loadData() {
                 params.append(key, value);
             }
         }
-        params.set('status', 'SUCCESS'); // Always enforce SUCCESS status
-        const response = await fetch(`${BASE_URL}/payments?${params}`, { credentials: 'include' });
+        params.set('status', 'SUCCESS');
+        const response = await authFetch(`${BASE_URL}/payments?${params}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const { transactions, total, stats } = await response.json();
         console.log('Fetched data:', { transactions, total, stats });
@@ -89,7 +132,7 @@ function applyFilters() {
 
     currentFilters.from = fromDate;
     currentFilters.to = toDate;
-    currentFilters.status = 'SUCCESS'; // Always set to SUCCESS
+    currentFilters.status = 'SUCCESS';
     currentFilters.search = searchQuery || undefined;
     currentFilters.page = 1;
     loadData();
@@ -98,13 +141,13 @@ function applyFilters() {
 function resetFilters() {
     document.getElementById('fromDate').value = '';
     document.getElementById('toDate').value = '';
-    document.getElementById('transactionType').value = 'SUCCESS'; // Reset to SUCCESS
+    document.getElementById('transactionType').value = 'SUCCESS';
     document.getElementById('searchQuery').value = '';
     document.getElementById('itemsPerPage').value = '10';
     currentFilters = {
         from: '',
         to: '',
-        status: 'SUCCESS', // Reset to SUCCESS
+        status: 'SUCCESS',
         search: '',
         page: 1,
         limit: 10
@@ -192,8 +235,8 @@ async function exportToCSV() {
                 params.append(key, currentFilters[key]);
             }
         });
-        params.append('status', 'SUCCESS'); // Always enforce SUCCESS status
-        const response = await fetch(`${BASE_URL}/export?${params}`, { credentials: 'include' });
+        params.append('status', 'SUCCESS');
+        const response = await authFetch(`${BASE_URL}/export?${params}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const transactions = await response.json();
 
