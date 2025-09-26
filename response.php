@@ -3,10 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-//require_once 'config/config.sample.php';
 require 'vendor/autoload.php';
 require_once('config/config.php');
-
+//require_once('config/config.sample.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -50,7 +49,9 @@ if (isset($_POST['email'])) {
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'] ?? 'USD';
 $uuid = $_SESSION['uuid'] ?? null;
-$database_url = DATABASE_URL;
+    $database_url = DATABASE_URL;
+    $collection = COLLECTION;
+    $database = DB;
 
 if ($currency == 'LKR') {
     $merchantId = MERCHANT_ID_LKR;
@@ -64,7 +65,7 @@ if ($currency == 'LKR') {
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/57/merchant/$merchantId/order/$orderId";
+$gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/merchant/$merchantId/order/$orderId";
 error_log('-------------'.$gatewayUrl);
 
 $ch = curl_init();
@@ -108,7 +109,7 @@ if ($httpCode == 200) {
         error_log("uuid:$uuid");
         try {
             $client = new Client($database_url);
-            $collection = $client->mulky->pyment;
+            $collection = $client->$database->$collection;
 
             $updateData = [
                 'paymentStatus' => $paymentStatus,
@@ -263,7 +264,7 @@ if ($httpCode == 200) {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="/assets/sponser.png" alt="bank logo" class="h-10">
+                <img src="assets/sponser.png" alt="bank logo" class="h-10">
             </div>
         </div>
     </div>

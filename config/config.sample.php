@@ -1,7 +1,7 @@
 <?php
 
 define('APP_LIVE',false);
-define('BASE_PATH','/paysafe');
+define('BASE_PATH','/cmb');
 
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg');
 
@@ -15,9 +15,10 @@ if (APP_LIVE) {
     define('API_USERNAME_LKR', 'merchant.MALKEYRENLKR');
     define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
 
-    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
-    define('COLLECTION', 'paysafe');
-    define('DB', 'malky');
+    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malkey_paysafe?retryWrites=true&w=majority&authSource=admin');
+    define('COLLECTION', 'payments');
+    define('DB', 'malkey_paysafe');
+    
 
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
@@ -27,12 +28,12 @@ if (APP_LIVE) {
     define('MERCHANT_ID_USD', 'TESTMALKEYRENUSD'); // sandbox 
     define('API_USERNAME_USD', 'merchant.TESTMALKEYRENUSD');
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
-    define('REDIRECT_URL', 'http://cmbgateway.loc/paysafe/status');
+    define('REDIRECT_URL', 'http://paymentgateway.loc/cmb/status');
 
 
-   define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
-    define('COLLECTION', 'pyment');
-    define('DB', 'mulky');
+    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malkey_paysafe?retryWrites=true&w=majority&authSource=admin');
+    define('COLLECTION', 'payments');
+    define('DB', 'malkey_paysafe');
     
 }
 
@@ -42,7 +43,7 @@ if (APP_LIVE) {
 
     define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/cmb/');
 } else {
-    define('ASSET_PATH_URL', 'http://http://cmbgateway.loc/paysafe/');
+    define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/cmb/');
 }
 
 

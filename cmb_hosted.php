@@ -62,7 +62,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     function timeoutCallback() {
         console.log("Payment timed out");
         alert("The payment session has expired.");
-        window.location.href = "http://cmbgateway.loc/paysafe?txnId=be93cb7376beab07#__hc-action-timeout";
+        window.location.href = "http://paymentgateway.loc/cmb?#__hc-action-timeout";
     }
 
     const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";

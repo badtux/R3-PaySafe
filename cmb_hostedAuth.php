@@ -56,7 +56,6 @@ if (!$txnId) {
             $apiUserName = API_USERNAME_USD;
             $apiPassWord = API_PASSWORD_USD;
         }
-
         // Prepare request for checkout session
         $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/57";
         $data = http_build_query([

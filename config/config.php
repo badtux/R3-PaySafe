@@ -28,7 +28,7 @@ if (APP_LIVE) {
     define('MERCHANT_ID_USD', 'TESTMALKEYRENUSD'); // sandbox 
     define('API_USERNAME_USD', 'merchant.TESTMALKEYRENUSD');
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
-    define('REDIRECT_URL', 'http://cmbgateway.loc/paysafe/status');
+    define('REDIRECT_URL', 'http://paymentgateway.loc/cmb/status');
 
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'pyment');
@@ -41,14 +41,14 @@ if (APP_LIVE) {
 
     define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/cmb/');
 } else {
-    define('ASSET_PATH_URL', 'http://http://cmbgateway.loc/paysafe/');
+    define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/cmb/');
 }
 
 
 
 
 define('NAME', 'Malkey Rent A Car');
-define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk']);
+define('CC_LIST', ['viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' , 'info@malkey.lk' ]);
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
 define('MAIL_PORT', 465);
