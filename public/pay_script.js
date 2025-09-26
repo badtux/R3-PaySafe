@@ -1,4 +1,6 @@
-const BASE_URL = "http://localhost:3008/api"; // Use local URL for testing
+//const BASE_URL = "http://localhost:3008/api"; // Use local URL for testing
+const BASE_URL = "https://malkey.go.digitable.io:3008/api";
+
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -8,8 +10,8 @@ async function authFetch(url, options = {}) {
     console.log('Response status:', response.status);
     if (response.status === 401 || response.status === 403) {
         console.log('Unauthorized or Forbidden, redirecting to /login.html');
-        if (window.location.pathname !== '/login.html') {
-            window.location.href = '/login.html';
+        if (window.location.pathname !== 'login.html') {
+            window.location.href = 'login.html';
         }
         throw new Error('Not authenticated');
     }
@@ -23,8 +25,8 @@ async function checkAuth() {
         console.log('Auth check status:', response.status);
         if (!response.ok) {
             console.log('Auth check failed, redirecting to /login.html');
-            if (window.location.pathname !== '/login.html') {
-                window.location.href = '/login.html';
+            if (window.location.pathname !== 'login.html') {
+                window.location.href = 'login.html';
             }
             return false;
         }
