@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login &raquo; Payment Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4e73df',
+                        secondary: '#f8f9fc',
+                        accent: '#36b9cc',
+                        text: '#5a5c69',
+                        border: '#e3e6f0',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-number {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-700 font-sans antialiased">
+    <header class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md">
+        <div class="container mx-auto px-4 py-5">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-2xl md:text-3xl font-bold"><i class="fas fa-money-bill-wave mr-2"></i>Payment Dashboard</h1>
+                    <p class="mt-1 text-blue-100">Login to manage your transactions</p>
+                </div>
+                <div class="hidden md:flex items-center">
+                    <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto filter brightness-0 invert">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="min-h-screen flex items-center justify-center px-4 py-6">
+        <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-lg font-semibold mb-6 text-gray-700 text-center"><i class="fas fa-sign-in-alt mr-2 text-primary"></i>Login</h2>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" name="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your email" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your password" required>
+                </div>
+                <div class="flex items-center justify-between mb-6">
+                    <a href="register.html" class="text-sm text-primary hover:underline">Don't have an account? Register</a>
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </button>
+            </form>
+            <p id="errorMessage" class="text-red-500 text-sm mt-4 text-center hidden"></p>
+        </div>
+    </main>
+
+    <footer class="bg-white py-4 border-t border-gray-200">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>© 2025 Payment Dashboard • Mahesh Mallawaratchi</p>
+        </div>
+    </footer>
+
+   <script>
+    //const BASE_URL = "http://localhost:3008/api";
+    const BASE_URL = "https://malkey.go.digitable.io:3008/api";
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
+
+        try {
+            const response = await fetch(`${BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                window.location.href = 'dashboard.html';
+            } else {
+                errorMessage.textContent = data.message || 'Login failed. Please try again.';
+                errorMessage.classList.remove('hidden');
+            }
+        } catch (error) {
+            errorMessage.textContent = 'Failed to connect to server. Please try again later.';
+            errorMessage.classList.remove('hidden');
+        }
+    });
+</script>
+</body>
+</html>
