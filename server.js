@@ -17,16 +17,17 @@ require("dotenv").config();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static("public")); // Serve static files
+app.use(express.static("public"));
 
 // CORS
+const allowedOrigins = [
+  "http://localhost:3008",
+  "https://malkey.go.digitable.io",
+];
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
-        "http://localhost:3008",
-        "https://malkey.go.digitable.io:3008",
-      ];
+    origin: function (origin, callback) {
       console.log("CORS Origin:", origin);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -34,7 +35,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,
+    credentials: true, // allow cookies
   })
 );
 
@@ -59,21 +60,16 @@ app.use(
     store: store,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24, // 1 day
-      secure: process.env.LIVE === "true",
-      sameSite: "lax",
+      secure: process.env.LIVE === "true", // must be true on HTTPS live
+      sameSite: process.env.LIVE === "true" ? "none" : "lax", // 'none' for cross-site cookies
       path: "/",
-      httpOnly: true, // Prevent client-side access to cookie
+      httpOnly: true,
     },
   })
 );
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
-  console.log("Request URL:", req.url);
-  console.log("Session ID:", req.sessionID);
-  console.log("Cookies:", req.cookies);
-  console.log("Session:", req.session);
-  console.log("Session User:", req.session.user);
   if (req.session.user) return next();
   res.status(401).json({ message: "Unauthorized" });
 };

@@ -53,7 +53,7 @@ async function checkAuth() {
         return data.authenticated === true;
     } catch (error) {
         console.error('Error during auth check:', error);
-        if (window.location.pathname !== '/paysafe/dash/public/login.html') {
+        if (window.location.pathname !== '/paysafe/dash/public/login.html') {  // /login.html
             window.location.href = '/paysafe/dash/public/login.html';
         }
         return false;
