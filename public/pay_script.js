@@ -1,36 +1,54 @@
 //const BASE_URL = "http://localhost:3008/api"; // Use local URL for testing
 const BASE_URL = "https://malkey.go.digitable.io:3008/api";
 
-
 const today = new Date().toISOString().split('T')[0];
 
-async function authFetch(url, options = {}) {
+async function authAjax(url, options = {}) {
     console.log('Making request to:', url);
-    const response = await fetch(url, { ...options, credentials: 'include' });
-    console.log('Response status:', response.status);
-    if (response.status === 401 || response.status === 403) {
-        console.log('Unauthorized or Forbidden, redirecting to /login.html');
-        if (window.location.pathname !== 'login.html') {
-            window.location.href = 'login.html';
-        }
-        throw new Error('Not authenticated');
-    }
-    return response;
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: url,
+            ...options,
+            xhrFields: { withCredentials: true },
+            success: (data, textStatus, jqXHR) => {
+                console.log('Response status:', jqXHR.status);
+                if (jqXHR.status === 401 || jqXHR.status === 403) {
+                    console.log('Unauthorized or Forbidden, redirecting to /login.html');
+                    if (window.location.pathname !== '/login.html') {
+                        window.location.href = '/login.html';
+                    }
+                    reject(new Error('Not authenticated'));
+                } else {
+                    resolve({ data, status: jqXHR.status });
+                }
+            },
+            error: (jqXHR, textStatus, errorThrown) => {
+                console.error('Request failed:', errorThrown);
+                if (jqXHR.status === 401 || jqXHR.status === 403) {
+                    if (window.location.pathname !== '/login.html') {
+                        window.location.href = '/login.html';
+                    }
+                    reject(new Error('Not authenticated'));
+                } else {
+                    reject(new Error(errorThrown));
+                }
+            }
+        });
+    });
 }
 
 async function checkAuth() {
     try {
         console.log('Checking authentication...');
-        const response = await fetch(`${BASE_URL}/auth/check`, { credentials: 'include' });
-        console.log('Auth check status:', response.status);
-        if (!response.ok) {
+        const { data, status } = await authAjax(`${BASE_URL}/auth/check`, { method: 'GET' });
+        console.log('Auth check status:', status);
+        if (status !== 200) {
             console.log('Auth check failed, redirecting to /login.html');
-            if (window.location.pathname !== 'login.html') {
-                window.location.href = 'login.html';
+            if (window.location.pathname !== '/login.html') {
+                window.location.href = '/login.html';
             }
             return false;
         }
-        const data = await response.json();
         console.log('Auth check response:', data);
         return data.authenticated === true;
     } catch (error) {
@@ -51,54 +69,49 @@ let currentFilters = {
     limit: 10
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Check authentication before any UI rendering or API calls
+$(document).ready(async () => {
     const isAuthenticated = await checkAuth();
     if (!isAuthenticated) {
         console.log('User not authenticated, redirection handled in checkAuth');
         return; // Stop further execution
     }
-
-    // Initialize dashboard only if authenticated
-    document.getElementById('transactionTable').innerHTML = `
+    $('#transactionTable').html(`
         <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
-    `;
+    `);
     checkHealth();
     loadData();
     setupEventListeners();
 });
 
 function setupEventListeners() {
-    document.getElementById('applyFilters').addEventListener('click', applyFilters);
-    document.getElementById('resetFilters').addEventListener('click', resetFilters);
-    document.getElementById('prevPage').addEventListener('click', () => changePage(currentFilters.page - 1));
-    document.getElementById('nextPage').addEventListener('click', () => changePage(currentFilters.page + 1));
-    document.getElementById('itemsPerPage').addEventListener('change', (e) => {
-        currentFilters.limit = parseInt(e.target.value);
+    $('#applyFilters').on('click', applyFilters);
+    $('#resetFilters').on('click', resetFilters);
+    $('#prevPage').on('click', () => changePage(currentFilters.page - 1));
+    $('#nextPage').on('click', () => changePage(currentFilters.page + 1));
+    $('#itemsPerPage').on('change', (e) => {
+        currentFilters.limit = parseInt($(e.target).val());
         currentFilters.page = 1;
         loadData();
     });
-    document.getElementById('exportData').addEventListener('click', exportToCSV);
+    $('#exportData').on('click', exportToCSV);
 }
 
 async function checkHealth() {
     try {
-        const response = await authFetch(`${BASE_URL}/health`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const health = await response.json();
-        console.log('Health check:', health);
-        if (!health.collectionExists || health.documentCount === 0) {
-            document.getElementById('transactionTable').innerHTML = `
+        const { data } = await authAjax(`${BASE_URL}/transactions`, { method: 'GET' });
+        console.log('Health check:', data);
+        if (!data.collectionExists || data.documentCount === 0) {
+            $('#transactionTable').html(`
                 <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
-                    ${health.collectionExists ? 'No successful transactions found in database' : 'Collection "payments" does not exist'}
+                    ${data.collectionExists ? 'No successful transactions found in database' : 'Collection "payments" does not exist'}
                 </td></tr>
-            `;
+            `);
         }
     } catch (error) {
         console.error('Health check failed:', error);
-        document.getElementById('transactionTable').innerHTML = `
+        $('#transactionTable').html(`
             <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to connect to server. Please check if the backend is running.</td></tr>
-        `;
+        `);
     }
 }
 
@@ -111,24 +124,22 @@ async function loadData() {
             }
         }
         params.set('status', 'SUCCESS');
-        const response = await authFetch(`${BASE_URL}/payments?${params}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const { transactions, total, stats } = await response.json();
-        console.log('Fetched data:', { transactions, total, stats });
-        updateStats(stats);
-        updateTable(transactions, total);
+        const { data } = await authAjax(`${BASE_URL}/payments?${params}`, { method: 'GET' });
+        console.log('Fetched data:', data);
+        updateStats(data.stats);
+        updateTable(data.transactions, data.total);
     } catch (error) {
         console.error('Error fetching data:', error);
-        document.getElementById('transactionTable').innerHTML = `
+        $('#transactionTable').html(`
             <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to load transactions. Please try again later.</td></tr>
-        `;
+        `);
     }
 }
 
 function applyFilters() {
-    const fromDate = document.getElementById('fromDate').value || today;
-    const toDate = document.getElementById('toDate').value || today;
-    const searchQuery = document.getElementById('searchQuery').value.toLowerCase();
+    const fromDate = $('#fromDate').val() || today;
+    const toDate = $('#toDate').val() || today;
+    const searchQuery = $('#searchQuery').val().toLowerCase();
 
     console.log('Applying filters:', { fromDate, toDate, status: 'SUCCESS', searchQuery });
 
@@ -141,11 +152,11 @@ function applyFilters() {
 }
 
 function resetFilters() {
-    document.getElementById('fromDate').value = '';
-    document.getElementById('toDate').value = '';
-    document.getElementById('transactionType').value = 'SUCCESS';
-    document.getElementById('searchQuery').value = '';
-    document.getElementById('itemsPerPage').value = '10';
+    $('#fromDate').val('');
+    $('#toDate').val('');
+    $('#transactionType').val('SUCCESS');
+    $('#searchQuery').val('');
+    $('#itemsPerPage').val('10');
     currentFilters = {
         from: '',
         to: '',
@@ -159,7 +170,7 @@ function resetFilters() {
 }
 
 function updateStats(stats) {
-    document.getElementById('statsCards').innerHTML = `
+    $('#statsCards').html(`
         <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
             <div class="text-3xl font-bold">${stats.totalTransactions}</div>
             <div class="text-sm opacity-90 mt-1">Total Transactions</div>
@@ -176,11 +187,11 @@ function updateStats(stats) {
             <div class="text-3xl font-bold">USD ${stats.totalAmountUSD}</div>
             <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
         </div>
-    `;
+    `);
 }
 
 function updateTable(transactions, total) {
-    document.getElementById('transactionTable').innerHTML = transactions.length > 0 ? transactions.map(t => {
+    $('#transactionTable').html(transactions.length > 0 ? transactions.map(t => {
         const transactionId = t.transactionId || 'N/A';
         const displayId = transactionId === 'N/A' ? 'N/A' :
             (transactionId.length > 8 ?
@@ -206,21 +217,21 @@ function updateTable(transactions, total) {
         `;
     }).join('') : `
         <tr><td colspan="11" class="px-5 py-4 text-center">No successful transactions found</td></tr>
-    `;
+    `);
 
     const start = (currentFilters.page - 1) * currentFilters.limit + 1;
     const end = Math.min(start + currentFilters.limit - 1, total);
-    document.getElementById('tableInfo').textContent = `Showing ${start} to ${end} of ${total} entries`;
+    $('#tableInfo').text(`Showing ${start} to ${end} of ${total} entries`);
 
     const totalPages = Math.ceil(total / currentFilters.limit);
-    document.getElementById('prevPage').disabled = currentFilters.page === 1;
-    document.getElementById('nextPage').disabled = currentFilters.page === totalPages;
+    $('#prevPage').prop('disabled', currentFilters.page === 1);
+    $('#nextPage').prop('disabled', currentFilters.page === totalPages);
 
-    document.getElementById('pageButtons').innerHTML = Array.from({
+    $('#pageButtons').html(Array.from({
         length: totalPages
     }, (_, i) => `
         <button class="flex items-center justify-center px-3 py-1.5 text-sm ${currentFilters.page === i + 1 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'} rounded-md border border-${currentFilters.page === i + 1 ? 'primary' : 'gray-300'} hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
-    `).join('');
+    `).join(''));
 }
 
 function changePage(page) {
@@ -238,22 +249,22 @@ async function exportToCSV() {
             }
         });
         params.append('status', 'SUCCESS');
-        const response = await authFetch(`${BASE_URL}/export?${params}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const transactions = await response.json();
+        const { data } = await authAjax(`${BASE_URL}/export?${params}`, { method: 'GET' });
 
         const headers = ['Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status'];
-        const rows = transactions.map(t =>
+        const rows = data.map(t =>
             `"${new Date(t.createdAt).toISOString().split('T')[0]}","${t.merchantId || 'N/A'}","${t.orderId || 'N/A'}",${parseFloat(t.amount || 0).toFixed(2)},"${t.currency || 'N/A'}","${t.email || 'N/A'}","${t.description || 'N/A'}","${t.cardBrand || 'N/A'}","${t.nameOnCard || 'N/A'}","SUCCESS"`
         );
         const csv = [...headers, ...rows].join('\n');
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'successful_transactions.csv';
-        a.click();
+        const $a = $('<a>', {
+            href: url,
+            download: 'successful_transactions.csv'
+        }).appendTo('body');
+        $a[0].click();
         URL.revokeObjectURL(url);
+        $a.remove();
     } catch (error) {
         console.error('Error exporting data:', error);
         alert('Failed to export data. Please try again.');

@@ -7,6 +7,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -82,44 +83,40 @@
     </footer>
 
     <script>
-        //const BASE_URL = "http://localhost:3008/api";
-        const BASE_URL ="https://malkey.go.digitable.io:3008/api";
+    const BASE_URL = "http://localhost:3008/api";
+    //const BASE_URL = "https://malkey.go.digitable.io:3008/api";
 
+    $("#registerForm").on("submit", function (e) {
+        e.preventDefault();
 
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const errorMessage = document.getElementById('errorMessage');
+        const name = $("#name").val();
+        const email = $("#email").val();
+        const password = $("#password").val();
+        const confirmPassword = $("#confirmPassword").val();
+        const errorMessage = $("#errorMessage");
 
-            if (password !== confirmPassword) {
-                errorMessage.textContent = 'Passwords do not match.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
+        if (password !== confirmPassword) {
+            errorMessage.text("Passwords do not match.");
+            errorMessage.removeClass("hidden");
+            return;
+        }
 
-            try {
-                const response = await fetch(`${BASE_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password }),
-                    credentials: 'include'
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    window.location.href = 'login.html';
-                } else {
-                    errorMessage.textContent = data.message || 'Registration failed. Please try again.';
-                    errorMessage.classList.remove('hidden');
-                }
-            } catch (error) {
-                errorMessage.textContent = 'Failed to connect to server. Please try again later.';
-                errorMessage.classList.remove('hidden');
+        $.ajax({
+            url: `${BASE_URL}/auth/register`,
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ name, email, password }),
+            xhrFields: { withCredentials: true }, 
+            success: function (data) {
+                window.location.href = "login.html";
+            },
+            error: function (xhr) {
+                let response = xhr.responseJSON || {};
+                errorMessage.text(response.message || "Registration failed. Please try again.");
+                errorMessage.removeClass("hidden");
             }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
