@@ -14,8 +14,8 @@ async function authAjax(url, options = {}) {
                 console.log('Response status:', jqXHR.status);
                 if (jqXHR.status === 401 || jqXHR.status === 403) {
                     console.log('Unauthorized or Forbidden, redirecting to /login.html');
-                    if (window.location.pathname !== '/login.html') {
-                        window.location.href = '/login.html';
+                    if (window.location.pathname !== '/paysafe/dash/public/login.html') {
+                        window.location.href = '/paysafe/dash/public/login.html';
                     }
                     reject(new Error('Not authenticated'));
                 } else {
@@ -25,8 +25,8 @@ async function authAjax(url, options = {}) {
             error: (jqXHR, textStatus, errorThrown) => {
                 console.error('Request failed:', errorThrown);
                 if (jqXHR.status === 401 || jqXHR.status === 403) {
-                    if (window.location.pathname !== '/login.html') {
-                        window.location.href = '/login.html';
+                    if (window.location.pathname !== '/paysafe/dash/public/login.html') {
+                        window.location.href = '/paysafe/dash/public/login.html';
                     }
                     reject(new Error('Not authenticated'));
                 } else {
@@ -44,8 +44,8 @@ async function checkAuth() {
         console.log('Auth check status:', status);
         if (status !== 200) {
             console.log('Auth check failed, redirecting to /login.html');
-            if (window.location.pathname !== '/login.html') {
-                window.location.href = '/login.html';
+            if (window.location.pathname !== '/paysafe/dash/public/login.html') {
+                window.location.href = '/paysafe/dash/public/login.html';
             }
             return false;
         }
@@ -53,8 +53,8 @@ async function checkAuth() {
         return data.authenticated === true;
     } catch (error) {
         console.error('Error during auth check:', error);
-        if (window.location.pathname !== '/login.html') {
-            window.location.href = '/login.html';
+        if (window.location.pathname !== '/paysafe/dash/public/login.html') {
+            window.location.href = '/paysafe/dash/public/login.html';
         }
         return false;
     }
