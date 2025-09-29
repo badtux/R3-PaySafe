@@ -249,7 +249,7 @@ async function exportToCSV() {
             }
         });
         params.append('status', 'SUCCESS');
-        const { data } = await authAjax(`${BASE_URL}/export?${params}`, { method: 'GET' });
+        const { data } = await authAjax(`${BASE_URL}/payments/export?${params}`, { method: 'GET' });
 
         const headers = ['Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status'];
         const rows = data.map(t =>
