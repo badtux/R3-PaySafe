@@ -17,8 +17,8 @@ if (APP_LIVE) {
 
 
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
-    define('COLLECTION', 'paysafe');
-    define('DB', 'paysafe_malky');
+    define('COLLECTION', 'payments');
+    define('DB', 'malkey_paysafe');
 
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
@@ -31,10 +31,9 @@ if (APP_LIVE) {
     define('REDIRECT_URL', 'http://paymentgateway.loc/cmb/status');
 
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
-    define('COLLECTION', 'pyment');
-    define('DB', 'mulky');
+    define('COLLECTION', 'payments');
+    define('DB', 'malkey_paysafe');
 }
-
 
 
 if (APP_LIVE) {
@@ -43,9 +42,6 @@ if (APP_LIVE) {
 } else {
     define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/cmb/');
 }
-
-
-
 
 define('NAME', 'Malkey Rent A Car');
 define('CC_LIST', ['milindum@gmail.com','accounts@malkey.lk','billing@malkey.lk','piumal0713@gmail.com','viraj.abayarathna@gmail.com', 'milindum@gmail.com', 'accounts@malkey.lk' , 'info@malkey.lk' ]);
