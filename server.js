@@ -7,6 +7,7 @@ const path = require("path");
 const { connectToMongo } = require("./config/db");
 const paymentRoutes = require("./routes/paymentRoutes");
 const authRoutes = require("./routes/authRouters");
+const pdfRoutes = require("./routes/receiptRoutes");
 
 const app = express();
 const port = 3008;
@@ -95,9 +96,11 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
   }
 });
-
+app.use("/api/pdf", pdfRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", isAuthenticated, paymentRoutes);
+
+
 
 // Start server
 async function startServer() {
