@@ -173,6 +173,34 @@
         <div class="container mx-auto px-4 text-center text-sm text-gray-500">
             <p>© 2025 Payment Dashboard • Mahesh Mallawaratchi</p>
         </div>
+
+        <button 
+  onclick="downloadReceipt('123e4')" 
+  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+  Download PDF
+</button>
+
+<script>
+  function downloadReceipt(paymentId) {
+    // Create a hidden link and trigger download
+    fetch(`http://localhost:3008/api/pdf/download/${paymentId}`, { method: 'GET' })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${paymentId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(err => {
+        console.error("Error downloading PDF:", err);
+        alert("Failed to download receipt.");
+      });
+  }
+</script>
+
     </footer>
 
     <!-- Load jQuery first -->

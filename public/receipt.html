@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fund Transfer Receipt</title>
+  <style>
+    body {
+      font-family: "Courier New", monospace; 
+      padding: 15px;
+      font-size: 12px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .logo {
+      width: 60px;
+      height: auto;
+      margin-right: 10px;
+    }
+
+    h2 {
+      text-align: center;
+      color:#f10a0a;
+      flex: 1;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .receipt {
+      /* border: 1px solid #ccc; */
+      padding: 10px;
+      max-width: 450px;
+      margin: auto;
+    }
+
+    .divider {
+      border-top: 1px solid #585656;
+      margin: 5px 0;
+      padding-top: 10px;
+    }
+
+.row {
+  display: table;
+  width: 100%;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  margin: 3px 0;
+}
+
+.label, .colon, .value {
+  display: table-cell;
+  vertical-align: top;
+}
+
+.label {
+  width: 250px; 
+  font-weight: bold;
+}
+
+.colon {
+  width: 10px;     
+  text-align: center; 
+  color: #000;      
+}
+
+
+.value {
+  width: auto;
+}
+
+
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      margin-top: 10px;
+      color: #161313;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img class="logo" src="{{bankLogo}}" alt="Bank Logo">
+    <h2>Seylan Bank - Online Transfer</h2>
+  </div>
+
+  <div class="receipt">
+    <div class="divider"></div>
+
+    <div class="row"><span class="label">Status</span><span class="colon">:</span><span class="value">{{status}}</span></div>
+    <div class="row"><span class="label">Order Id</span><span class="colon">:</span><span class="value">{{orderId}}</span></div>
+    <div class="row"><span class="label">Amount</span><span class="colon">:</span><span class="value">{{currency}} {{amount}}</span></div>
+    <div class="row"><span class="label">Transaction ID</span><span class="colon">:</span><span class="value">{{transactionId}}</span></div>
+    <div class="row"><span class="label">Date & Time</span><span class="colon">:</span><span class="value">{{dateTime}}</span></div>
+    <div class="row"><span class="label">Source Account Number</span><span class="colon">:</span><span class="value">{{sourceAccount}}</span></div>
+    <div class="row"><span class="label">Beneficiary Account No.</span><span class="colon">:</span><span class="value">{{beneficiaryAccount}}</span></div>
+    <div class="row"><span class="label">Beneficiary Remarks</span><span class="colon">:</span><span class="value">{{remarks}}</span></div>
+    <div class="row"><span class="label">Destination Bank</span><span class="colon">:</span><span class="value">{{bank}}</span></div>
+
+    <div class="divider"></div>
+  </div>
+
+  <div class="footer">
+    © 2025 Seylan Bank. All rights reserved.
+  </div>
+</body>
+</html>

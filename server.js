@@ -101,7 +101,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api", isAuthenticated, paymentRoutes);
 
 
-
 // Start server
 async function startServer() {
   await connectToMongo();
