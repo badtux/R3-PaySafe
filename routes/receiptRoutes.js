@@ -4,6 +4,6 @@ const { downloadReceipt } = require('../controllers/receiptController');
 const router = express.Router();
 
 // Public route to generate PDF
-router.get('/download/:orderId', downloadReceipt);
+router.get('/download/:db/:orderId', downloadReceipt);
 
 module.exports = router;

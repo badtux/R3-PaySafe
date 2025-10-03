@@ -183,7 +183,7 @@
 <script>
   function downloadReceipt(paymentId) {
     // Create a hidden link and trigger download
-    fetch(`http://localhost:3008/api/pdf/download/${paymentId}`, { method: 'GET' })
+    fetch(`http://localhost:3008/api/pdf/download/commercial/${paymentId}`, { method: 'GET' })
       .then(res => res.blob())
       .then(blob => {
         const url = window.URL.createObjectURL(blob);

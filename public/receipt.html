@@ -3,108 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <title>Fund Transfer Receipt</title>
+  <!-- Tailwind CDN (aborted in Puppeteer to avoid timeouts) -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      font-family: "Courier New", monospace; 
+      font-family: "Courier New", monospace;
       padding: 15px;
       font-size: 12px;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
-    .logo {
-      width: 60px;
-      height: auto;
-      margin-right: 10px;
-    }
-
-    h2 {
-      text-align: center;
-      color:#f10a0a;
-      flex: 1;
-      font-size: 14px;
-      margin: 0;
-    }
-
-    .receipt {
-      /* border: 1px solid #ccc; */
-      padding: 10px;
-      max-width: 450px;
-      margin: auto;
-    }
-
-    .divider {
-      border-top: 1px solid #585656;
-      margin: 5px 0;
-      padding-top: 10px;
-    }
-
-.row {
-  display: table;
-  width: 100%;
-  font-family: "Courier New", monospace;
-  font-size: 12px;
-  margin: 3px 0;
-}
-
-.label, .colon, .value {
-  display: table-cell;
-  vertical-align: top;
-}
-
-.label {
-  width: 250px; 
-  font-weight: bold;
-}
-
-.colon {
-  width: 10px;     
-  text-align: center; 
-  color: #000;      
-}
-
-
-.value {
-  width: auto;
-}
-
-
-    .footer {
-      text-align: center;
-      font-size: 10px;
-      margin-top: 10px;
-      color: #161313;
-    }
+    .text-red-600 { color: #e53e3e; }
+    .text-blue-600 { color: #2563eb; }
+    .text-center { text-align: center; }
+    .text-lg { font-size: 18px; }
+    .font-bold { font-weight: bold; }
+    .mb-2 { margin-bottom: 8px; }
+    .text-xs { font-size: 12px; }
+    .text-gray-700 { color: #4a5568; }
+    .mt-2 { margin-top: 8px; }
+    .border-t { border-top: 1px solid; }
+    .border-gray-500 { border-color: #a0aec0; }
+    .p-4 { padding: 16px; }
+    .max-w-md { max-width: 28rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .grid { display: grid; }
+    .grid-cols-custom { grid-template-columns: 230px 10px 1fr; }
+    .gap-1 { gap: 4px; }
+    .mb-1 { margin-bottom: 4px; }
+    .text-black { color: #000; }
+    .w-20 { width: 5rem; }
+    .h-auto { height: auto; }
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .w-12 { width: 3rem; }
   </style>
 </head>
-<body>
-  <div class="header">
-    <img class="logo" src="{{bankLogo}}" alt="Bank Logo">
-    <h2>Seylan Bank - Online Transfer</h2>
+<body class="bg-white">
+  <div class="flex items-center mb-4 justify-between">
+    <img class="w-20 h-auto" src="{{bankLogo}}" alt="Bank Logo">
+    <div class="w-12"></div>
   </div>
 
-  <div class="receipt">
-    <div class="divider"></div>
+  <h2 class="{{headerColor}} text-center text-lg font-bold mb-2">{{bankHeader}}</h2>
 
-    <div class="row"><span class="label">Status</span><span class="colon">:</span><span class="value">{{status}}</span></div>
-    <div class="row"><span class="label">Order Id</span><span class="colon">:</span><span class="value">{{orderId}}</span></div>
-    <div class="row"><span class="label">Amount</span><span class="colon">:</span><span class="value">{{currency}} {{amount}}</span></div>
-    <div class="row"><span class="label">Transaction ID</span><span class="colon">:</span><span class="value">{{transactionId}}</span></div>
-    <div class="row"><span class="label">Date & Time</span><span class="colon">:</span><span class="value">{{dateTime}}</span></div>
-    <div class="row"><span class="label">Source Account Number</span><span class="colon">:</span><span class="value">{{sourceAccount}}</span></div>
-    <div class="row"><span class="label">Beneficiary Account No.</span><span class="colon">:</span><span class="value">{{beneficiaryAccount}}</span></div>
-    <div class="row"><span class="label">Beneficiary Remarks</span><span class="colon">:</span><span class="value">{{remarks}}</span></div>
-    <div class="row"><span class="label">Destination Bank</span><span class="colon">:</span><span class="value">{{bank}}</span></div>
+  <div class="p-4 max-w-md mx-auto">
+    <div class="border-t border-gray-500 mt-2 mb-2"></div>
 
-    <div class="divider"></div>
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Status</span><span class="text-black">:</span><span>{{status}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Order Id</span><span class="text-black">:</span><span>{{orderId}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Amount</span><span class="text-black">:</span><span>{{currency}} {{amount}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Transaction ID</span><span class="text-black">:</span><span>{{transactionId}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Date & Time</span><span class="text-black">:</span><span>{{dateTime}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Source Account Number</span><span class="text-black">:</span><span>{{sourceAccount}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Beneficiary Account No.</span><span class="text-black">:</span><span>{{beneficiaryAccount}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Beneficiary Remarks</span><span class="text-black">:</span><span>{{remarks}}</span>
+    </div>
+
+    <div class="grid grid-cols-custom gap-1 mb-1">
+      <span class="font-bold">Destination Bank</span><span class="text-black">:</span><span>{{bank}}</span>
+    </div>
+
+    <div class="border-t border-gray-500 mt-2"></div>
   </div>
 
-  <div class="footer">
-    © 2025 Seylan Bank. All rights reserved.
+  <div class="text-center text-xs mt-2 text-gray-700">
+    {{bankFooter}}
   </div>
 </body>
 </html>
