@@ -5,15 +5,14 @@ const isLive = process.env.LIVE === 'true';
 const uri = isLive ? process.env.MONGO_URI_LIVE : process.env.MONGO_URI_DEV;
 const client = new MongoClient(uri);
 
-let malkeyDb, seylanDb;
-let paymentCollectionMalkey, paymentCollectionSeylan, userCollectionMalkey, userCollectionSeylan;
+let malkeyDb, helpageDb;
+let paymentCollectionMalkey, paymentCollectionHelpage, userCollectionMalkey, userCollectionHelpage;
 
 async function connectToMongo() {
     try {
         await client.connect();
         console.log(`Connected to MongoDB (${isLive ? 'LIVE' : 'DEV'})`);
 
-        // Initialize malkey_paysafe database
         malkeyDb = client.db(process.env.MONGO_DB_MALKEY);
         const malkeyCollections = await malkeyDb.listCollections().toArray();
         const malkeyCollectionNames = malkeyCollections.map(c => c.name);
@@ -31,23 +30,23 @@ async function connectToMongo() {
         userCollectionMalkey = malkeyDb.collection('users');
         console.log('Collections in malkey_paysafe database:', malkeyCollectionNames);
 
-        // Initialize seylan_paysafe database
-        seylanDb = client.db(process.env.MONGO_DB_SEYLAN);
-        const seylanCollections = await seylanDb.listCollections().toArray();
-        const seylanCollectionNames = seylanCollections.map(c => c.name);
 
-        if (!seylanCollectionNames.includes('payments')) {
-            await seylanDb.createCollection('payments');
-            console.log("Created 'payments' collection in seylan_paysafe");
+        helpageDb = client.db(process.env.MONGO_DB_HELPAGE);
+        const helpageCollections = await helpageDb.listCollections().toArray();
+        const helpageCollectionNames = helpageCollections.map(c => c.name);
+
+        if (!helpageCollectionNames.includes('payments')) {
+            await helpageDb.createCollection('payments');
+            console.log("Created 'payments' collection in helpage_paysafe");
         }
-        if (!seylanCollectionNames.includes('users')) {
-            await seylanDb.createCollection('users');
-            console.log("Created 'users' collection in seylan_paysafe");
+        if (!helpageCollectionNames.includes('users')) {
+            await helpageDb.createCollection('users');
+            console.log("Created 'users' collection in helpage_paysafe");
         }
 
-        paymentCollectionSeylan = seylanDb.collection('payments');
-        userCollectionSeylan = seylanDb.collection('users');
-        console.log('Collections in seylan_paysafe database:', seylanCollectionNames);
+        paymentCollectionHelpage = helpageDb.collection('payments');
+        userCollectionHelpage = helpageDb.collection('users');
+        console.log('Collections in helpage_paysafe database:', helpageCollectionNames);
 
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
@@ -59,7 +58,7 @@ function getPaymentCollection(dbName) {
     if (dbName === 'malkey') {
         return paymentCollectionMalkey;
     } else if (dbName === 'helpage') {
-        return paymentCollectionSeylan;
+        return paymentCollectionHelpage;
     }
     throw new Error('Invalid dbName parameter');
 }
@@ -68,7 +67,7 @@ function getUserCollection(dbName) {
     if (dbName === 'malkey') {
         return userCollectionMalkey;
     } else if (dbName === 'helpage') {
-        return userCollectionSeylan;
+        return userCollectionHelpage;
     }
     throw new Error('Invalid dbName parameter');
 }

@@ -1,17 +1,19 @@
-//const BASE_URL = "http://localhost:3008/api";
- const BASE_URL = "https://malkey.go.digitable.io:3008/api";
+const BASE_URL = "http://localhost:3008/api";
+// const BASE_URL = "https://malkey.go.digitable.io:3008/api";
 const today = new Date().toISOString().split('T')[0];
 
 const VALID_TENANTS = [
     {
         tenant: "malkey",
         password: "password123",
-        displayName: "Malkey Rent A Car"
+        displayName: "Malkey Rent A Car",
+        logo: "https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png"
     },
     {
         tenant: "helpage",
         password: "password456",
-        displayName: "Helpage "
+        displayName: "Helpage ",
+        logo: ""
     }
 ];
 
@@ -51,6 +53,7 @@ let currentFilters = {
 
 $(document).ready(() => {
     if (checkAuth()) {
+        loadTenantBranding();
         $('#login-section').addClass('hidden');
         $('#dashboard-content').removeClass('hidden');
         $('#userName').text(localStorage.getItem('displayName') || 'User');
@@ -72,6 +75,18 @@ $(document).ready(() => {
         }
     });
 });
+function loadTenantBranding() {
+    const tenant = localStorage.getItem('tenant');
+    const tenantData = VALID_TENANTS.find(t => t.tenant === tenant);
+    
+    if (tenantData) {
+        const logoUrl = tenantData.logo || "https://via.placeholder.com/160x76/4e73df/ffffff?text=Logo";
+        $('#tenantLogo').attr('src', logoUrl).attr('alt', tenantData.displayName);
+        
+        // Update Footer
+        $('#footerText').text(`© 2025 Payment Dashboard • ${tenantData.displayName}`);
+    }
+}
 
 
 
@@ -81,6 +96,7 @@ function setupLoginEventListener() {
         const password = $('#password').val();
         if (tenant && password) {
             if (login(tenant, password)) {
+                loadTenantBranding();
                 $('#login-section').addClass('hidden');
                 $('#dashboard-content').removeClass('hidden');
                 $('#userName').text(localStorage.getItem('displayName') || 'User');
@@ -279,13 +295,18 @@ function changePage(page) {
 async function exportToCSV() {
     try {
         const params = new URLSearchParams();
+
         ['from', 'to', 'search'].forEach(key => {
-            if (currentFilters[key] !== undefined && value !== '') {
-                params.append(key, currentFilters[key]);
+            const value = currentFilters[key];
+            if (value !== undefined && value !== '') {
+                params.append(key, value);
             }
         });
+
         params.append('status', 'SUCCESS');
+
         const tenant = localStorage.getItem('tenant');
+
         const response = await $.ajax({
             url: `${BASE_URL}/${tenant}/payments/export?${params}`,
             method: 'GET'
@@ -295,13 +316,16 @@ async function exportToCSV() {
         const rows = response.map(t =>
             `"${new Date(t.createdAt).toISOString().split('T')[0]}","${t.merchantId || 'N/A'}","${t.orderId || 'N/A'}",${parseFloat(t.amount || 0).toFixed(2)},"${t.currency || 'N/A'}","${t.email || 'N/A'}","${t.description || 'N/A'}","${t.cardBrand || 'N/A'}","${t.nameOnCard || 'N/A'}","SUCCESS"`
         );
+
         const csv = [...headers, ...rows].join('\n');
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
+
         const $a = $('<a>', {
             href: url,
             download: 'successful_transactions.csv'
         }).appendTo('body');
+
         $a[0].click();
         URL.revokeObjectURL(url);
         $a.remove();

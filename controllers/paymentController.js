@@ -10,7 +10,7 @@ const healthCheck = async (req, res) => {
         res.status(200).json({
             status: 'ok',
             connected: true,
-            database: dbName === 'malkey' ? 'malkey_paysafe' : 'seylan_paysafe',
+            database: dbName === 'malkey' ? 'malkey_paysafe' : 'helpage_paysafe',
             collection: 'payments',
             collectionExists,
             documentCount
