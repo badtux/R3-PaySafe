@@ -2,7 +2,7 @@ const { getPaymentCollection } = require('../models/Payment');
 
 const healthCheck = async (req, res) => {
     try {
-        const dbName = req.params.db; // Get db from route parameter
+        const dbName = req.params.db; 
         const collection = getPaymentCollection(dbName);
         const collections = await collection.db.listCollections().toArray();
         const collectionExists = collections.some(c => c.name === 'payments');
@@ -23,7 +23,7 @@ const healthCheck = async (req, res) => {
 
 const getPayments = async (req, res) => {
     const { from, to, status, search, page = 1, limit = 10 } = req.query;
-    const dbName = req.params.db; // Get db from route parameter
+    const dbName = req.params.db; 
     let filter = {};
 
     console.log('Request query:', req.query);
@@ -89,7 +89,7 @@ const getPayments = async (req, res) => {
 
 const exportPayments = async (req, res) => {
     const { from, to, status, search } = req.query;
-    const dbName = req.params.db; // Get db from route parameter
+    const dbName = req.params.db;
     let filter = {};
 
     if (from || to) {

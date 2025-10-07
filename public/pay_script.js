@@ -1,17 +1,16 @@
 const BASE_URL = "http://localhost:3008/api";
 const today = new Date().toISOString().split('T')[0];
 
-// Hardcoded tenants for demo purposes
 const VALID_TENANTS = [
     {
         tenant: "malkey",
         password: "password123",
-        displayName: "Malkey Merchant"
+        displayName: "Malkey Rent A Car"
     },
     {
         tenant: "helpage",
         password: "password456",
-        displayName: "Helpage Merchant"
+        displayName: "Helpage "
     }
 ];
 
@@ -25,6 +24,7 @@ function login(inputTenant, password) {
     }
     return false;
 }
+
 
 function checkAuth() {
     return localStorage.getItem('isAuthenticated') === 'true';
@@ -72,9 +72,11 @@ $(document).ready(() => {
     });
 });
 
+
+
 function setupLoginEventListener() {
     $('#loginButton').on('click', () => {
-        const tenant = $('#username').val(); // Input field still labeled "username" for UI consistency
+        const tenant = $('#username').val(); 
         const password = $('#password').val();
         if (tenant && password) {
             if (login(tenant, password)) {
@@ -96,6 +98,8 @@ function setupLoginEventListener() {
     });
 }
 
+
+
 function setupEventListeners() {
     $('#applyFilters').on('click', applyFilters);
     $('#resetFilters').on('click', resetFilters);
@@ -108,6 +112,8 @@ function setupEventListeners() {
     });
     $('#exportData').on('click', exportToCSV);
 }
+
+
 
 async function checkHealth() {
     try {
@@ -132,6 +138,8 @@ async function checkHealth() {
         `);
     }
 }
+
+
 
 async function loadData() {
     try {
@@ -158,6 +166,7 @@ async function loadData() {
     }
 }
 
+
 function applyFilters() {
     const fromDate = $('#fromDate').val() || today;
     const toDate = $('#toDate').val() || today;
@@ -172,6 +181,8 @@ function applyFilters() {
     currentFilters.page = 1;
     loadData();
 }
+
+
 
 function resetFilters() {
     $('#fromDate').val('');
@@ -190,6 +201,8 @@ function resetFilters() {
     console.log('Filters reset');
     loadData();
 }
+
+
 
 function updateStats(stats) {
     $('#statsCards').html(`
