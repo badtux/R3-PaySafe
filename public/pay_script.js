@@ -1,63 +1,42 @@
-const BASE_URL = "http://localhost:3008/api"; // Use local URL for testing
-//const BASE_URL = "https://malkey.go.digitable.io:3008/api";
-
+const BASE_URL = "http://localhost:3008/api";
 const today = new Date().toISOString().split('T')[0];
 
-async function authAjax(url, options = {}) {
-    console.log('Making request to:', url);
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: url,
-            ...options,
-            xhrFields: { withCredentials: true },
-            success: (data, textStatus, jqXHR) => {
-                console.log('Response status:', jqXHR.status);
-                if (jqXHR.status === 401 || jqXHR.status === 403) {
-                    console.log('Unauthorized or Forbidden, redirecting to /login.html');
-                    if (window.location.pathname !== '/paysafe/dash/public/login.html') {
-                        window.location.href = '/paysafe/dash/public/login.html';
-                    }
-                    reject(new Error('Not authenticated'));
-                } else {
-                    resolve({ data, status: jqXHR.status });
-                }
-            },
-            error: (jqXHR, textStatus, errorThrown) => {
-                console.error('Request failed:', errorThrown);
-                if (jqXHR.status === 401 || jqXHR.status === 403) {
-                    if (window.location.pathname !== '/paysafe/dash/public/login.html') {
-                        window.location.href = '/paysafe/dash/public/login.html';
-                    }
-                    reject(new Error('Not authenticated'));
-                } else {
-                    reject(new Error(errorThrown));
-                }
-            }
-        });
-    });
+// Hardcoded tenants for demo purposes
+const VALID_TENANTS = [
+    {
+        tenant: "malkey",
+        password: "password123",
+        displayName: "Malkey Merchant"
+    },
+    {
+        tenant: "helpage",
+        password: "password456",
+        displayName: "Helpage Merchant"
+    }
+];
+
+function login(inputTenant, password) {
+    const tenant = VALID_TENANTS.find(t => t.tenant === inputTenant && t.password === password);
+    if (tenant) {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('tenant', tenant.tenant);
+        localStorage.setItem('displayName', tenant.displayName);
+        return true;
+    }
+    return false;
 }
 
-async function checkAuth() {
-    try {
-        console.log('Checking authentication...');
-        const { data, status } = await authAjax(`${BASE_URL}/auth/check`, { method: 'GET' });
-        console.log('Auth check status:', status);
-        if (status !== 200) {
-            console.log('Auth check failed, redirecting to /login.html');
-            if (window.location.pathname !== '/paysafe/dash/public/login.html') {
-                window.location.href = '/paysafe/dash/public/login.html';
-            }
-            return false;
-        }
-        console.log('Auth check response:', data);
-        return data.authenticated === true;
-    } catch (error) {
-        console.error('Error during auth check:', error);
-        if (window.location.pathname !== '/paysafe/dash/public/login.html') {  // /login.html
-            window.location.href = '/paysafe/dash/public/login.html';
-        }
-        return false;
-    }
+function checkAuth() {
+    return localStorage.getItem('isAuthenticated') === 'true';
+}
+
+function logout() {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('tenant');
+    localStorage.removeItem('displayName');
+    $('#login-section').removeClass('hidden');
+    $('#dashboard-content').addClass('hidden');
+    $('#userName').text('Guest');
 }
 
 let currentFilters = {
@@ -69,19 +48,53 @@ let currentFilters = {
     limit: 10
 };
 
-$(document).ready(async () => {
-    const isAuthenticated = await checkAuth();
-    if (!isAuthenticated) {
-        console.log('User not authenticated, redirection handled in checkAuth');
-        return; // Stop further execution
+$(document).ready(() => {
+    if (checkAuth()) {
+        $('#login-section').addClass('hidden');
+        $('#dashboard-content').removeClass('hidden');
+        $('#userName').text(localStorage.getItem('displayName') || 'User');
+        $('#transactionTable').html(`
+            <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
+        `);
+        checkHealth();
+        loadData();
+        setupEventListeners();
+    } else {
+        $('#login-section').removeClass('hidden');
+        $('#dashboard-content').addClass('hidden');
+        setupLoginEventListener();
     }
-    $('#transactionTable').html(`
-        <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
-    `);
-    checkHealth();
-    loadData();
-    setupEventListeners();
+
+    $('#userProfile').on('click', () => {
+        if (checkAuth()) {
+            logout();
+        }
+    });
 });
+
+function setupLoginEventListener() {
+    $('#loginButton').on('click', () => {
+        const tenant = $('#username').val(); // Input field still labeled "username" for UI consistency
+        const password = $('#password').val();
+        if (tenant && password) {
+            if (login(tenant, password)) {
+                $('#login-section').addClass('hidden');
+                $('#dashboard-content').removeClass('hidden');
+                $('#userName').text(localStorage.getItem('displayName') || 'User');
+                $('#transactionTable').html(`
+                    <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
+                `);
+                checkHealth();
+                loadData();
+                setupEventListeners();
+            } else {
+                $('#loginError').removeClass('hidden');
+            }
+        } else {
+            $('#loginError').removeClass('hidden');
+        }
+    });
+}
 
 function setupEventListeners() {
     $('#applyFilters').on('click', applyFilters);
@@ -98,12 +111,17 @@ function setupEventListeners() {
 
 async function checkHealth() {
     try {
-        const { data } = await authAjax(`${BASE_URL}/transactions`, { method: 'GET' });
-        console.log('Health check:', data);
-        if (!data.collectionExists || data.documentCount === 0) {
+        const tenant = localStorage.getItem('tenant');
+        const url = `${BASE_URL}/${tenant}/transactions`;
+        const response = await $.ajax({
+            url: url,
+            method: 'GET'
+        });
+        console.log('Health check:', response);
+        if (!response.collectionExists || response.documentCount === 0) {
             $('#transactionTable').html(`
                 <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
-                    ${data.collectionExists ? 'No successful transactions found in database' : 'Collection "payments" does not exist'}
+                    ${response.collectionExists ? 'No successful transactions found in database' : 'Collection "payments" does not exist'}
                 </td></tr>
             `);
         }
@@ -124,10 +142,14 @@ async function loadData() {
             }
         }
         params.set('status', 'SUCCESS');
-        const { data } = await authAjax(`${BASE_URL}/payments?${params}`, { method: 'GET' });
-        console.log('Fetched data:', data);
-        updateStats(data.stats);
-        updateTable(data.transactions, data.total);
+        const tenant = localStorage.getItem('tenant');
+        const response = await $.ajax({
+            url: `${BASE_URL}/${tenant}/payments?${params}`,
+            method: 'GET'
+        });
+        console.log('Fetched data:', response);
+        updateStats(response.stats);
+        updateTable(response.transactions, response.total);
     } catch (error) {
         console.error('Error fetching data:', error);
         $('#transactionTable').html(`
@@ -244,15 +266,19 @@ async function exportToCSV() {
     try {
         const params = new URLSearchParams();
         ['from', 'to', 'search'].forEach(key => {
-            if (currentFilters[key] !== undefined && currentFilters[key] !== '') {
+            if (currentFilters[key] !== undefined && value !== '') {
                 params.append(key, currentFilters[key]);
             }
         });
         params.append('status', 'SUCCESS');
-        const { data } = await authAjax(`${BASE_URL}/payments/export?${params}`, { method: 'GET' });
+        const tenant = localStorage.getItem('tenant');
+        const response = await $.ajax({
+            url: `${BASE_URL}/${tenant}/payments/export?${params}`,
+            method: 'GET'
+        });
 
         const headers = ['Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status'];
-        const rows = data.map(t =>
+        const rows = response.map(t =>
             `"${new Date(t.createdAt).toISOString().split('T')[0]}","${t.merchantId || 'N/A'}","${t.orderId || 'N/A'}",${parseFloat(t.amount || 0).toFixed(2)},"${t.currency || 'N/A'}","${t.email || 'N/A'}","${t.description || 'N/A'}","${t.cardBrand || 'N/A'}","${t.nameOnCard || 'N/A'}","SUCCESS"`
         );
         const csv = [...headers, ...rows].join('\n');

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard &raquo; Transactions</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- Favicon added -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -65,8 +65,8 @@
                         <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto ml-5 filter brightness-0 invert">
                     </div>
                     <div class="relative">
-                        <button class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm">
-                            <i class="fas fa-user mr-2"></i> Mahesh Mallawaratchi
+                        <button id="userProfile" class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm">
+                            <i class="fas fa-user mr-2"></i> <span id="userName">Guest</span>
                             <i class="fas fa-chevron-down ml-2 text-xs"></i>
                         </button>
                     </div>
@@ -75,95 +75,117 @@
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6" id="statsCards">
-            <!-- Stats will be dynamically updated -->
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-5 mb-6">
-            <h2 class="text-lg font-semibold mb-4 text-gray-700"><i class="fas fa-filter mr-2 text-primary"></i>Filter Transactions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    <main class="container mx-auto px-4 py-6" id="main-content">
+        <div id="login-section" class="bg-white rounded-lg shadow p-5 mb-6">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700"><i class="fas fa-sign-in-alt mr-2 text-primary"></i>Login</h2>
+            <div class="grid grid-cols-1 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
-                    <input type="date" id="fromDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your username (merchant1 or merchant2)">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
-                    <input type="date" id="toDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Enter your password">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
-                    <select id="transactionType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                        <option value="">All Statuses</option>
-                        <option value="SUCCESS">Success</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="FAILED">Failed</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
-                    <select id="itemsPerPage" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                        <option value="5">5</option>
-                        <option value="10" selected>10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                    <input type="text" id="searchQuery" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Search by order ID, email, or description...">
-                </div>
-                <div class="flex items-end space-x-2">
-                    <button id="applyFilters" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
-                        <i class="fas fa-filter mr-2"></i> Apply Filters
-                    </button>
-                    <button id="resetFilters" class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center">
-                        <i class="fas fa-redo mr-2"></i> Reset
+                <div class="flex items-center space-x-2">
+                    <button id="loginButton" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login
                     </button>
                 </div>
             </div>
+            <p id="loginError" class="text-red-500 text-sm mt-2 hidden">Invalid username or password.</p>
         </div>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4">
-                <h2 class="text-lg font-semibold text-gray-700"><i class="fas fa-list mr-2 text-primary"></i>Transaction History</h2>
-                <button id="exportData" class="border border-primary text-primary hover:bg-blue-50 px-3 py-1 rounded-md text-sm flex items-center">
-                    <i class="fas fa-download mr-2"></i> Export
-                </button>
+        <div id="dashboard-content" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6" id="statsCards">
+                <!-- Stats will be dynamically updated -->
             </div>
-            <div class="table-container">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant ID</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card Brand</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name on Card</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Id</th>
-                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionTable" class="divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="11" class="px-5 py-4 text-center">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <div class="bg-white rounded-lg shadow p-5 mb-6">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700"><i class="fas fa-filter mr-2 text-primary"></i>Filter Transactions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                        <input type="date" id="fromDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                        <input type="date" id="toDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                        <select id="transactionType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="">All Statuses</option>
+                            <option value="SUCCESS">Success</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="FAILED">Failed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
+                        <select id="itemsPerPage" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <input type="text" id="searchQuery" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Search by order ID, email, or description...">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button id="applyFilters" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
+                            <i class="fas fa-filter mr-2"></i> Apply Filters
+                        </button>
+                        <button id="resetFilters" class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center">
+                            <i class="fas fa-redo mr-2"></i> Reset
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4">
-                <div class="text-sm text-gray-700 mb-4 md:mb-0" id="tableInfo"></div>
-                <div class="flex space-x-2">
-                    <button id="prevPage" class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Previous</button>
-                    <div id="pageButtons" class="flex space-x-2"></div>
-                    <button id="nextPage" class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200">Next</button>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4">
+                    <h2 class="text-lg font-semibold text-gray-700"><i class="fas fa-list mr-2 text-primary"></i>Transaction History</h2>
+                    <button id="exportData" class="border border-primary text-primary hover:bg-blue-50 px-3 py-1 rounded-md text-sm flex items-center">
+                        <i class="fas fa-download mr-2"></i> Export
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card Brand</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name on Card</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Id</th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTable" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="11" class="px-5 py-4 text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4">
+                    <div class="text-sm text-gray-700 mb-4 md:mb-0" id="tableInfo"></div>
+                    <div class="flex space-x-2">
+                        <button id="prevPage" class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Previous</button>
+                        <div id="pageButtons" class="flex space-x-2"></div>
+                        <button id="nextPage" class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200">Next</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -173,39 +195,9 @@
         <div class="container mx-auto px-4 text-center text-sm text-gray-500">
             <p>© 2025 Payment Dashboard • Mahesh Mallawaratchi</p>
         </div>
-
-        <button 
-  onclick="downloadReceipt('123e4')" 
-  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-  Download PDF
-</button>
-
-<script>
-  function downloadReceipt(paymentId) {
-    // Create a hidden link and trigger download
-    fetch(`http://localhost:3008/api/pdf/download/commercial/${paymentId}`, { method: 'GET' })
-      .then(res => res.blob())
-      .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `receipt-${paymentId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      })
-      .catch(err => {
-        console.error("Error downloading PDF:", err);
-        alert("Failed to download receipt.");
-      });
-  }
-</script>
-
     </footer>
 
-    <!-- Load jQuery first -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Then load your script -->
     <script src="pay_script.js"></script>
 </body>
 </html>

@@ -1,6 +1,4 @@
-// models/Payment.js
 const { getPaymentCollection } = require('../config/db');
-
 
 const paymentSchema = {
     orderId: String,
@@ -22,6 +20,6 @@ const paymentSchema = {
 };
 
 module.exports = {
-    getCollection: () => getPaymentCollection(),
+    getPaymentCollection: (dbName) => getPaymentCollection(dbName), // Pass dbName to getPaymentCollection
     schema: paymentSchema
 };

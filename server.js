@@ -98,7 +98,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/pdf", pdfRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api", isAuthenticated, paymentRoutes);
+app.use("/api", paymentRoutes);
 
 
 // Start server
