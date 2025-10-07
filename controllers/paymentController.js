@@ -1,131 +1,32 @@
-const { getPaymentCollection } = require('../models/Payment');
 
-const healthCheck = async (req, res) => {
+const paymentService = require('../services/payment.service');
+
+exports.healthCheck = async (req, res) => {
     try {
-        const dbName = req.params.db; 
-        const collection = getPaymentCollection(dbName);
-        const collections = await collection.db.listCollections().toArray();
-        const collectionExists = collections.some(c => c.name === 'payments');
-        const documentCount = collectionExists ? await collection.countDocuments() : 0;
-        res.status(200).json({
-            status: 'ok',
-            connected: true,
-            database: dbName === 'malkey' ? 'malkey_paysafe' : 'helpage_paysafe',
-            collection: 'payments',
-            collectionExists,
-            documentCount
-        });
+        const result = await paymentService.checkHealth(req.hostname);
+        res.status(200).json(result);
     } catch (error) {
-        console.error('Health check error:', error);
-        res.status(500).json({ status: 'error', message: 'Failed to check database status' });
+        console.error('Health check error:', error.message);
+        res.status(400).json({ status: 'error', message: error.message });
     }
 };
 
-const getPayments = async (req, res) => {
-    const { from, to, status, search, page = 1, limit = 10 } = req.query;
-    const dbName = req.params.db; 
-    let filter = {};
-
-    console.log('Request query:', req.query);
-
-    if (from || to) {
-        filter.createdAt = {};
-        if (from) {
-            filter.createdAt.$gte = new Date(from);
-        }
-        if (to) {
-            const toDate = new Date(to);
-            toDate.setHours(23, 59, 59, 999);
-            filter.createdAt.$lte = toDate;
-        }
-    }
-    if (status) {
-        filter.paymentStatus = status;
-    }
-    if (search) {
-        filter.$or = [
-            { orderId: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } }
-        ];
-    }
-
-    console.log('Applied filter:', filter);
-
+exports.getPayments = async (req, res) => {
     try {
-        const collection = getPaymentCollection(dbName);
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        const transactions = await collection.find(filter).skip(skip).limit(parseInt(limit)).toArray();
-        console.log('Fetched transactions:', transactions);
-        const total = await collection.countDocuments(filter);
-        console.log('Total documents:', total);
-        const successful = await collection.countDocuments({ ...filter, paymentStatus: 'SUCCESS' });
-
-        const totalLKRResult = await collection.aggregate([
-            { $match: { ...filter, currency: 'LKR' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]).toArray();
-        const totalLKR = totalLKRResult[0]?.total || 0;
-
-        const totalUSDResult = await collection.aggregate([
-            { $match: { ...filter, currency: 'USD' } },
-            { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]).toArray();
-        const totalUSD = totalUSDResult[0]?.total || 0;
-
-        const stats = {
-            totalTransactions: total,
-            successfulTransactions: successful,
-            totalAmountLKR: totalLKR.toFixed(2),
-            totalAmountUSD: totalUSD.toFixed(2)
-        };
-
-        res.status(200).json({ transactions, total, stats });
+        const result = await paymentService.fetchPayments(req.hostname, req.query);
+        res.status(200).json(result);
     } catch (error) {
         console.error('Error fetching payments:', error);
-        res.status(500).json({ error: 'Failed to fetch payments' });
+        res.status(500).json({ status: 'error', message: 'Failed to fetch payments' });
     }
 };
 
-const exportPayments = async (req, res) => {
-    const { from, to, status, search } = req.query;
-    const dbName = req.params.db;
-    let filter = {};
-
-    if (from || to) {
-        filter.createdAt = {};
-        if (from) {
-            filter.createdAt.$gte = new Date(from);
-        }
-        if (to) {
-            const toDate = new Date(to);
-            toDate.setHours(23, 59, 59, 999);
-            filter.createdAt.$lte = toDate;
-        }
-    }
-    if (status) {
-        filter.paymentStatus = status;
-    }
-    if (search) {
-        filter.$or = [
-            { orderId: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } }
-        ];
-    }
-
+exports.exportPayments = async (req, res) => {
     try {
-        const collection = getPaymentCollection(dbName);
-        const transactions = await collection.find(filter).toArray();
-        res.status(200).json(transactions);
+        const data = await paymentService.exportPayments(req.hostname, req.query);
+        res.status(200).json(data);
     } catch (error) {
         console.error('Error exporting payments:', error);
-        res.status(500).json({ error: 'Failed to export payments' });
+        res.status(500).json({ status: 'error', message: 'Failed to export payments' });
     }
-};
-
-module.exports = {
-    healthCheck,
-    getPayments,
-    exportPayments
 };

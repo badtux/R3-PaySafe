@@ -30,39 +30,75 @@
         font-family: monospace;
         letter-spacing: 1px;
       }
-
       .table-container {
         overflow-x: auto;
       }
-
       .table-container::-webkit-scrollbar {
         height: 8px;
       }
-
       .table-container::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
       }
-
       .table-container::-webkit-scrollbar-thumb {
         background: #c2c2c2;
         border-radius: 10px;
       }
-
       .table-container::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
+      }
+      .settings-panel {
+        transition: transform 0.3s ease-in-out;
+      }
+      .settings-panel.hidden {
+        transform: translateX(100%);
+      }
+      /* Dark theme styles */
+      body.bg-gray-800 input,
+      body.bg-gray-800 select {
+        background-color: #2d3748;
+        color: #e2e8f0;
+        border-color: #4a5568;
+      }
+      body.bg-gray-800 input::placeholder {
+        color: #a0aec0;
+        opacity: 1;
+      }
+      body.bg-gray-800 select option {
+        background-color: #2d3748;
+        color: #e2e8f0;
+      }
+      body.bg-gray-800 select option:checked {
+        background-color: #4a5568;
+        color: #ffffff;
+      }
+      body.bg-gray-800 select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.5);
+      }
+      body.bg-gray-800 input:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.5);
+      }
+      /* Hide settings button on login screen */
+      #login-section:not(.hidden) ~ header #settingsButton {
+        display: none;
+      }
+      /* Transaction ID cursor and hover in dark theme */
+      body.bg-gray-800 .cursor-pointer.group {
+        color: #e2e8f0;
+      }
+      body.bg-gray-800 .cursor-pointer.group:hover {
+        color: #ffffff;
+        text-decoration: underline;
       }
     </style>
   </head>
 
-  <body class="bg-gray-50 text-gray-700 font-sans antialiased">
-    <header
-      class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md"
-    >
+  <body class="bg-gray-50 text-gray-700 font-sans antialiased" id="body">
+    <header class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md">
       <div class="container mx-auto px-4 py-5">
-        <div
-          class="flex flex-col md:flex-row md:justify-between md:items-center"
-        >
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center">
           <div class="mb-4 md:mb-0">
             <h1 class="text-2xl md:text-3xl font-bold">
               <i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions
@@ -71,20 +107,12 @@
               Manage and review your payment transactions
             </p>
           </div>
-          <div class="flex items-center justify-between md:justify-end">
-            <div class="mr-4 hidden md:flex items-center z-106767670">
-              <img
-                id="tenantLogo"
-                src=""
-                alt="Logo"
-                class="w-40 h-19 mx-auto ml-5 filter brightness-0 invert"
-              />
-            </div>
+          <div class="flex items-center justify-between md:justify-end space-x-4">
+            <button id="settingsButton" class="text-white hover:bg-blue-600 p-2 rounded-full">
+              <i class="fas fa-cog"></i>
+            </button>
             <div class="relative">
-              <button
-                id="userProfile"
-                class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
-              >
+              <button id="userProfile" class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm">
                 <i class="fas fa-user mr-2"></i>
                 <span id="userName">Guest</span>
                 <i class="fas fa-chevron-down ml-2 text-xs"></i>
@@ -96,26 +124,51 @@
     </header>
 
     <main class="container mx-auto px-4 py-6" id="main-content">
+      <!-- Settings Panel -->
+      <div id="settingsPanel" class="fixed top-0 right-0 h-full w-80 bg-white shadow-lg p-6 settings-panel hidden">
+        <h2 class="text-lg font-semibold mb-4 text-gray-700">
+          <i class="fas fa-cog mr-2 text-primary"></i>Settings
+        </h2>
+        <button id="closeSettings" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Theme</label>
+          <select id="themeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
+          <select id="itemsPerPageSettings" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <button id="saveSettings" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
+          <i class="fas fa-save mr-2"></i> Save
+        </button>
+      </div>
+
       <div id="login-section" class="bg-white rounded-lg shadow p-5 mb-6">
         <h2 class="text-lg font-semibold mb-4 text-gray-700">
           <i class="fas fa-sign-in-alt mr-2 text-primary"></i>Login
         </h2>
         <div class="grid grid-cols-1 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Username</label
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tenant Name</label>
             <input
               type="text"
               id="username"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter your username (merchant1 or merchant2)"
+              placeholder="Enter your tenant name"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Password</label
-            >
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
               id="password"
@@ -133,52 +186,41 @@
           </div>
         </div>
         <p id="loginError" class="text-red-500 text-sm mt-2 hidden">
-          Invalid username or password.
+          Invalid tenant name or password.
         </p>
       </div>
 
       <div id="dashboard-content" class="hidden">
-        <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
-          id="statsCards"
-        >
-          <!-- Stats will be dynamically updated -->
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6" id="statsCards"></div>
 
         <div class="bg-white rounded-lg shadow p-5 mb-6">
           <h2 class="text-lg font-semibold mb-4 text-gray-700">
             <i class="fas fa-filter mr-2 text-primary"></i>Filter Transactions
           </h2>
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
-          >
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >From Date</label
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
               <input
                 type="date"
                 id="fromDate"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Select start date"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >To Date</label
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
               <input
                 type="date"
                 id="toDate"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Select end date"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Payment Status</label
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
               <select
                 id="transactionType"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Statuses</option>
                 <option value="SUCCESS">Success</option>
@@ -187,12 +229,10 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Items Per Page</label
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
               <select
                 id="itemsPerPage"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
@@ -201,16 +241,13 @@
               </select>
             </div>
           </div>
-
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Search</label
-              >
+              <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
                 type="text"
                 id="searchQuery"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Search by order ID, email, or description..."
               />
             </div>
@@ -232,9 +269,7 @@
         </div>
 
         <div class="bg-white rounded-lg shadow overflow-hidden">
-          <div
-            class="flex justify-between items-center border-b border-gray-200 px-5 py-4"
-          >
+          <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4">
             <h2 class="text-lg font-semibold text-gray-700">
               <i class="fas fa-list mr-2 text-primary"></i>Transaction History
             </h2>
@@ -249,61 +284,17 @@
             <table class="w-full">
               <thead class="bg-gray-50">
                 <tr>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Created At
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Merchant ID
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Order ID
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Amount
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Currency
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Email
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Description
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Card Brand
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Name on Card
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Transaction Id
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Payment Status
-                  </th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant ID</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card Brand</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name on Card</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Id</th>
+                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
                 </tr>
               </thead>
               <tbody id="transactionTable" class="divide-y divide-gray-200">
@@ -313,13 +304,8 @@
               </tbody>
             </table>
           </div>
-          <div
-            class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4"
-          >
-            <div
-              class="text-sm text-gray-700 mb-4 md:mb-0"
-              id="tableInfo"
-            ></div>
+          <div class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4">
+            <div class="text-sm text-gray-700 mb-4 md:mb-0" id="tableInfo"></div>
             <div class="flex space-x-2">
               <button
                 id="prevPage"
@@ -343,11 +329,383 @@
 
     <footer class="bg-white mt-8 py-4 border-t border-gray-200">
       <div class="container mx-auto px-4 text-center text-sm text-gray-500">
-        <p id="footerText">© 2025 Payment Dashboard</p>
+        <p id="footerText"></p>
       </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="pay_script.js"></script>
+    <script>
+      let BASE_URL;
+      const today = new Date().toISOString().split('T')[0];
+      const UNIVERSAL_PASSWORD = 'admin@123';
+      const IS_LOCAL = window.location.hostname.includes('localhost');
+
+      $(document).ready(() => {
+        const hostname = window.location.hostname;
+        const tenantFromUrl = hostname.split('.')[0];
+        console.log('Hostname:', hostname, 'IS_LOCAL:', IS_LOCAL, 'Tenant:', tenantFromUrl);
+
+      
+        const tenantName = tenantFromUrl && tenantFromUrl !== 'localhost' && tenantFromUrl !== 'go'
+          ? tenantFromUrl.charAt(0).toUpperCase() + tenantFromUrl.slice(1) + ' Bank'
+          : 'Payment Dashboard';
+        $('#footerText').text(`© 2025 ${tenantName}`);
+
+    
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const savedItemsPerPage = localStorage.getItem('itemsPerPage') || '10';
+        applyTheme(savedTheme);
+        $('#themeSelect').val(savedTheme);
+        $('#itemsPerPage, #itemsPerPageSettings').val(savedItemsPerPage);
+        currentFilters.limit = parseInt(savedItemsPerPage);
+
+        if (checkAuth()) {
+          const tenant = localStorage.getItem('tenant');
+          BASE_URL = IS_LOCAL
+            ? `http://${tenant}.localhost:3008/api`
+            : `http://${tenant}.go.digitable.io/api`;
+          console.log('BASE_URL set to:', BASE_URL);
+          $('#login-section').addClass('hidden');
+          $('#dashboard-content').removeClass('hidden');
+          $('#settingsButton').removeClass('hidden');
+          $('#userName').text(tenant || 'User');
+          $('#transactionTable').html(`
+            <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
+          `);
+          checkHealth();
+          loadData();
+          setupEventListeners();
+        } else {
+          $('#login-section').removeClass('hidden');
+          $('#dashboard-content').addClass('hidden');
+          $('#settingsButton').addClass('hidden');
+          setupLoginEventListener();
+        }
+
+        $('#userProfile').on('click', () => {
+          if (checkAuth()) {
+            logout();
+          }
+        });
+
+    
+        $('#settingsButton').on('click', () => {
+          $('#settingsPanel').toggleClass('hidden');
+        });
+        $('#closeSettings').on('click', () => {
+          $('#settingsPanel').addClass('hidden');
+        });
+        $('#saveSettings').on('click', () => {
+          const theme = $('#themeSelect').val();
+          const itemsPerPage = $('#itemsPerPageSettings').val();
+          localStorage.setItem('theme', theme);
+          localStorage.setItem('itemsPerPage', itemsPerPage);
+          applyTheme(theme);
+          $('#itemsPerPage').val(itemsPerPage);
+          currentFilters.limit = parseInt(itemsPerPage);
+          currentFilters.page = 1;
+          loadData();
+          $('#settingsPanel').addClass('hidden');
+        });
+      });
+
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          $('#body').addClass('bg-gray-800 text-white');
+          $('.bg-white').addClass('bg-gray-900').removeClass('bg-white');
+          $('.text-gray-700').addClass('text-gray-200').removeClass('text-gray-700');
+          $('.bg-gray-50').addClass('bg-gray-700').removeClass('bg-gray-50');
+          $('.border-gray-200').addClass('border-gray-600').removeClass('border-gray-200');
+          $('.text-gray-500').addClass('text-gray-300').removeClass('text-gray-500');
+          $('.bg-gray-100').addClass('bg-gray-600').removeClass('bg-gray-100');
+          $('.hover\\:bg-gray-100').addClass('hover:bg-gray-500').removeClass('hover:bg-gray-100');
+          $('#footerText').addClass('text-gray-300').removeClass('text-gray-500');
+        } else {
+          $('#body').removeClass('bg-gray-800 text-white');
+          $('.bg-gray-900').addClass('bg-white').removeClass('bg-gray-900');
+          $('.text-gray-200').addClass('text-gray-700').removeClass('text-gray-200');
+          $('.bg-gray-700').addClass('bg-gray-50').removeClass('bg-gray-700');
+          $('.border-gray-600').addClass('border-gray-200').removeClass('border-gray-600');
+          $('.text-gray-300').addClass('text-gray-500').removeClass('text-gray-300');
+          $('.bg-gray-600').addClass('bg-gray-100').removeClass('bg-gray-600');
+          $('.hover\\:bg-gray-500').addClass('hover:bg-gray-100').removeClass('hover:bg-gray-500');
+          $('#footerText').addClass('text-gray-500').removeClass('text-gray-300');
+        }
+      }
+
+      function login(inputTenant, password) {
+        const hostname = window.location.hostname;
+        const tenantFromUrl = hostname.split('.')[0];
+        console.log('Login - Hostname:', hostname, 'Tenant from URL:', tenantFromUrl, 'Input Tenant:', inputTenant);
+        if (tenantFromUrl !== 'localhost' && tenantFromUrl !== 'go' && inputTenant !== tenantFromUrl) {
+          console.log('Tenant mismatch');
+          return false;
+        }
+        if (password === UNIVERSAL_PASSWORD && inputTenant.trim() !== '') {
+          localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('tenant', inputTenant);
+          BASE_URL = IS_LOCAL
+            ? `http://${inputTenant}.localhost:3008/api`
+            : `http://${inputTenant}.go.digitable.io/api`;
+          console.log('Login successful, BASE_URL:', BASE_URL);
+          return true;
+        }
+        console.log('Login failed: Invalid password or tenant');
+        return false;
+      }
+
+      function checkAuth() {
+        return localStorage.getItem('isAuthenticated') === 'true';
+      }
+
+      function logout() {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('tenant');
+        $('#login-section').removeClass('hidden');
+        $('#dashboard-content').addClass('hidden');
+        $('#settingsButton').addClass('hidden');
+        $('#userName').text('Guest');
+        BASE_URL = undefined;
+        console.log('Logged out');
+      }
+
+      let currentFilters = {
+        from: '',
+        to: '',
+        status: 'SUCCESS',
+        search: '',
+        page: 1,
+        limit: parseInt(localStorage.getItem('itemsPerPage') || '10')
+      };
+
+      function setupLoginEventListener() {
+        $('#loginButton').on('click', () => {
+          const tenant = $('#username').val().trim();
+          const password = $('#password').val();
+          if (tenant && password) {
+            if (login(tenant, password)) {
+              $('#login-section').addClass('hidden');
+              $('#dashboard-content').removeClass('hidden');
+              $('#settingsButton').removeClass('hidden');
+              $('#userName').text(tenant || 'User');
+              $('#transactionTable').html(`
+                <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
+              `);
+              checkHealth();
+              loadData();
+              setupEventListeners();
+            } else {
+              $('#loginError').removeClass('hidden');
+            }
+          } else {
+            $('#loginError').removeClass('hidden');
+          }
+        });
+      }
+
+      function setupEventListeners() {
+        $('#applyFilters').on('click', applyFilters);
+        $('#resetFilters').on('click', resetFilters);
+        $('#prevPage').on('click', () => changePage(currentFilters.page - 1));
+        $('#nextPage').on('click', () => changePage(currentFilters.page + 1));
+        $('#itemsPerPage').on('change', (e) => {
+          const limit = parseInt($(e.target).val());
+          localStorage.setItem('itemsPerPage', limit);
+          currentFilters.limit = limit;
+          currentFilters.page = 1;
+          loadData();
+        });
+        $('#exportData').on('click', exportToCSV);
+      }
+
+      async function checkHealth() {
+        try {
+          const url = `${BASE_URL}/transactions`;
+          console.log('Checking health at:', url);
+          const response = await $.ajax({
+            url: url,
+            method: 'GET'
+          });
+          console.log('Health check:', response);
+          if (!response.collectionExists || response.documentCount === 0) {
+            $('#transactionTable').html(`
+              <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
+                ${response.collectionExists ? 'No successful transactions found in database' : 'Collection "payments" does not exist'}
+              </td></tr>
+            `);
+          }
+        } catch (error) {
+          console.error('Health check failed:', error);
+          $('#transactionTable').html(`
+            <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to connect to server. Please check if the backend is running.</td></tr>
+          `);
+        }
+      }
+
+      async function loadData() {
+        try {
+          const params = new URLSearchParams();
+          for (const [key, value] of Object.entries(currentFilters)) {
+            if (value !== undefined && value !== '') {
+              params.append(key, value);
+            }
+          }
+          params.set('status', 'SUCCESS');
+          const url = `${BASE_URL}/payments?${params}`;
+          console.log('Fetching data from:', url);
+          const response = await $.ajax({
+            url: url,
+            method: 'GET'
+          });
+          console.log('Fetched data:', response);
+          updateStats(response.stats);
+          updateTable(response.transactions, response.total);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          $('#transactionTable').html(`
+            <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to load transactions. Please try again later.</td></tr>
+          `);
+        }
+      }
+
+      function applyFilters() {
+        const fromDate = $('#fromDate').val() || today;
+        const toDate = $('#toDate').val() || today;
+        const searchQuery = $('#searchQuery').val().toLowerCase();
+        console.log('Applying filters:', { fromDate, toDate, status: 'SUCCESS', searchQuery });
+        currentFilters.from = fromDate;
+        currentFilters.to = toDate;
+        currentFilters.status = 'SUCCESS';
+        currentFilters.search = searchQuery || undefined;
+        currentFilters.page = 1;
+        loadData();
+      }
+
+      function resetFilters() {
+        $('#fromDate').val('');
+        $('#toDate').val('');
+        $('#transactionType').val('SUCCESS');
+        $('#searchQuery').val('');
+        $('#itemsPerPage').val(localStorage.getItem('itemsPerPage') || '10');
+        currentFilters = {
+          from: '',
+          to: '',
+          status: 'SUCCESS',
+          search: '',
+          page: 1,
+          limit: parseInt(localStorage.getItem('itemsPerPage') || '10')
+        };
+        console.log('Filters reset');
+        loadData();
+      }
+
+      function updateStats(stats) {
+        $('#statsCards').html(`
+          <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
+            <div class="text-3xl font-bold">${stats.totalTransactions}</div>
+            <div class="text-sm opacity-90 mt-1">Total Transactions</div>
+          </div>
+          <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
+            <div class="text-3xl font-bold">${stats.successfulTransactions}</div>
+            <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
+          </div>
+          <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
+            <div class="text-3xl font-bold">LKR ${stats.totalAmountLKR}</div>
+            <div class="text-sm opacity-90 mt-1">Total Amount (LKR)</div>
+          </div>
+          <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-5">
+            <div class="text-3xl font-bold">USD ${stats.totalAmountUSD}</div>
+            <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
+          </div>
+        `);
+      }
+
+      function updateTable(transactions, total) {
+        $('#transactionTable').html(transactions.length > 0 ? transactions.map(t => {
+          const transactionId = t.transactionId || 'N/A';
+          const displayId = transactionId === 'N/A' ? 'N/A' :
+            (transactionId.length > 8 ?
+              transactionId.slice(0, 4).toUpperCase() + '...' + transactionId.slice(-4).toUpperCase() :
+              transactionId.toUpperCase());
+          return `
+            <tr class="hovyyyyer:bg-gray-50">
+              <td class="px-5 py-4">${new Date(t.createdAt).toISOString().split('T')[0]}</td>
+              <td class="px-5 py-4">${t.merchantId || 'N/A'}</td>
+              <td class="px-5 py-4">${t.orderId || 'N/A'}</td>
+              <td class="px-5 py-4">${parseFloat(t.amount || 0).toFixed(2)}</td>
+              <td class="px-5 py-4">${t.currency || 'N/A'}</td>
+              <td class="px-5 py-4">${t.email || 'N/A'}</td>
+              <td class="px-5 py-4">${t.description || 'N/A'}</td>
+              <td class="px-5 py-4">${t.cardBrand || 'N/A'}</td>
+              <td class="px-5 py-4">${t.nameOnCard || 'N/A'}</td>
+              <td class="px-5 py-4 relative">
+                <span class="cursor-pointer group" title="${transactionId}">${displayId}</span>
+              </td>
+              <td class="px-5 py-4">
+                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
+              </td>
+            </tr>
+          `;
+        }).join('') : `
+          <tr><td colspan="11" class="px-5 py-4 text-center">No successful transactions found</td></tr>
+        `);
+
+        const start = (currentFilters.page - 1) * currentFilters.limit + 1;
+        const end = Math.min(start + currentFilters.limit - 1, total);
+        $('#tableInfo').text(`Showing ${start} to ${end} of ${total} entries`);
+
+        const totalPages = Math.ceil(total / currentFilters.limit);
+        $('#prevPage').prop('disabled', currentFilters.page === 1);
+        $('#nextPage').prop('disabled', currentFilters.page === totalPages);
+
+        $('#pageButtons').html(Array.from({
+          length: totalPages
+        }, (_, i) => `
+          <button class="flex items-center justify-center px-3 py-1.5 text-sm ${currentFilters.page === i + 1 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'} rounded-md border border-${currentFilters.page === i + 1 ? 'primary' : 'gray-300'} hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
+        `).join(''));
+      }
+
+      function changePage(page) {
+        if (page < 1) return;
+        currentFilters.page = page;
+        loadData();
+      }
+
+      async function exportToCSV() {
+        try {
+          const params = new URLSearchParams();
+          ['from', 'to', 'search'].forEach(key => {
+            const value = currentFilters[key];
+            if (value !== undefined && value !== '') {
+              params.append(key, value);
+            }
+          });
+          params.append('status', 'SUCCESS');
+          const url = `${BASE_URL}/payments/export?${params}`;
+          console.log('Exporting data from:', url);
+          const response = await $.ajax({
+            url: url,
+            method: 'GET'
+          });
+          const headers = ['Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status'];
+          const rows = response.map(t =>
+            `"${new Date(t.createdAt).toISOString().split('T')[0]}","${t.merchantId || 'N/A'}","${t.orderId || 'N/A'}",${parseFloat(t.amount || 0).toFixed(2)},"${t.currency || 'N/A'}","${t.email || 'N/A'}","${t.description || 'N/A'}","${t.cardBrand || 'N/A'}","${t.nameOnCard || 'N/A'}","SUCCESS"`
+          );
+          const csv = [...headers, ...rows].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const urlObj = URL.createObjectURL(blob);
+          const $a = $('<a>', {
+            href: urlObj,
+            download: 'successful_transactions.csv'
+          }).appendTo('body');
+          $a[0].click();
+          URL.revokeObjectURL(urlObj);
+          $a.remove();
+        } catch (error) {
+          console.error('Error exporting data:', error);
+          alert('Failed to export data. Please try again.');
+        }
+      }
+    </script>
   </body>
 </html>

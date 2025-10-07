@@ -4,6 +4,6 @@ const { downloadReceipt } = require('../controllers/receiptController');
 const router = express.Router();
 
 
-router.get('/download/:db/:orderId', downloadReceipt);
+router.get('/download/:orderId', downloadReceipt);
 
 module.exports = router;
