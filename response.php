@@ -4,13 +4,14 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require 'vendor/autoload.php';
-require_once('config/config.php');
-//require_once('config/config.sample.php');
+//require_once('config/config.php');
+require_once('config/config.sample.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
+
 
 if (isset($_POST['email'])) {
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
@@ -21,52 +22,33 @@ if (isset($_POST['email'])) {
     if (isset($_SESSION['email'])) {
         $email = $_SESSION['email'];
         error_log("Email retrieved from session: $email");
-    } 
-    elseif ($uuid = ($_SESSION['uuid'] ?? null)) {
-
-        try {
-            $client = new Client(DATABASE_URL);
-            $collection = $client->mulky->pyment;
-            $document = $collection->findOne(['uuid' => $uuid]);
-            if ($document && isset($document['email'])) {
-                $email = $document['email'];
-                $_SESSION['email'] = $email;
-                error_log("Email retrieved from MongoDB: $email");
-            } else {
-                $email = 'example@example.com';
-                error_log("No email found in MongoDB, using fallback: $email");
-            }
-        } catch (Exception $e) {
-            error_log("MongoDB Query Error: " . $e->getMessage());
-            $email = 'example@example.com';
-        }
     } else {
         $email = 'example@example.com';
-        error_log("No email in session or MongoDB, using fallback: $email");
+        error_log("No email in POST or session, using fallback: $email");
     }
 }
+
+
+
 
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'] ?? 'USD';
 $uuid = $_SESSION['uuid'] ?? null;
-    $database_url = DATABASE_URL;
-    $collection = COLLECTION;
-    $database = DB;
+$database_url = DATABASE_URL;
+$collection = COLLECTION;
+$database = DB;
 
-if ($currency == 'LKR') {
-    $merchantId = MERCHANT_ID_LKR;
-    $apiUserName = API_USERNAME_LKR;
-    $apiPassword = API_PASSWORD_LKR;
-} else {
-    $merchantId = MERCHANT_ID_USD;
-    $apiUserName = API_USERNAME_USD;
-    $apiPassword = API_PASSWORD_USD;
-}
+
+$merchantId = MERCHANT_ID;
+$apiUserName = API_USERNAME;
+$apiPassword = API_PASSWORD;
+
+
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/merchant/$merchantId/order/$orderId";
-error_log('-------------'.$gatewayUrl);
+$gatewayUrl = "https://test-seylan.mtf.gateway.mastercard.com/api/rest/version/67/merchant/$merchantId/order/$orderId";
+error_log('-------------' . $gatewayUrl);
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
@@ -178,7 +160,7 @@ if ($httpCode == 200) {
         } elseif ($mailStatus == 'success') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style="color:#155724; margin-top: 0;">✅ Payment Successful <img src=https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-original-577x577/s3/052018/untitled-1_140.png?FIodUHBMSE1tE0IMRJ7U4E9kw9w3BiZg&itok=GqPUzdYf alt="Bank Icon" style="width: 30px; height: 30px; vertical-align: middle;"></h2>
+                <h2 style=" margin-right:10 color:#155724; margin-top: 0;">✅ Payment Successful <img src=https://www.seylan.lk/images/web/icons/logo-2025.png alt="Bank Icon" style="width: 50px; height: 30px; vertical-align: middle;"></h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -188,14 +170,13 @@ if ($httpCode == 200) {
                           <tr><td style="padding: 5px 10px 5px 0;"><strong>  Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
                     </table>
-                    <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment with Malkey Rent A Car.</p>
+                    <p style="margin: 15px 0 0 0; color: #155724;">Thank you for  Donations to HelpAge.</p>
                 </div>
             </div>';
         } else {
             $body = '<p>Unknown payment status: ' . htmlspecialchars($status) . '</p>';
         }
 
-        // Send email using PHPMailer
         $mail = new PHPMailer(true);
         try {
 
@@ -231,6 +212,7 @@ if ($httpCode == 200) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -238,36 +220,95 @@ if ($httpCode == 200) {
     <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #payment-status.success { color: #155724; }
-        #payment-status.error { color: #721c24; }
+        .bg-gradient-red-orange {
+            background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+        }
+
+        .bg-gradient-red-orange-light {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+        }
+
+        .bg-gradient-red-orange-hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #c2410c 100%);
+        }
+
+        .text-red-orange {
+            color: #ea580c;
+        }
+
+        .border-red-orange {
+            border-color: #ea580c;
+        }
+
+        .shadow-red-orange {
+            box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1), 0 4px 6px -2px rgba(220, 38, 38, 0.05);
+        }
+
+        .hover-shadow-red-orange:hover {
+            box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.1), 0 10px 10px -5px rgba(220, 38, 38, 0.04);
+        }
+
+        #payment-status.success {
+            color: #155724;
+            /* background-color: #d4edda; */
+            border: 1px solid #c3e6cb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem;
+        }
+
+        #payment-status.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
-    <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
-            <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
-            <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
-            <p class="text-blue-100 text-sm">Protected by Commercial Bank</p>
+
+<body class="bg-gradient-red-orange-light min-h-screen flex items-center justify-center p-4">
+    <div id="main-container" class="bg-white rounded-2xl shadow-red-orange transition-all duration-300 hover:shadow-red-orange w-full max-w-lg overflow-hidden">
+        <div class="bg-gradient-red-orange p-6 text-center">
+            <img src="https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png" alt="Logo" class="w-20 h-10 mx-auto mb-2 shadow-xl">
+            <h1 class="text-2xl font-bold text-white">Secure Payment</h1>
+            <p class="text-white text-xs">Protected by Selan Bank</p>
         </div>
         <div id="payment-status" class="mt-6 text-center text-lg font-semibold <?php echo ($paymentStatus === 'SUCCESS' ? 'success' : 'error'); ?>">
             Payment Status: <?php echo $paymentStatus; ?><br>
             <?php echo $emailMessage; ?>
         </div>
-        <div class="flex justify-center">
-            <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
-                Return to Merchant
-            </button>
-        </div>
+    <div class="flex justify-center space-x-10">
+ 
+    <div class="flex flex-col items-center w-full space-y-6">
+        <button 
+            onclick="window.location.href='https://www.helpagesl.org/'" 
+            id="return-to-merchant-btn" 
+            class="bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2 w-1/2 mx-auto">
+            Return to Merchant
+        </button>
+
+        <button 
+            onclick="window.location.href='pdf.php'" 
+            class="text-red-400 underline hover:text-red-800 transition-all duration-300 transform hover:scale-[1.02] mt-4 w-1/2 mx-auto">
+            Download Receipt 
+        </button>
+    </div>
+</div>
+
         <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
             <div class="flex items-center">
                 <i class='bx bx-shield-quarter text-green-500'></i>
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
-            <div>
-                <img src="assets/sponser.png" alt="bank logo" class="h-10">
+            <div class="flex items-center space-x-3">
+                <img src="assets/card_logo.png" alt="another logo" class="h-10">
+                <img src="assets/bank_logo.png" alt="bank logo" class="h-10">
+
             </div>
         </div>
     </div>
 </body>
-</html>
 
+</html>

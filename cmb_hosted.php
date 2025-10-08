@@ -3,8 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-//require_once 'config/config.sample.php';
-require_once('config/config.php');
+require_once 'config/config.sample.php';
+//require_once('config/config.php');
 require 'vendor/autoload.php';
 require 'cmb_hostedAuth.php';
 
@@ -38,59 +38,54 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <title><?php echo isset($errorMessage) ? 'Payment Error | Commercial Bank' : 'Secure Payment | Commercial Bank'; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        .bg-gradient-red-orange {
+            background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+        }
+        .bg-gradient-red-orange-light {
+            background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+        }
+        .bg-gradient-red-orange-hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #c2410c 100%);
+        }
+        .text-red-orange {
+            color: #ea580c;
+        }
+        .border-red-orange {
+            border-color: #ea580c;
+        }
+        .shadow-red-orange {
+            box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1), 0 4px 6px -2px rgba(220, 38, 38, 0.05);
+        }
+        .hover-shadow-red-orange:hover {
+            box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.1), 0 10px 10px -5px rgba(220, 38, 38, 0.04);
+        }
+    </style>
     <?php if (!isset($errorMessage)): ?>
-        <!-- <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"></script> -->
 
-  <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"
-        data-error="errorCallback"
-        data-cancel="cancelCallback"
-        data-timeout="timeoutCallback"></script>
 
-<script type="text/javascript">
-    function errorCallback(error) {
-        console.log(JSON.stringify(error));
-        alert('An error occurred during the payment process. Please try again.');
-        window.location.href = "https://www.malkey.lk"; 
-    }
+  <script src="https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
 
-    function cancelCallback() {
-        console.log("Payment cancelled");
-        alert("Payment process was cancelled.");
-        window.location.href = "https://www.malkey.lk"; 
-    }
-
-    function timeoutCallback() {
-        console.log("Payment timed out");
-        alert("The payment session has expired.");
-        window.location.href = "http://paymentgateway.loc/cmb?#__hc-action-timeout";
-    }
-
+<script >
     const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
 
     Checkout.configure({
         session: {
             id: sessionId
         },
-        interaction: {
-            displayControl: {
-                billingAddress: 'HIDE',
-                customerEmail: 'HIDE',
-                orderSummary: 'SHOW',
-                shipping: 'HIDE'
-            }
-        }
     });
+    console.log("Loaded sessionId: " + sessionId);
 </script>
 
     <?php endif; ?>
 </head>
 
-<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen flex items-center justify-center p-4">
-    <div id="main-container" class="bg-white rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-xl w-full max-w-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-center">
-            <img src="https://d8asu6slkrh4m.cloudfront.net/2013/04/malkey-logo.png" alt="Logo" class="w-40 h-19 mx-auto mb-2 filter brightness-0 invert">
-            <h1 class="text-2xl font-bold text-blue-100"><?php echo isset($errorMessage) ? 'Payment Error' : 'Secure Payment'; ?></h1>
-            <p class="text-blue-100 text-sm">Protected by Commercial Bank</p>
+<body class="bg-gradient-red-orange-light min-h-screen flex items-center justify-center p-4">
+    <div id="main-container" class="bg-white rounded-2xl shadow-red-orange transition-all duration-300 hover:shadow-red-orange w-full max-w-lg overflow-hidden">
+        <div class="bg-gradient-red-orange p-6 text-center">
+            <img src="https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png" alt="Logo" class="w-20 h-10 mx-auto mb-2">
+            <h1 class="text-2xl font-bold text-white"><?php echo isset($errorMessage) ? 'Payment Error' : 'Secure Payment'; ?></h1>
+            <p class="text-white text-sm">Protected by Seylan Bank</p>
         </div>
 
         <?php if (isset($errorMessage)): ?>
@@ -103,18 +98,18 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                 <div class="px-6 pt-8">
                     <div class="space-y-6 mb-8">
                         <div class="flex space-x-3">
-                            <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
-                                <i class='bx bx-receipt text-lg text-blue-600'></i>
+                            <div class="flex items-center space-x-3 bg-red-50 p-4 rounded-lg flex-1">
+                                <i class='bx bx-receipt text-lg text-red-600'></i>
                                 <div class="text-left">
                                     <p class="text-sm text-gray-500">Order Reference</p>
-                                    <p class="font-bold text-blue-600 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                                    <p class="font-bold text-red-600 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3 bg-blue-50 p-4 rounded-lg flex-1">
-                                <i class='bx bx-credit-card text-lg text-blue-600'></i>
+                            <div class="flex items-center space-x-3 bg-orange-50 p-4 rounded-lg flex-1">
+                                <i class='bx bx-credit-card text-lg text-orange-600'></i>
                                 <div class="text-left">
                                     <p class="text-sm text-gray-500">Total Amount</p>
-                                    <p class="font-bold text-blue-600 text-sm pl-4">
+                                    <p class="font-bold text-orange-600 text-sm pl-4">
                                         <?php
                                         $formattedAmount = (fmod($amount, 1) == 0)
                                             ? number_format($amount, 0, '.', ',')
@@ -125,27 +120,27 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                            <i class='bx bx-detail text-2xl text-blue-600'></i>
+                        <div class="flex items-center space-x-4 bg-red-50 p-4 rounded-xl">
+                            <i class='bx bx-detail text-2xl text-red-600'></i>
                             <div class="text-left">
                                 <p class="text-sm text-gray-500">Description</p>
-                                <p class="font-bold text-blue-600 text-sm pl-4"><?php echo htmlspecialchars($description); ?></p>
+                                <p class="font-bold text-red-600 text-sm pl-4"><?php echo htmlspecialchars($description); ?></p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-4 bg-blue-50 p-4 rounded-xl">
-                            <i class='bx bx-detail text-2xl text-blue-600'></i>
+                        <div class="flex items-center space-x-4 bg-orange-50 p-4 rounded-xl">
+                            <i class='bx bx-envelope text-2xl text-orange-600'></i>
                             <div class="text-left w-full">
                                 <p class="text-sm text-gray-500">Your Email</p>
-                                <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full" placeholder="Enter your email">
+                                <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full focus:border-red-orange" placeholder="Enter your email">
                                 <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
                             </div>
                         </div>
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
                             <span>I agree to the
                                 <a href="https://www.malkey.lk/terms-conditions.html"
                                     target="_blank"
-                                    class="underline text-blue-600 hover:text-red-500 transition duration-300">
+                                    class="underline text-red-600 hover:text-orange-500 transition duration-300">
                                     Terms and Conditions
                                 </a>
                             </span>
@@ -153,7 +148,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
                     </div>
                     <button onclick="validateAndProceed()"
-                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                        class="w-full bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2">
                         <i class='bx bx-lock-alt text-xl'></i>
                         <span>Proceed to Secure Payment</span>
                     </button>
@@ -162,26 +157,27 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
             <div class="flex justify-center">
                 <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn"
-                    class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-blue-200 flex items-center justify-center space-x-2">
+                    class="hidden bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2">
                     <span>Return to Merchant</span>
                 </button>
             </div>
         <?php endif; ?>
-        <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
-            <div class="flex items-center">
-                <i class='bx bx-shield-quarter text-green-500'></i>
-                <span class="mr-2">256-bit SSL Secured Connection</span>
-            </div>
-            <div>
-                <img src="assets/sponser.png" alt="bank logo" class="h-10">
-            </div>
-        </div>
+       <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
+    <div class="flex items-center mr-4">
+        <i class='bx bx-shield-quarter text-green-500'></i>
+        <span class="ml-2">256-bit SSL Secured Connection</span>
+    </div>
+    <div class="flex items-center space-x-3">
+        <img src="assets/card_logo.png" alt="another logo" class="h-10">
+        <img src="assets/bank_logo.png" alt="bank logo" class="h-10">
+        
+    </div>
+</div>
+
     </div>
 
     <?php if (!isset($errorMessage)): ?>
         <script>
-        
-
             function validateEmail(email) {
                 const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                 return re.test(email);

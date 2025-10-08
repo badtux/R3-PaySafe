@@ -1,43 +1,54 @@
 <?php
 
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once "cmb_hostedAuth.php";
-//require_once "config/config.sample.php";
+
+
+//require_once "cmb_hostedAuth.php";
+require_once "config/config.sample.php"; 
 require "vendor/autoload.php";
-require_once 'config/config.php';
 
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 use Ramsey\Uuid\Uuid;
 
 $errorMessage = null;
-$txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
+$txnId = filter_input(INPUT_GET, 'txnId', FILTER_SANITIZE_STRING);
 $uuid = Uuid::uuid4()->toString();
+
+
+$database_url = defined('DATABASE_URL') ? DATABASE_URL : '';
+$collection_name = defined('COLLECTION') ? COLLECTION : '';
+$database_name = defined('DB') ? DB : '';
+$merchantId = defined('MERCHANT_ID') ? MERCHANT_ID : '';
+$apiUserName = defined('API_USERNAME') ? API_USERNAME : '';
+$apiPassWord = defined('API_PASSWORD') ? API_PASSWORD : '';
+$basePath = defined('BASE_PATH') ? BASE_PATH : '';
+
 if (!$txnId) {
 
-    $amount = isset($_GET['amount']) ? $_GET['amount'] : '';
-    $currency = isset($_GET['currency']) ? $_GET['currency'] : 'LKR';
-    $description = isset($_GET['description']) ? $_GET['description'] : 'No description provided.';
-    $orderId = isset($_GET['orderId']) ? $_GET['orderId'] : '';
-    $database_url = DATABASE_URL;
-    $collection = COLLECTION;
-    $database = DB;
+    $amount = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT, ['options' => ['min_range' => 0.01]]);
+    $currency = filter_input(INPUT_GET, 'currency', FILTER_SANITIZE_STRING) ?? 'LKR';
+    $description = filter_input(INPUT_GET, 'description', FILTER_SANITIZE_STRING) ?? 'No description provided.';
+    $orderId = filter_input(INPUT_GET, 'orderId', FILTER_SANITIZE_STRING) ?? '';
+
 
     $_SESSION['uuid'] = $uuid;
     $_SESSION['orderId'] = $orderId;
-    $_SESSION['currency'] =$currency;
-    $isValidAmount = !empty($amount) && is_numeric($amount) && $amount > 0;
-    $isValidOrderId = !empty($orderId);
+    $_SESSION['currency'] = $currency;
 
-    if (!$isValidAmount) {
+
+    if ($amount === false || $amount <= 0) {
         $errorMessage = "Error: Amount is required and must be a valid number greater than 0.";
-    } elseif (!$isValidOrderId) {
+    } elseif (empty($orderId)) {
         $errorMessage = "Error: Order ID is required and cannot be empty.";
+    } elseif (empty($merchantId) || empty($apiPassWord) || empty($database_url) || empty($collection_name) || empty($database_name)) {
+        $errorMessage = "Error: Configuration values are missing.";
     } else {
+
         $txnId = bin2hex(random_bytes(8));
+
 
         $_SESSION['payments'][$txnId] = [
             'amount' => $amount,
@@ -46,69 +57,69 @@ if (!$txnId) {
             'orderId' => $orderId,
             'uuid' => $uuid
         ];
+        $authString = "merchant.$merchantId:$apiPassWord";
+        $authHeader = "Authorization: Basic " . base64_encode($authString);
+        $url = "https://test-seylan.mtf.gateway.mastercard.com/api/rest/version/67/merchant/$merchantId/session";
 
-        if ($currency == 'LKR') {
-            $merchantId = MERCHANT_ID_LKR;
-            $apiUserName = API_USERNAME_LKR;
-            $apiPassWord = API_PASSWORD_LKR;
-        } else {
-            $merchantId = MERCHANT_ID_USD;
-            $apiUserName = API_USERNAME_USD;
-            $apiPassWord = API_PASSWORD_USD;
-        }
-        // Prepare request for checkout session
-        $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/57";
-        $data = http_build_query([
-            'apiOperation' => 'CREATE_CHECKOUT_SESSION',
-            'apiUsername' => $apiUserName,
-            'apiPassword' => $apiPassWord,
-            'merchant' => $merchantId,
-            'order.id' => $orderId,
-            'order.amount' => $amount,
-            'order.currency' => $currency,
-            'order.description' => $description,
-            'interaction.operation' => 'PURCHASE',
-            'interaction.returnUrl' => REDIRECT_URL,
-            'interaction.cancelUrl' => REDIRECT_URL,
-            'interaction.timeoutUrl' => REDIRECT_URL,
-           // 'interaction.errorUrl'     => REDIRECT_URL,
-            'interaction.merchant.name' => NAME
-        ]);
+        $data = [
+            "apiOperation" => "INITIATE_CHECKOUT",
+                  "interaction" => [
+                "operation" => "PURCHASE",
+                "merchant" => [
+                    "name" => NAME,
+                    "logo" => LOGO,
+                    "url" => "https://www.helpagesl.org/",
+                    "phone" => "+94 11 7418977",
+                    "email" => "helpage@sltnet.lk"
+                ],
+                "returnUrl" => REDIRECT_URL,
+            ],
+            "order" => [
+                "currency" => $currency,
+                "amount" => $amount,
+                "id" => $orderId,
+                "description" => $description
+            ]
+        ];
 
-        $options = [
+        $jsonData = json_encode($data);
+         error_log("Request Data: " . $jsonData);
+
+ 
+        $ch = curl_init();
+        curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $data,
+            CURLOPT_POSTFIELDS => $jsonData,
             CURLOPT_HTTPHEADER => [
-                "Content-Type: application/x-www-form-urlencoded",
-                "Cache-Control: no-cache"
+                "Content-Type: application/json",
+                "Cache-Control: no-cache",
+                $authHeader
             ],
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_FAILONERROR => true
-        ];
+            CURLOPT_SSL_VERIFYPEER => true, 
+        ]);
 
-        $ch = curl_init();
-        curl_setopt_array($ch, $options);
         $response = curl_exec($ch);
 
         if ($response === false) {
             $error_msg = curl_error($ch);
-            error_log($error_msg);
+            error_log("cURL Error: $error_msg");
             curl_close($ch);
             $errorMessage = "Error: Failed to connect to payment gateway. Please try again.";
         } else {
             curl_close($ch);
-            parse_str($response, $result);
+            $result = json_decode($response, true);
 
-            if (!isset($result['session_id'])) {
-                $errorMessage = "Error: Failed to create session. Please try again.";
+            if (json_last_error() !== JSON_ERROR_NONE || !isset($result['session']['id'])) {
+                $errorMessage = "Error: Failed to create session. Invalid response from gateway.";
+                error_log("API Response Error: " . json_last_error_msg() . " Response: $response");
             } else {
-                $sessionId = $result['session_id'];
+                $sessionId = $result['session']['id'];
 
                 try {
                     $client = new Client($database_url);
-                    $collection = $client->$database->$collection;
+                    $collection = $client->selectDatabase($database_name)->selectCollection($collection_name);
 
                     $insertResult = $collection->insertOne([
                         'orderId' => $orderId,
@@ -118,6 +129,7 @@ if (!$txnId) {
                         'description' => $description,
                         'merchantId' => $merchantId,
                         'sessionId' => $sessionId,
+                        'bank'      => "seylan",
                         'createdAt' => new UTCDateTime()
                     ]);
 
@@ -125,18 +137,25 @@ if (!$txnId) {
                         $errorMessage = "Error: Failed to store transaction in MongoDB.";
                     } else {
                         $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
+                        error_log("sessionId: " . $sessionId);
                     }
                 } catch (Exception $e) {
                     $errorMessage = "MongoDB Error: " . $e->getMessage();
+                    error_log("MongoDB Error: " . $e->getMessage());
                 }
             }
         }
-        // Redirect to clean URL if no errors
+
+
         if (!$errorMessage) {
-          header("Location: " . BASE_PATH . "?txnId={$txnId}");
-    
+            header("Location: $basePath?txnId=$txnId");
             exit;
-        
         }
     }
+}
+
+
+if ($errorMessage) {
+    http_response_code(400);
+    echo htmlspecialchars($errorMessage);
 }

@@ -1,54 +1,45 @@
 <?php
 
-define('APP_LIVE',false);
-define('BASE_PATH','/cmb');
+define('APP_LIVE', false);
+define('BASE_PATH', '/seylan');
 
-define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg');
+define('LOGO', 'https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png');
 
 if (APP_LIVE) {
-    define('MERCHANT_ID_USD', 'MALKEYRENUSD'); // live 
-    define('API_USERNAME_USD', 'merchant.MALKEYRENUSD');
-    define('API_PASSWORD_USD', '5c20ea34cca4a7a383352b0056482568');
-    define('REDIRECT_URL', 'https://malkey.go.digitable.io/paysafe/cmb/status');
+ 
 
-    define('MERCHANT_ID_LKR', 'MALKEYRENLKR'); //live 
-    define('API_USERNAME_LKR', 'merchant.MALKEYRENLKR');
-    define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
 
-    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malkey_paysafe?retryWrites=true&w=majority&authSource=admin');
+    define('MERCHANT_ID', 'SEYLAN124'); //live 
+    define('API_USERNAME_LKR', 'merchant.SEYLAN124op');
+    define('API_PASSWORD_LKR', '4692ad4aa61548f504e79cd5535d03af');
+
+
+    define('REDIRECT_URL', 'https://malkey.go.digitable.io/paysafe/seylan/status');
+    define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
     define('COLLECTION', 'payments');
-    define('DB', 'malkey_paysafe');
-    
-
+    define('DB', 'seylan_paysafe');
 } else {
-    define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
-    define('API_USERNAME_LKR', 'merchant.TESTMALKEYRENLKR');
-    define('API_PASSWORD_LKR', '0778afc55fa88712010a6e258f60c565');
 
-    define('MERCHANT_ID_USD', 'TESTMALKEYRENUSD'); // sandbox 
-    define('API_USERNAME_USD', 'merchant.TESTMALKEYRENUSD');
-    define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
-    define('REDIRECT_URL', 'http://paymentgateway.loc/cmb/status');
+    define('MERCHANT_ID', 'TESTSEYLAN124');
+    define('API_USERNAME', 'merchant.TESTSEYLAN124');
+    define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
 
-
-    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malkey_paysafe?retryWrites=true&w=majority&authSource=admin');
+    define('REDIRECT_URL', 'http://paymentgateway.loc/seylan/status');
+    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/seylan_paysafe?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'payments');
-    define('DB', 'malkey_paysafe');
-    
+    define('DB', 'seylan_paysafe');
+}
+
+if (APP_LIVE) {
+
+    define('ASSET_PATH_URL', 'https://seylan.go.digitable.io/paysafe/seylan/');
+} else {
+    define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/seylan/');
 }
 
 
 
-if (APP_LIVE) {
-
-    define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/cmb/');
-} else {
-    define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/cmb/');
-}
-
-
-
-define('NAME', 'Malkey Rent A Car');
+define('NAME', 'HelpAge Sri Lanka ');
 define('CC_LIST', ['_thamara.dasun1@gmail.com', '_piumal0713@gmail.com']);
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
