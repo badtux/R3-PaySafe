@@ -5,10 +5,18 @@ define('BASE_PATH', '/seylan');
 
 define('LOGO', 'https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png');
 
+
+$host = $_SERVER['HTTP_HOST']; 
+$tenant = explode('.', $host)[0];
+
+if ($tenant === 'localhost' || empty($tenant)) {
+    $tenant = 'default';
+}
+
+$databaseName = "{$tenant}_paysafe";
+
 if (APP_LIVE) {
  
-
-
     define('MERCHANT_ID', 'SEYLAN124'); //live 
     define('API_USERNAME_LKR', 'merchant.SEYLAN124op');
     define('API_PASSWORD_LKR', '4692ad4aa61548f504e79cd5535d03af');
@@ -17,7 +25,7 @@ if (APP_LIVE) {
     define('REDIRECT_URL', 'https://malkey.go.digitable.io/paysafe/seylan/status');
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
     define('COLLECTION', 'payments');
-    define('DB', 'seylan_paysafe');
+    define('DB', $databaseName);
 } else {
 
     define('MERCHANT_ID', 'TESTSEYLAN124');
@@ -25,9 +33,10 @@ if (APP_LIVE) {
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
 
     define('REDIRECT_URL', 'http://paymentgateway.loc/seylan/status');
-    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/seylan_paysafe?retryWrites=true&w=majority&authSource=admin');
+    
+    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'payments');
-    define('DB', 'seylan_paysafe');
+    define('DB', $databaseName);
 }
 
 if (APP_LIVE) {
