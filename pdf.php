@@ -4,19 +4,20 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require 'vendor/autoload.php';
+require 'config/config.sample.php';
 
 use MongoDB\Client;
 use TCPDF;
 
-define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/seylan_paysafe?retryWrites=true&w=majority&authSource=admin');
-define('COLLECTION', 'payments');
-define('DB', 'seylan_paysafe');
-
 function generateReceipt($orderId)
 {
+    $database_url = DATABASE_URL;
+    $collection = COLLECTION;
+    $database = DB;
+
     try {
-        $client = new Client(DATABASE_URL);
-        $collection = $client->selectDatabase(DB)->selectCollection(COLLECTION);
+        $client = new Client($database_url);
+        $collection = $client->selectDatabase($database)->selectCollection($collection);
 
         $payment = $collection->findOne(['orderId' => $orderId]);
         if (!$payment) {

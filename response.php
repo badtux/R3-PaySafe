@@ -3,6 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+error_log("Session ID: " . session_id());
+
 require 'vendor/autoload.php';
 //require_once('config/config.php');
 require_once('config/config.sample.php');
@@ -28,12 +30,13 @@ if (isset($_POST['email'])) {
     }
 }
 
-
+ error_log("UUID in session: " . ($_SESSION['uuid'] ?? 'not set'));
 
 
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'] ?? 'USD';
 $uuid = $_SESSION['uuid'] ?? null;
+
 $database_url = DATABASE_URL;
 $collection = COLLECTION;
 $database = DB;

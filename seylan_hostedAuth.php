@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+error_log("Session ID: " . session_id());
 
 //require_once "cmb_hostedAuth.php";
 require_once "config/config.sample.php"; 
@@ -38,6 +39,7 @@ if (!$txnId) {
     $_SESSION['orderId'] = $orderId;
     $_SESSION['currency'] = $currency;
 
+    error_log("UUID in session: " . ($_SESSION['uuid'] ?? 'not set'));
 
     if ($amount === false || $amount <= 0) {
         $errorMessage = "Error: Amount is required and must be a valid number greater than 0.";
@@ -84,6 +86,7 @@ if (!$txnId) {
 
         $jsonData = json_encode($data);
          error_log("Request Data: " . $jsonData);
+         error_log("Database: $database, Collection: $collection");
 
  
         $ch = curl_init();

@@ -55,7 +55,7 @@ $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/mercha
 
 url http://paymentgateway.loc/paysafe?currency=LKR&amount=223&orderId=167u77iu212ew76mnk89&description=test
 
-http://paymentgateway.loc/seylan/?currency=LKR&amount=12&orderId=test8&description=test
+http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=15&orderId=test100&description=test
 
 
 
@@ -66,7 +66,7 @@ change server name in deb
 {
     nano /etc/resolv.conf
 }
-
+63facbc7-ce14-406b-bc06-eefb072fae62
 
 docker start {
     /etc/init.d/apache2 restart

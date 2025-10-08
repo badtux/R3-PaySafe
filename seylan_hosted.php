@@ -2,11 +2,12 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+error_log("Session ID: " . session_id());
 
 require_once 'config/config.sample.php';
 //require_once('config/config.php');
 require 'vendor/autoload.php';
-require 'cmb_hostedAuth.php';
+require 'seylan_hostedAuth.php';
 
 $errorMessage = null;
 $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
