@@ -3,6 +3,15 @@
 define('APP_LIVE',true);
 define('BASE_PATH','/paysafe/cmb');
 
+$host = $_SERVER['HTTP_HOST']; 
+$tenant = explode('.', $host)[0];
+
+if ($tenant === 'localhost' || empty($tenant)) {
+    $tenant = 'default';
+}
+
+$databaseName = "{$tenant}_paysafe";
+
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg');
 
 if (APP_LIVE) {
@@ -18,7 +27,7 @@ if (APP_LIVE) {
 
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
     define('COLLECTION', 'payments');
-    define('DB', 'malkey_paysafe');
+    define('DB', $databaseName);
 
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
@@ -30,9 +39,11 @@ if (APP_LIVE) {
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
     define('REDIRECT_URL', 'http://paymentgateway.loc/cmb/status');
 
-    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/malky?retryWrites=true&w=majority&authSource=admin');
-    define('COLLECTION', 'payments');
-    define('DB', 'malkey_paysafe');
+
+     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
+     define('COLLECTION', 'payments');
+     define('DB', $databaseName);
+    
 }
 
 
