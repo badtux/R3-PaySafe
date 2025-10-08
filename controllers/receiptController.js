@@ -1,4 +1,4 @@
-// controllers/receipt.controller.js
+
 const receiptService = require('../services/receipt.services');
 
 exports.downloadReceipt = async (req, res) => {

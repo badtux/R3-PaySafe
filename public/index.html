@@ -125,7 +125,7 @@
 
     <main class="container mx-auto px-4 py-6" id="main-content">
       <!-- Settings Panel -->
-      <div id="settingsPanel" class="fixed top-0 right-0 h-full w-80 bg-white shadow-lg p-6 settings-panel hidden">
+      <div id="settingsPanel" class="fixed top-0 right-0 h-full z-1000 w-80 bg-white shadow-lg p-6 settings-panel z-[9999] hidden">
         <h2 class="text-lg font-semibold mb-4 text-gray-700">
           <i class="fas fa-cog mr-2 text-primary"></i>Settings
         </h2>
@@ -148,6 +148,14 @@
             <option value="50">50</option>
           </select>
         </div>
+            <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Select Payment Methord</label>
+          <select id="paymentSettings" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="visa/master">Master  Card</option>
+            <option value="amex">Amex</option>
+          </select>
+        </div>
+
         <button id="saveSettings" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
           <i class="fas fa-save mr-2"></i> Save
         </button>
@@ -334,6 +342,8 @@
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
     <script>
       let BASE_URL;
       const today = new Date().toISOString().split('T')[0];
@@ -628,7 +638,7 @@
               transactionId.slice(0, 4).toUpperCase() + '...' + transactionId.slice(-4).toUpperCase() :
               transactionId.toUpperCase());
           return `
-            <tr class="hovyyyyer:bg-gray-50">
+            <tr class="hover:bg-gray-400">
               <td class="px-5 py-4">${new Date(t.createdAt).toISOString().split('T')[0]}</td>
               <td class="px-5 py-4">${t.merchantId || 'N/A'}</td>
               <td class="px-5 py-4">${t.orderId || 'N/A'}</td>
