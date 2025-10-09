@@ -1,21 +1,36 @@
 <?php
 
 define('APP_LIVE',false);   
-define('BASE_PATH', '/paysafe');
+define('BASE_PATH', '/ntb');
+
+$host = $_SERVER['HTTP_HOST']; 
+$tenant = explode('.', $host)[0];
+
+if ($tenant === 'localhost' || empty($tenant)) {
+    $tenant = 'default';
+}
+$databaseName = "{$tenant}_paysafe";
 
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg'); 
 
 if (APP_LIVE) {
     define('MERCHANT_ID', '9170372718'); // live 
     define('API_USERNAME', 'merchant.9170372718');
-    define('API_PASSWORD', '2bc2cac63cef6ebf59c7c925e571ee49');
-    define('RETURN_URL', 'https://malkey.go.digitable.io/paysafe/ntb/status');
+    define('API_PASSWORD', '2bc2cac63cef6ebf59c7c925e571ee49');  
+    define('RETURN_URL', "https://{$tenant}.go.digitable.io/paysafe/ntb/status");
+
+    define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
+    define('COLLECTION', 'payments');
+    define('DB', $databaseName); 
 
 } else {
     define('MERCHANT_ID', 'TEST9170372718'); // sandbox 
     define('API_USERNAME', 'merchant.TEST9170372718');
     define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f');
     define('RETURN_URL', 'http://cmbgateway.loc/paysafe/status');
+    define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
+    define('COLLECTION', 'payments');
+    define('DB', $databaseName);
 }
 define('NAME', 'Malkey Rent A Car');
 
