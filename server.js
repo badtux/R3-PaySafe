@@ -5,6 +5,9 @@ const path = require("path");
 const { connectToMongo } = require("./config/db");
 const paymentRoutes = require("./routes/paymentRoutes");
 const pdfRoutes = require("./routes/receiptRoutes");
+const gatewayRoutes = require("./routes/settingRouters");
+const { saveHardcodedGateways } = require("./services/setting.service"); 
+
 require("dotenv").config();
 
 const app = express();
@@ -40,11 +43,13 @@ app.get("/dashboard.html", (req, res) => {
 
 app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
+app.use('/api/settings', gatewayRoutes);
 
 
 async function startServer() {
     try {
         await connectToMongo();
+        await saveHardcodedGateways();
         app.listen(port, () => {
             console.log(`Server running at http://0.0.0.0:${port}`);
             console.log(`LIVE mode: ${process.env.LIVE === "true"}`);

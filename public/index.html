@@ -139,7 +139,7 @@
             <option value="dark">Dark</option>
           </select>
         </div>
-        <div class="mb-4">
+        <!-- <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
           <select id="itemsPerPageSettings" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
             <option value="5">5</option>
@@ -147,14 +147,33 @@
             <option value="25">25</option>
             <option value="50">50</option>
           </select>
-        </div>
-            <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Select Payment Methord</label>
-          <select id="paymentSettings" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="visa/master">Master  Card</option>
-            <option value="amex">Amex</option>
-          </select>
-        </div>
+        </div> -->
+<div
+  id="topupModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div
+    class="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-80 border border-gray-200 dark:border-gray-700 transition-all"
+  >
+    <h2
+      class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center"
+    >
+      Activate Gateway
+    </h2>
+
+    <div id="topupButtons" class="flex flex-col space-y-3">
+      <!-- Gateways checkboxes injected here -->
+    </div>
+
+    <button
+      id="closeTopup"
+      class="mt-4 w-full py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm transition"
+    >
+      Cancel
+    </button>
+  </div>
+</div>
+
 
         <button id="saveSettings" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
           <i class="fas fa-save mr-2"></i> Save
@@ -716,6 +735,143 @@
           alert('Failed to export data. Please try again.');
         }
       }
-    </script>
+    
+
+$(document).ready(async () => {
+  const hostname = window.location.hostname;
+  const tenant = hostname.split('.')[0];
+  if (!tenant || tenant === 'localhost' || tenant === 'go') return;
+
+  // Add Activate Gateway button and container
+  $('#settingsPanel').append(`
+    <div class="mt-4">
+      <button id="activateGatewayBtn" class="bg-primary text-white px-4 py-2 rounded-md">Activate Gateway</button>
+      <div id="activeGatewaysDisplay" class="mt-2 flex space-x-2 flex-wrap"></div>
+    </div>
+  `);
+
+  // Load tenant data
+  let tenantData = await fetchTenantGateways(tenant);
+  displayActiveGateways(tenantData.activeGateways);
+
+  // Open modal on click
+  $('#settingsPanel').on('click', '#activateGatewayBtn', async () => {
+    tenantData = await fetchTenantGateways(tenant); // refresh before showing
+    showGatewayModal(tenantData, tenant);
+  });
+});
+
+function displayActiveGateways(activeGateways) {
+  const container = $('#activeGatewaysDisplay');
+  container.empty();
+  if (!activeGateways || Object.keys(activeGateways).length === 0) return;
+
+  for (const [card, gateway] of Object.entries(activeGateways)) {
+    const icon = card === 'visa/master' ? '💳' : '🟡';
+    const displayName =
+      card === 'visa/master'
+        ? `Visa / Master - ${gateway.name}`
+        : `Amex - ${gateway.name}`;
+    container.append(`
+      <span class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded flex items-center space-x-2">
+        <span>${icon}</span>
+        <span>${displayName}</span>
+      </span>
+    `);
+  }
+}
+
+function showGatewayModal(tenantData, tenant) {
+  const { allGateways = {}, activeGateways = {} } = tenantData;
+
+  let modalContent = '<div class="flex flex-col space-y-3">';
+  for (const [card, gateway] of Object.entries(allGateways)) {
+    const checked = activeGateways[card] ? 'checked' : '';
+    const labelName =
+      card === 'visa/master'
+        ? `Visa / Master - ${gateway.name}`
+        : `Amex - ${gateway.name}`;
+    modalContent += `
+      <label class="flex items-center space-x-2">
+        <input type="checkbox" class="gatewayChk" data-card="${card}" ${checked}/>
+        <span>${labelName}</span>
+      </label>
+    `;
+  }
+  modalContent += `<button id="activateGateways" class="mt-2 bg-green-600 text-white py-2 rounded" disabled>Activate</button></div>`;
+
+  $('#topupButtons').html(modalContent);
+  $('#topupModal').removeClass('hidden');
+
+  // Enable activate button if any checkbox state changed
+  $('.gatewayChk').on('change', function () {
+    $('#activateGateways').prop('disabled', false);
+  });
+
+  $('#activateGateways').off('click').on('click', async () => {
+    const updatedActiveGateways = {};
+    $('.gatewayChk:checked').each(function () {
+      const card = $(this).data('card');
+      updatedActiveGateways[card] = allGateways[card]; // still includes name + path
+    });
+
+    const activateBtn = $('#activateGateways');
+    activateBtn.prop('disabled', true).text('Activating...');
+
+    try {
+      const res = await fetch(`/api/settings/${tenant}/gateways/activate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gateways: updatedActiveGateways })
+      });
+      const result = await res.json();
+      if (result.success) {
+        displayActiveGateways(result.data.activeGateways);
+        showToast('✅ Gateways updated successfully!', 'success');
+      } else {
+        showToast('❌ Failed to update gateways', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Error updating gateways', 'error');
+    } finally {
+      activateBtn.prop('disabled', false).text('Activate');
+      $('#topupModal').addClass('hidden');
+    }
+  });
+}
+
+// Close modal
+$('#closeTopup').on('click', () => $('#topupModal').addClass('hidden'));
+
+// Fetch tenant gateways
+async function fetchTenantGateways(tenant) {
+  try {
+    const res = await fetch(`/api/settings/${tenant}/gateways`);
+    const data = await res.json();
+    if (!data.success || !data.data) return { allGateways: {}, activeGateways: {} };
+    return {
+      allGateways: data.data.allGateways || {},
+      activeGateways: data.data.activeGateways || {}
+    };
+  } catch (err) {
+    console.error('Error fetching gateways:', err);
+    return { allGateways: {}, activeGateways: {} };
+  }
+}
+
+// Toast helper
+function showToast(message, type = 'info') {
+  const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-gray-600';
+  const toast = $(`
+    <div class="fixed bottom-4 right-4 px-4 py-2 text-white rounded shadow ${bg} opacity-0 transition-opacity duration-500">${message}</div>
+  `);
+  $('body').append(toast);
+  setTimeout(() => toast.css('opacity', 1), 50);
+  setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
+}
+
+
+  </script>
   </body>
 </html>
