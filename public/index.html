@@ -47,12 +47,6 @@
       .table-container::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
       }
-      .settings-panel {
-        transition: transform 0.3s ease-in-out;
-      }
-      .settings-panel.hidden {
-        transform: translateX(100%);
-      }
       /* Dark theme styles */
       body.bg-gray-800 input,
       body.bg-gray-800 select {
@@ -72,17 +66,10 @@
         background-color: #4a5568;
         color: #ffffff;
       }
-      body.bg-gray-800 select:focus {
-        border-color: #4e73df;
-        box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.5);
-      }
+      body.bg-gray-800 select:focus,
       body.bg-gray-800 input:focus {
         border-color: #4e73df;
         box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.5);
-      }
-      /* Hide settings button on login screen */
-      #login-section:not(.hidden) ~ header #settingsButton {
-        display: none;
       }
       /* Transaction ID cursor and hover in dark theme */
       body.bg-gray-800 .cursor-pointer.group {
@@ -92,13 +79,33 @@
         color: #ffffff;
         text-decoration: underline;
       }
+      /* Responsive styles for active gateways */
+      #activeGatewaysDisplay {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      @media (max-width: 640px) {
+        #activeGatewaysDisplay {
+          gap: 0.25rem;
+        }
+        #activeGatewaysDisplay span {
+          font-size: 0.75rem;
+          padding: 0.25rem 0.5rem;
+        }
+      }
     </style>
   </head>
 
   <body class="bg-gray-50 text-gray-700 font-sans antialiased" id="body">
-    <header class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md">
+    <header
+      class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md"
+    >
       <div class="container mx-auto px-4 py-5">
-        <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+        <div
+          class="flex flex-col md:flex-row md:justify-between md:items-center"
+        >
           <div class="mb-4 md:mb-0">
             <h1 class="text-2xl md:text-3xl font-bold">
               <i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions
@@ -107,12 +114,31 @@
               Manage and review your payment transactions
             </p>
           </div>
-          <div class="flex items-center justify-between md:justify-end space-x-4">
-            <button id="settingsButton" class="text-white hover:bg-blue-600 p-2 rounded-full">
-              <i class="fas fa-cog"></i>
-            </button>
+          <div
+            class="flex items-center justify-between md:justify-end space-x-4"
+          >
+            <div id="dashboard-icons" class="flex items-center space-x-2 hidden">
+              <button
+                id="themeToggle"
+                class="text-white hover:bg-blue-600 p-2 rounded-full"
+                title="Toggle Theme"
+              >
+                <i class="fas fa-sun text-sm"></i>
+              </button>
+              <button
+                id="activateGatewayBtn"
+                class="text-white hover:bg-blue-600 p-2 rounded-full"
+                title="Activate Gateway"
+              >
+                <i class="fas fa-credit-card text-sm"></i>
+              </button>
+              <div id="activeGatewaysDisplay" class="flex space-x-2 flex-wrap"></div>
+            </div>
             <div class="relative">
-              <button id="userProfile" class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm">
+              <button
+                id="userProfile"
+                class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
+              >
                 <i class="fas fa-user mr-2"></i>
                 <span id="userName">Guest</span>
                 <i class="fas fa-chevron-down ml-2 text-xs"></i>
@@ -124,60 +150,26 @@
     </header>
 
     <main class="container mx-auto px-4 py-6" id="main-content">
-      <!-- Settings Panel -->
-      <div id="settingsPanel" class="fixed top-0 right-0 h-full z-1000 w-80 bg-white shadow-lg p-6 settings-panel z-[9999] hidden">
-        <h2 class="text-lg font-semibold mb-4 text-gray-700">
-          <i class="fas fa-cog mr-2 text-primary"></i>Settings
-        </h2>
-        <button id="closeSettings" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times"></i>
-        </button>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Theme</label>
-          <select id="themeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
+      <div
+        id="topupModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <div
+          class="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-80 border border-gray-200 dark:border-gray-700 transition-all"
+        >
+          <h2
+            class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center"
+          >
+            Activate Gateway
+          </h2>
+          <div id="topupButtons" class="flex flex-col space-y-3"></div>
+          <button
+            id="closeTopup"
+            class="mt-4 w-full py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm transition"
+          >
+            Cancel
+          </button>
         </div>
-        <!-- <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
-          <select id="itemsPerPageSettings" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-        </div> -->
-<div
-  id="topupModal"
-  class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
->
-  <div
-    class="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-80 border border-gray-200 dark:border-gray-700 transition-all"
-  >
-    <h2
-      class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center"
-    >
-      Activate Gateway
-    </h2>
-
-    <div id="topupButtons" class="flex flex-col space-y-3">
-      <!-- Gateways checkboxes injected here -->
-    </div>
-
-    <button
-      id="closeTopup"
-      class="mt-4 w-full py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm transition"
-    >
-      Cancel
-    </button>
-  </div>
-</div>
-
-
-        <button id="saveSettings" class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
-          <i class="fas fa-save mr-2"></i> Save
-        </button>
       </div>
 
       <div id="login-section" class="bg-white rounded-lg shadow p-5 mb-6">
@@ -186,7 +178,9 @@
         </h2>
         <div class="grid grid-cols-1 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Tenant Name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tenant Name</label
+            >
             <input
               type="text"
               id="username"
@@ -195,7 +189,9 @@
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Password</label
+            >
             <input
               type="password"
               id="password"
@@ -218,15 +214,22 @@
       </div>
 
       <div id="dashboard-content" class="hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6" id="statsCards"></div>
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
+          id="statsCards"
+        ></div>
 
         <div class="bg-white rounded-lg shadow p-5 mb-6">
           <h2 class="text-lg font-semibold mb-4 text-gray-700">
             <i class="fas fa-filter mr-2 text-primary"></i>Filter Transactions
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
+          >
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >From Date</label
+              >
               <input
                 type="date"
                 id="fromDate"
@@ -235,7 +238,9 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >To Date</label
+              >
               <input
                 type="date"
                 id="toDate"
@@ -244,7 +249,9 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Payment Status</label
+              >
               <select
                 id="transactionType"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -256,7 +263,9 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Items Per Page</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Items Per Page</label
+              >
               <select
                 id="itemsPerPage"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -270,7 +279,9 @@
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Search</label
+              >
               <input
                 type="text"
                 id="searchQuery"
@@ -296,7 +307,9 @@
         </div>
 
         <div class="bg-white rounded-lg shadow overflow-hidden">
-          <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4">
+          <div
+            class="flex justify-between items-center border-b border-gray-200 px-5 py-4"
+          >
             <h2 class="text-lg font-semibold text-gray-700">
               <i class="fas fa-list mr-2 text-primary"></i>Transaction History
             </h2>
@@ -311,17 +324,61 @@
             <table class="w-full">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant ID</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Card Brand</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name on Card</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Id</th>
-                  <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Created At
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Merchant ID
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Order ID
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Amount
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Currency
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Email
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Description
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Card Brand
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Name on Card
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Transaction Id
+                  </th>
+                  <th
+                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Payment Status
+                  </th>
                 </tr>
               </thead>
               <tbody id="transactionTable" class="divide-y divide-gray-200">
@@ -331,8 +388,13 @@
               </tbody>
             </table>
           </div>
-          <div class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4">
-            <div class="text-sm text-gray-700 mb-4 md:mb-0" id="tableInfo"></div>
+          <div
+            class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4"
+          >
+            <div
+              class="text-sm text-gray-700 mb-4 md:mb-0"
+              id="tableInfo"
+            ></div>
             <div class="flex space-x-2">
               <button
                 id="prevPage"
@@ -362,210 +424,233 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-
     <script>
       let BASE_URL;
-      const today = new Date().toISOString().split('T')[0];
-      const UNIVERSAL_PASSWORD = 'admin@123';
-      const IS_LOCAL = window.location.hostname.includes('localhost');
+      const today = new Date().toISOString().split("T")[0];
+      const UNIVERSAL_PASSWORD = "admin@123";
+      const IS_LOCAL = window.location.hostname.includes("localhost");
 
       $(document).ready(() => {
         const hostname = window.location.hostname;
-        const tenantFromUrl = hostname.split('.')[0];
-        console.log('Hostname:', hostname, 'IS_LOCAL:', IS_LOCAL, 'Tenant:', tenantFromUrl);
+        const tenantFromUrl = hostname.split(".")[0];
+        console.log(
+          "Hostname:",
+          hostname,
+          "IS_LOCAL:",
+          IS_LOCAL,
+          "Tenant:",
+          tenantFromUrl
+        );
 
-      
-        const tenantName = tenantFromUrl && tenantFromUrl !== 'localhost' && tenantFromUrl !== 'go'
-          ? tenantFromUrl.charAt(0).toUpperCase() + tenantFromUrl.slice(1) + ' Bank'
-          : 'Payment Dashboard';
-        $('#footerText').text(`© 2025 ${tenantName}`);
+        const tenantName =
+          tenantFromUrl &&
+          tenantFromUrl !== "localhost" &&
+          tenantFromUrl !== "go"
+            ? tenantFromUrl.charAt(0).toUpperCase() +
+              tenantFromUrl.slice(1) +
+              " Bank"
+            : "Payment Dashboard";
+        $("#footerText").text(`© 2025 ${tenantName}`);
 
-    
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        const savedItemsPerPage = localStorage.getItem('itemsPerPage') || '10';
+        const savedTheme = localStorage.getItem("theme") || "light";
+        const savedItemsPerPage = localStorage.getItem("itemsPerPage") || "10";
         applyTheme(savedTheme);
-        $('#themeSelect').val(savedTheme);
-        $('#itemsPerPage, #itemsPerPageSettings').val(savedItemsPerPage);
+        $("#themeToggle i").removeClass("fa-sun fa-moon").addClass(savedTheme === "dark" ? "fa-moon" : "fa-sun");
+        $("#itemsPerPage").val(savedItemsPerPage);
         currentFilters.limit = parseInt(savedItemsPerPage);
 
         if (checkAuth()) {
-          const tenant = localStorage.getItem('tenant');
+          const tenant = localStorage.getItem("tenant");
           BASE_URL = IS_LOCAL
             ? `http://${tenant}.localhost:3008/api`
             : `http://${tenant}.go.digitable.io/api`;
-          console.log('BASE_URL set to:', BASE_URL);
-          $('#login-section').addClass('hidden');
-          $('#dashboard-content').removeClass('hidden');
-          $('#settingsButton').removeClass('hidden');
-          $('#userName').text(tenant || 'User');
-          $('#transactionTable').html(`
+          console.log("BASE_URL set to:", BASE_URL);
+          $("#login-section").addClass("hidden");
+          $("#dashboard-content").removeClass("hidden");
+          $("#dashboard-icons").removeClass("hidden");
+          $("#userName").text(tenant || "User");
+          $("#transactionTable").html(`
             <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
           `);
           checkHealth();
           loadData();
           setupEventListeners();
+          fetchTenantGateways(tenant).then(displayActiveGateways);
         } else {
-          $('#login-section').removeClass('hidden');
-          $('#dashboard-content').addClass('hidden');
-          $('#settingsButton').addClass('hidden');
+          $("#login-section").removeClass("hidden");
+          $("#dashboard-content").addClass("hidden");
+          $("#dashboard-icons").addClass("hidden");
           setupLoginEventListener();
         }
 
-        $('#userProfile').on('click', () => {
+        $("#userProfile").on("click", () => {
           if (checkAuth()) {
             logout();
           }
         });
 
-    
-        $('#settingsButton').on('click', () => {
-          $('#settingsPanel').toggleClass('hidden');
+        $("#themeToggle").on("click", () => {
+          const currentTheme = localStorage.getItem("theme") || "light";
+          const newTheme = currentTheme === "light" ? "dark" : "light";
+          localStorage.setItem("theme", newTheme);
+          applyTheme(newTheme);
+          $("#themeToggle i").removeClass("fa-sun fa-moon").addClass(newTheme === "dark" ? "fa-moon" : "fa-sun");
+          displayActiveGateways({ activeGateways: $("#activeGatewaysDisplay").data("activeGateways") || {} });
         });
-        $('#closeSettings').on('click', () => {
-          $('#settingsPanel').addClass('hidden');
-        });
-        $('#saveSettings').on('click', () => {
-          const theme = $('#themeSelect').val();
-          const itemsPerPage = $('#itemsPerPageSettings').val();
-          localStorage.setItem('theme', theme);
-          localStorage.setItem('itemsPerPage', itemsPerPage);
-          applyTheme(theme);
-          $('#itemsPerPage').val(itemsPerPage);
-          currentFilters.limit = parseInt(itemsPerPage);
-          currentFilters.page = 1;
-          loadData();
-          $('#settingsPanel').addClass('hidden');
+
+        $("#activateGatewayBtn").on("click", async () => {
+          const tenant = localStorage.getItem("tenant") || tenantFromUrl;
+          const tenantData = await fetchTenantGateways(tenant);
+          showGatewayModal(tenantData, tenant);
         });
       });
 
       function applyTheme(theme) {
-        if (theme === 'dark') {
-          $('#body').addClass('bg-gray-800 text-white');
-          $('.bg-white').addClass('bg-gray-900').removeClass('bg-white');
-          $('.text-gray-700').addClass('text-gray-200').removeClass('text-gray-700');
-          $('.bg-gray-50').addClass('bg-gray-700').removeClass('bg-gray-50');
-          $('.border-gray-200').addClass('border-gray-600').removeClass('border-gray-200');
-          $('.text-gray-500').addClass('text-gray-300').removeClass('text-gray-500');
-          $('.bg-gray-100').addClass('bg-gray-600').removeClass('bg-gray-100');
-          $('.hover\\:bg-gray-100').addClass('hover:bg-gray-500').removeClass('hover:bg-gray-100');
-          $('#footerText').addClass('text-gray-300').removeClass('text-gray-500');
+        if (theme === "dark") {
+          $("#body").addClass("bg-gray-800 text-white");
+          $(".bg-white").addClass("bg-gray-900").removeClass("bg-white");
+          $(".text-gray-700").addClass("text-gray-200").removeClass("text-gray-700");
+          $(".bg-gray-50").addClass("bg-gray-700").removeClass("bg-gray-50");
+          $(".border-gray-200").addClass("border-gray-600").removeClass("border-gray-200");
+          $(".text-gray-500").addClass("text-gray-300").removeClass("text-gray-500");
+          $(".bg-gray-100").addClass("bg-gray-600").removeClass("bg-gray-100");
+          $(".hover\\:bg-gray-100").addClass("hover:bg-gray-500").removeClass("hover:bg-gray-100");
+          $("#footerText").addClass("text-gray-300").removeClass("text-gray-500");
+          $("#activeGatewaysDisplay span").addClass("bg-gray-700").removeClass("bg-gray-200");
         } else {
-          $('#body').removeClass('bg-gray-800 text-white');
-          $('.bg-gray-900').addClass('bg-white').removeClass('bg-gray-900');
-          $('.text-gray-200').addClass('text-gray-700').removeClass('text-gray-200');
-          $('.bg-gray-700').addClass('bg-gray-50').removeClass('bg-gray-700');
-          $('.border-gray-600').addClass('border-gray-200').removeClass('border-gray-600');
-          $('.text-gray-300').addClass('text-gray-500').removeClass('text-gray-300');
-          $('.bg-gray-600').addClass('bg-gray-100').removeClass('bg-gray-600');
-          $('.hover\\:bg-gray-500').addClass('hover:bg-gray-100').removeClass('hover:bg-gray-500');
-          $('#footerText').addClass('text-gray-500').removeClass('text-gray-300');
+          $("#body").removeClass("bg-gray-800 text-white");
+          $(".bg-gray-900").addClass("bg-white").removeClass("bg-gray-900");
+          $(".text-gray-200").addClass("text-gray-700").removeClass("text-gray-200");
+          $(".bg-gray-700").addClass("bg-gray-50").removeClass("bg-gray-700");
+          $(".border-gray-600").addClass("border-gray-200").removeClass("border-gray-600");
+          $(".text-gray-300").addClass("text-gray-500").removeClass("text-gray-300");
+          $(".bg-gray-600").addClass("bg-gray-100").removeClass("bg-gray-600");
+          $(".hover\\:bg-gray-500").addClass("hover:bg-gray-100").removeClass("hover:bg-gray-500");
+          $("#footerText").addClass("text-gray-500").removeClass("text-gray-300");
+          $("#activeGatewaysDisplay span").addClass("bg-gray-200").removeClass("bg-gray-700");
         }
       }
 
       function login(inputTenant, password) {
         const hostname = window.location.hostname;
-        const tenantFromUrl = hostname.split('.')[0];
-        console.log('Login - Hostname:', hostname, 'Tenant from URL:', tenantFromUrl, 'Input Tenant:', inputTenant);
-        if (tenantFromUrl !== 'localhost' && tenantFromUrl !== 'go' && inputTenant !== tenantFromUrl) {
-          console.log('Tenant mismatch');
+        const tenantFromUrl = hostname.split(".")[0];
+        console.log(
+          "Login - Hostname:",
+          hostname,
+          "Tenant from URL:",
+          tenantFromUrl,
+          "Input Tenant:",
+          inputTenant
+        );
+        if (
+          tenantFromUrl !== "localhost" &&
+          tenantFromUrl !== "go" &&
+          inputTenant !== tenantFromUrl
+        ) {
+          console.log("Tenant mismatch");
           return false;
         }
-        if (password === UNIVERSAL_PASSWORD && inputTenant.trim() !== '') {
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('tenant', inputTenant);
+        if (password === UNIVERSAL_PASSWORD && inputTenant.trim() !== "") {
+          localStorage.setItem("isAuthenticated", "true");
+          localStorage.setItem("tenant", inputTenant);
           BASE_URL = IS_LOCAL
             ? `http://${inputTenant}.localhost:3008/api`
             : `http://${inputTenant}.go.digitable.io/api`;
-          console.log('Login successful, BASE_URL:', BASE_URL);
+          console.log("Login successful, BASE_URL:", BASE_URL);
           return true;
         }
-        console.log('Login failed: Invalid password or tenant');
+        console.log("Login failed: Invalid password or tenant");
         return false;
       }
 
       function checkAuth() {
-        return localStorage.getItem('isAuthenticated') === 'true';
+        return localStorage.getItem("isAuthenticated") === "true";
       }
 
       function logout() {
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('tenant');
-        $('#login-section').removeClass('hidden');
-        $('#dashboard-content').addClass('hidden');
-        $('#settingsButton').addClass('hidden');
-        $('#userName').text('Guest');
+        localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("tenant");
+        $("#login-section").removeClass("hidden");
+        $("#dashboard-content").addClass("hidden");
+        $("#dashboard-icons").addClass("hidden");
+        $("#userName").text("Guest");
         BASE_URL = undefined;
-        console.log('Logged out');
+        console.log("Logged out");
       }
 
       let currentFilters = {
-        from: '',
-        to: '',
-        status: 'SUCCESS',
-        search: '',
+        from: "",
+        to: "",
+        status: "SUCCESS",
+        search: "",
         page: 1,
-        limit: parseInt(localStorage.getItem('itemsPerPage') || '10')
+        limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
       };
 
       function setupLoginEventListener() {
-        $('#loginButton').on('click', () => {
-          const tenant = $('#username').val().trim();
-          const password = $('#password').val();
+        $("#loginButton").on("click", () => {
+          const tenant = $("#username").val().trim();
+          const password = $("#password").val();
           if (tenant && password) {
             if (login(tenant, password)) {
-              $('#login-section').addClass('hidden');
-              $('#dashboard-content').removeClass('hidden');
-              $('#settingsButton').removeClass('hidden');
-              $('#userName').text(tenant || 'User');
-              $('#transactionTable').html(`
+              $("#login-section").addClass("hidden");
+              $("#dashboard-content").removeClass("hidden");
+              $("#dashboard-icons").removeClass("hidden");
+              $("#userName").text(tenant || "User");
+              $("#transactionTable").html(`
                 <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
               `);
               checkHealth();
               loadData();
               setupEventListeners();
+              fetchTenantGateways(tenant).then(displayActiveGateways);
             } else {
-              $('#loginError').removeClass('hidden');
+              $("#loginError").removeClass("hidden");
             }
           } else {
-            $('#loginError').removeClass('hidden');
+            $("#loginError").removeClass("hidden");
           }
         });
       }
 
       function setupEventListeners() {
-        $('#applyFilters').on('click', applyFilters);
-        $('#resetFilters').on('click', resetFilters);
-        $('#prevPage').on('click', () => changePage(currentFilters.page - 1));
-        $('#nextPage').on('click', () => changePage(currentFilters.page + 1));
-        $('#itemsPerPage').on('change', (e) => {
+        $("#applyFilters").on("click", applyFilters);
+        $("#resetFilters").on("click", resetFilters);
+        $("#prevPage").on("click", () => changePage(currentFilters.page - 1));
+        $("#nextPage").on("click", () => changePage(currentFilters.page + 1));
+        $("#itemsPerPage").on("change", (e) => {
           const limit = parseInt($(e.target).val());
-          localStorage.setItem('itemsPerPage', limit);
+          localStorage.setItem("itemsPerPage", limit);
           currentFilters.limit = limit;
           currentFilters.page = 1;
           loadData();
         });
-        $('#exportData').on('click', exportToCSV);
+        $("#exportData").on("click", exportToCSV);
       }
 
       async function checkHealth() {
         try {
           const url = `${BASE_URL}/transactions`;
-          console.log('Checking health at:', url);
+          console.log("Checking health at:", url);
           const response = await $.ajax({
             url: url,
-            method: 'GET'
+            method: "GET",
           });
-          console.log('Health check:', response);
+          console.log("Health check:", response);
           if (!response.collectionExists || response.documentCount === 0) {
-            $('#transactionTable').html(`
+            $("#transactionTable").html(`
               <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
-                ${response.collectionExists ? 'No successful transactions found in database' : 'Collection "payments" does not exist'}
+                ${
+                  response.collectionExists
+                    ? "No successful transactions found in database"
+                    : 'Collection "payments" does not exist'
+                }
               </td></tr>
             `);
           }
         } catch (error) {
-          console.error('Health check failed:', error);
-          $('#transactionTable').html(`
+          console.error("Health check failed:", error);
+          $("#transactionTable").html(`
             <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to connect to server. Please check if the backend is running.</td></tr>
           `);
         }
@@ -575,61 +660,66 @@
         try {
           const params = new URLSearchParams();
           for (const [key, value] of Object.entries(currentFilters)) {
-            if (value !== undefined && value !== '') {
+            if (value !== undefined && value !== "") {
               params.append(key, value);
             }
           }
-          params.set('status', 'SUCCESS');
+          params.set("status", "SUCCESS");
           const url = `${BASE_URL}/payments?${params}`;
-          console.log('Fetching data from:', url);
+          console.log("Fetching data from:", url);
           const response = await $.ajax({
             url: url,
-            method: 'GET'
+            method: "GET",
           });
-          console.log('Fetched data:', response);
+          console.log("Fetched data:", response);
           updateStats(response.stats);
           updateTable(response.transactions, response.total);
         } catch (error) {
-          console.error('Error fetching data:', error);
-          $('#transactionTable').html(`
+          console.error("Error fetching data:", error);
+          $("#transactionTable").html(`
             <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to load transactions. Please try again later.</td></tr>
           `);
         }
       }
 
       function applyFilters() {
-        const fromDate = $('#fromDate').val() || today;
-        const toDate = $('#toDate').val() || today;
-        const searchQuery = $('#searchQuery').val().toLowerCase();
-        console.log('Applying filters:', { fromDate, toDate, status: 'SUCCESS', searchQuery });
+        const fromDate = $("#fromDate").val() || today;
+        const toDate = $("#toDate").val() || today;
+        const searchQuery = $("#searchQuery").val().toLowerCase();
+        console.log("Applying filters:", {
+          fromDate,
+          toDate,
+          status: "SUCCESS",
+          searchQuery,
+        });
         currentFilters.from = fromDate;
         currentFilters.to = toDate;
-        currentFilters.status = 'SUCCESS';
+        currentFilters.status = "SUCCESS";
         currentFilters.search = searchQuery || undefined;
         currentFilters.page = 1;
         loadData();
       }
 
       function resetFilters() {
-        $('#fromDate').val('');
-        $('#toDate').val('');
-        $('#transactionType').val('SUCCESS');
-        $('#searchQuery').val('');
-        $('#itemsPerPage').val(localStorage.getItem('itemsPerPage') || '10');
+        $("#fromDate").val("");
+        $("#toDate").val("");
+        $("#transactionType").val("SUCCESS");
+        $("#searchQuery").val("");
+        $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
         currentFilters = {
-          from: '',
-          to: '',
-          status: 'SUCCESS',
-          search: '',
+          from: "",
+          to: "",
+          status: "SUCCESS",
+          search: "",
           page: 1,
-          limit: parseInt(localStorage.getItem('itemsPerPage') || '10')
+          limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
         };
-        console.log('Filters reset');
+        console.log("Filters reset");
         loadData();
       }
 
       function updateStats(stats) {
-        $('#statsCards').html(`
+        $("#statsCards").html(`
           <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
             <div class="text-3xl font-bold">${stats.totalTransactions}</div>
             <div class="text-sm opacity-90 mt-1">Total Transactions</div>
@@ -650,23 +740,32 @@
       }
 
       function updateTable(transactions, total) {
-        $('#transactionTable').html(transactions.length > 0 ? transactions.map(t => {
-          const transactionId = t.transactionId || 'N/A';
-          const displayId = transactionId === 'N/A' ? 'N/A' :
-            (transactionId.length > 8 ?
-              transactionId.slice(0, 4).toUpperCase() + '...' + transactionId.slice(-4).toUpperCase() :
-              transactionId.toUpperCase());
-          return `
+        $("#transactionTable").html(
+          transactions.length > 0
+            ? transactions
+                .map((t) => {
+                  const transactionId = t.transactionId || "N/A";
+                  const displayId =
+                    transactionId === "N/A"
+                      ? "N/A"
+                      : transactionId.length > 8
+                      ? transactionId.slice(0, 4).toUpperCase() +
+                        "..." +
+                        transactionId.slice(-4).toUpperCase()
+                      : transactionId.toUpperCase();
+                  return `
             <tr class="hover:bg-gray-400">
-              <td class="px-5 py-4">${new Date(t.createdAt).toISOString().split('T')[0]}</td>
-              <td class="px-5 py-4">${t.merchantId || 'N/A'}</td>
-              <td class="px-5 py-4">${t.orderId || 'N/A'}</td>
+              <td class="px-5 py-4">${
+                new Date(t.createdAt).toISOString().split("T")[0]
+              }</td>
+              <td class="px-5 py-4">${t.merchantId || "N/A"}</td>
+              <td class="px-5 py-4">${t.orderId || "N/A"}</td>
               <td class="px-5 py-4">${parseFloat(t.amount || 0).toFixed(2)}</td>
-              <td class="px-5 py-4">${t.currency || 'N/A'}</td>
-              <td class="px-5 py-4">${t.email || 'N/A'}</td>
-              <td class="px-5 py-4">${t.description || 'N/A'}</td>
-              <td class="px-5 py-4">${t.cardBrand || 'N/A'}</td>
-              <td class="px-5 py-4">${t.nameOnCard || 'N/A'}</td>
+              <td class="px-5 py-4">${t.currency || "N/A"}</td>
+              <td class="px-5 py-4">${t.email || "N/A"}</td>
+              <td class="px-5 py-4">${t.description || "N/A"}</td>
+              <td class="px-5 py-4">${t.cardBrand || "N/A"}</td>
+              <td class="px-5 py-4">${t.nameOnCard || "N/A"}</td>
               <td class="px-5 py-4 relative">
                 <span class="cursor-pointer group" title="${transactionId}">${displayId}</span>
               </td>
@@ -675,23 +774,39 @@
               </td>
             </tr>
           `;
-        }).join('') : `
+                })
+                .join("")
+            : `
           <tr><td colspan="11" class="px-5 py-4 text-center">No successful transactions found</td></tr>
-        `);
+        `
+        );
 
         const start = (currentFilters.page - 1) * currentFilters.limit + 1;
         const end = Math.min(start + currentFilters.limit - 1, total);
-        $('#tableInfo').text(`Showing ${start} to ${end} of ${total} entries`);
+        $("#tableInfo").text(`Showing ${start} to ${end} of ${total} entries`);
 
         const totalPages = Math.ceil(total / currentFilters.limit);
-        $('#prevPage').prop('disabled', currentFilters.page === 1);
-        $('#nextPage').prop('disabled', currentFilters.page === totalPages);
+        $("#prevPage").prop("disabled", currentFilters.page === 1);
+        $("#nextPage").prop("disabled", currentFilters.page === totalPages);
 
-        $('#pageButtons').html(Array.from({
-          length: totalPages
-        }, (_, i) => `
-          <button class="flex items-center justify-center px-3 py-1.5 text-sm ${currentFilters.page === i + 1 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-700'} rounded-md border border-${currentFilters.page === i + 1 ? 'primary' : 'gray-300'} hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
-        `).join(''));
+        $("#pageButtons").html(
+          Array.from(
+            {
+              length: totalPages,
+            },
+            (_, i) => `
+          <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
+            currentFilters.page === i + 1
+              ? "bg-primary text-white"
+              : "bg-gray-100 text-gray-700"
+          } rounded-md border border-${
+              currentFilters.page === i + 1 ? "primary" : "gray-300"
+            } hover:bg-gray-200" onclick="changePage(${i + 1})">${
+              i + 1
+            }</button>
+        `
+          ).join("")
+        );
       }
 
       function changePage(page) {
@@ -703,175 +818,169 @@
       async function exportToCSV() {
         try {
           const params = new URLSearchParams();
-          ['from', 'to', 'search'].forEach(key => {
+          ["from", "to", "search"].forEach((key) => {
             const value = currentFilters[key];
-            if (value !== undefined && value !== '') {
+            if (value !== undefined && value !== "") {
               params.append(key, value);
             }
           });
-          params.append('status', 'SUCCESS');
+          params.append("status", "SUCCESS");
           const url = `${BASE_URL}/payments/export?${params}`;
-          console.log('Exporting data from:', url);
+          console.log("Exporting data from:", url);
           const response = await $.ajax({
             url: url,
-            method: 'GET'
+            method: "GET",
           });
-          const headers = ['Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status'];
-          const rows = response.map(t =>
-            `"${new Date(t.createdAt).toISOString().split('T')[0]}","${t.merchantId || 'N/A'}","${t.orderId || 'N/A'}",${parseFloat(t.amount || 0).toFixed(2)},"${t.currency || 'N/A'}","${t.email || 'N/A'}","${t.description || 'N/A'}","${t.cardBrand || 'N/A'}","${t.nameOnCard || 'N/A'}","SUCCESS"`
+          const headers = [
+            "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status",
+          ];
+          const rows = response.map(
+            (t) =>
+              `"${new Date(t.createdAt).toISOString().split("T")[0]}","${
+                t.merchantId || "N/A"
+              }","${t.orderId || "N/A"}",${parseFloat(t.amount || 0).toFixed(
+                2
+              )},"${t.currency || "N/A"}","${t.email || "N/A"}","${
+                t.description || "N/A"
+              }","${t.cardBrand || "N/A"}","${t.nameOnCard || "N/A"}","SUCCESS"`
           );
-          const csv = [...headers, ...rows].join('\n');
-          const blob = new Blob([csv], { type: 'text/csv' });
+          const csv = [...headers, ...rows].join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
           const urlObj = URL.createObjectURL(blob);
-          const $a = $('<a>', {
+          const $a = $("<a>", {
             href: urlObj,
-            download: 'successful_transactions.csv'
-          }).appendTo('body');
+            download: "successful_transactions.csv",
+          }).appendTo("body");
           $a[0].click();
           URL.revokeObjectURL(urlObj);
           $a.remove();
         } catch (error) {
-          console.error('Error exporting data:', error);
-          alert('Failed to export data. Please try again.');
+          console.error("Error exporting data:", error);
+          alert("Failed to export data. Please try again.");
         }
       }
-    
 
-$(document).ready(async () => {
-  const hostname = window.location.hostname;
-  const tenant = hostname.split('.')[0];
-  if (!tenant || tenant === 'localhost' || tenant === 'go') return;
+      function displayActiveGateways(data) {
+        const activeGateways = data.activeGateways || {};
+        const container = $("#activeGatewaysDisplay");
+        container.empty().data("activeGateways", activeGateways); 
+        if (!activeGateways || Object.keys(activeGateways).length === 0) return;
 
-  // Add Activate Gateway button and container
-  $('#settingsPanel').append(`
-    <div class="mt-4">
-      <button id="activateGatewayBtn" class="bg-primary text-white px-4 py-2 rounded-md">Activate Gateway</button>
-      <div id="activeGatewaysDisplay" class="mt-2 flex space-x-2 flex-wrap"></div>
-    </div>
-  `);
+        const currentTheme = localStorage.getItem("theme") || "light";
+        const bgClass = currentTheme === "dark" ? "bg-gray-700" : "bg-gray-200";
+        const textClass = currentTheme === "dark" ? "text-gray-200" : "text-gray-700";
 
-  // Load tenant data
-  let tenantData = await fetchTenantGateways(tenant);
-  displayActiveGateways(tenantData.activeGateways);
-
-  // Open modal on click
-  $('#settingsPanel').on('click', '#activateGatewayBtn', async () => {
-    tenantData = await fetchTenantGateways(tenant); // refresh before showing
-    showGatewayModal(tenantData, tenant);
-  });
-});
-
-function displayActiveGateways(activeGateways) {
-  const container = $('#activeGatewaysDisplay');
-  container.empty();
-  if (!activeGateways || Object.keys(activeGateways).length === 0) return;
-
-  for (const [card, gateway] of Object.entries(activeGateways)) {
-    const icon = card === 'visa/master' ? '💳' : '🟡';
-    const displayName =
-      card === 'visa/master'
-        ? `Visa / Master - ${gateway.name}`
-        : `Amex - ${gateway.name}`;
-    container.append(`
-      <span class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded flex items-center space-x-2">
+        for (const [card, gateway] of Object.entries(activeGateways)) {
+          const icon = card === "visa/master" ? "💳" : "🟡";
+          const displayName =
+            card === "visa/master"
+              ? `Master - ${gateway.name}`
+              : `Amex - ${gateway.name}`;
+          container.append(`
+      <span class="px-3 py-1 sm:px-2 sm:py-0.5 ${bgClass} ${textClass} rounded flex items-center space-x-2 sm:space-x-1 text-sm sm:text-xs">
         <span>${icon}</span>
-        <span>${displayName}</span>
+        <span class="truncate">${displayName}</span>
       </span>
     `);
-  }
-}
+        }
+      }
 
-function showGatewayModal(tenantData, tenant) {
-  const { allGateways = {}, activeGateways = {} } = tenantData;
+      function showGatewayModal(tenantData, tenant) {
+        const { allGateways = {}, activeGateways = {} } = tenantData;
 
-  let modalContent = '<div class="flex flex-col space-y-3">';
-  for (const [card, gateway] of Object.entries(allGateways)) {
-    const checked = activeGateways[card] ? 'checked' : '';
-    const labelName =
-      card === 'visa/master'
-        ? `Visa / Master - ${gateway.name}`
-        : `Amex - ${gateway.name}`;
-    modalContent += `
+        let modalContent = '<div class="flex flex-col space-y-3">';
+        for (const [card, gateway] of Object.entries(allGateways)) {
+          const checked = activeGateways[card] ? "checked" : "";
+          const labelName =
+            card === "visa/master"
+              ? `Visa / Master - ${gateway.name}`
+              : `Amex - ${gateway.name}`;
+          modalContent += `
       <label class="flex items-center space-x-2">
         <input type="checkbox" class="gatewayChk" data-card="${card}" ${checked}/>
         <span>${labelName}</span>
       </label>
     `;
-  }
-  modalContent += `<button id="activateGateways" class="mt-2 bg-green-600 text-white py-2 rounded" disabled>Activate</button></div>`;
+        }
+        modalContent += `<button id="activateGateways" class="mt-2 bg-green-600 text-white py-2 rounded" disabled>Activate</button></div>`;
 
-  $('#topupButtons').html(modalContent);
-  $('#topupModal').removeClass('hidden');
+        $("#topupButtons").html(modalContent);
+        $("#topupModal").removeClass("hidden");
 
-  // Enable activate button if any checkbox state changed
-  $('.gatewayChk').on('change', function () {
-    $('#activateGateways').prop('disabled', false);
-  });
+        $(".gatewayChk").on("change", function () {
+          $("#activateGateways").prop("disabled", false);
+        });
 
-  $('#activateGateways').off('click').on('click', async () => {
-    const updatedActiveGateways = {};
-    $('.gatewayChk:checked').each(function () {
-      const card = $(this).data('card');
-      updatedActiveGateways[card] = allGateways[card]; // still includes name + path
-    });
+        $("#activateGateways")
+          .off("click")
+          .on("click", async () => {
+            const updatedActiveGateways = {};
+            $(".gatewayChk:checked").each(function () {
+              const card = $(this).data("card");
+              updatedActiveGateways[card] = allGateways[card];
+            });
 
-    const activateBtn = $('#activateGateways');
-    activateBtn.prop('disabled', true).text('Activating...');
+            const activateBtn = $("#activateGateways");
+            activateBtn.prop("disabled", true).text("Activating...");
 
-    try {
-      const res = await fetch(`/api/settings/${tenant}/gateways/activate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gateways: updatedActiveGateways })
-      });
-      const result = await res.json();
-      if (result.success) {
-        displayActiveGateways(result.data.activeGateways);
-        showToast('✅ Gateways updated successfully!', 'success');
-      } else {
-        showToast('❌ Failed to update gateways', 'error');
+            try {
+              const res = await fetch(
+                `/api/settings/${tenant}/gateways/activate`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ gateways: updatedActiveGateways }),
+                }
+              );
+              const result = await res.json();
+              if (result.success) {
+                displayActiveGateways({ activeGateways: result.data.activeGateways });
+                showToast("✅ Gateways updated successfully!", "success");
+              } else {
+                showToast("❌ Failed to update gateways", "error");
+              }
+            } catch (err) {
+              console.error(err);
+              showToast("❌ Error updating gateways", "error");
+            } finally {
+              activateBtn.prop("disabled", false).text("Activate");
+              $("#topupModal").addClass("hidden");
+            }
+          });
       }
-    } catch (err) {
-      console.error(err);
-      showToast('❌ Error updating gateways', 'error');
-    } finally {
-      activateBtn.prop('disabled', false).text('Activate');
-      $('#topupModal').addClass('hidden');
-    }
-  });
-}
 
-// Close modal
-$('#closeTopup').on('click', () => $('#topupModal').addClass('hidden'));
+      $("#closeTopup").on("click", () => $("#topupModal").addClass("hidden"));
 
-// Fetch tenant gateways
-async function fetchTenantGateways(tenant) {
-  try {
-    const res = await fetch(`/api/settings/${tenant}/gateways`);
-    const data = await res.json();
-    if (!data.success || !data.data) return { allGateways: {}, activeGateways: {} };
-    return {
-      allGateways: data.data.allGateways || {},
-      activeGateways: data.data.activeGateways || {}
-    };
-  } catch (err) {
-    console.error('Error fetching gateways:', err);
-    return { allGateways: {}, activeGateways: {} };
-  }
-}
+      async function fetchTenantGateways(tenant) {
+        try {
+          const res = await fetch(`/api/settings/${tenant}/gateways`);
+          const data = await res.json();
+          if (!data.success || !data.data)
+            return { allGateways: {}, activeGateways: {} };
+          return {
+            allGateways: data.data.allGateways || {},
+            activeGateways: data.data.activeGateways || {},
+          };
+        } catch (err) {
+          console.error("Error fetching gateways:", err);
+          return { allGateways: {}, activeGateways: {} };
+        }
+      }
 
-// Toast helper
-function showToast(message, type = 'info') {
-  const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-gray-600';
-  const toast = $(`
+      function showToast(message, type = "info") {
+        const bg =
+          type === "success"
+            ? "bg-green-600"
+            : type === "error"
+            ? "bg-red-600"
+            : "bg-gray-600";
+        const toast = $(`
     <div class="fixed bottom-4 right-4 px-4 py-2 text-white rounded shadow ${bg} opacity-0 transition-opacity duration-500">${message}</div>
   `);
-  $('body').append(toast);
-  setTimeout(() => toast.css('opacity', 1), 50);
-  setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
-}
-
-
-  </script>
+        $("body").append(toast);
+        setTimeout(() => toast.css("opacity", 1), 50);
+        setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
+      }
+    </script>
   </body>
 </html>
