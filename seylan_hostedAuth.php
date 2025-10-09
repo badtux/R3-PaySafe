@@ -132,7 +132,7 @@ if (!$txnId) {
                         'description' => $description,
                         'merchantId' => $merchantId,
                         'sessionId' => $sessionId,
-                           'bank'   => "seylan",
+                        'bank'   => "seylan",
                         'createdAt' => new UTCDateTime()
                     ]);
 
