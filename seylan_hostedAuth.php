@@ -6,8 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 error_log("Session ID: " . session_id());
 
-//require_once "cmb_hostedAuth.php";
-require_once "config/config.sample.php"; 
+require_once "cmb_hostedAuth.php";
+//require_once "config/config.sample.php"; 
 require "vendor/autoload.php";
 
 use MongoDB\Client;

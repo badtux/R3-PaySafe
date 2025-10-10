@@ -4,8 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 error_log("Session ID: " . session_id());
 
-require_once 'config/config.sample.php';
-//require_once('config/config.php');
+//require_once 'config/config.sample.php';
+require_once('config/config.php');
 require 'vendor/autoload.php';
 require 'seylan_hostedAuth.php';
 
@@ -84,7 +84,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 <body class="bg-gradient-red-orange-light min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-red-orange transition-all duration-300 hover:shadow-red-orange w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-red-orange p-6 text-center">
-            <img src="https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png" alt="Logo" class="w-20 h-10 mx-auto mb-2">
+            <!-- <img src="assets/helpAge_logo.jpg" alt="Logo" class="w-20 h-10 mx-auto mb-2 shadow-2"> -->
             <h1 class="text-2xl font-bold text-white"><?php echo isset($errorMessage) ? 'Payment Error' : 'Secure Payment'; ?></h1>
             <p class="text-white text-sm">Protected by Seylan Bank</p>
         </div>
@@ -139,7 +139,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
                             <span>I agree to the
-                                <a href="https://www.malkey.lk/terms-conditions.html"
+                                <a href="https://www.helpage.lk/terms-conditions.html"
                                     target="_blank"
                                     class="underline text-red-600 hover:text-orange-500 transition duration-300">
                                     Terms and Conditions
