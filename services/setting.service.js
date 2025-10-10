@@ -15,7 +15,12 @@ const tenants = [
       "visa/master": { name: "Commercial Bank", path: "cmb" },
       "amex": { name: "NationTrust Bank", path: "ntb" }
     },
-    activeGateways: {}
+    activeGateways: {},
+    contact: {
+      "Phone number":"123456",
+      "email":"infor@gmail.com"
+    }
+
   },
   {
     tenant: "helpage",
@@ -24,7 +29,12 @@ const tenants = [
       "visa/master": { name: "Seylan Bank", path: "seylan" },
       "amex": { name: "NationTrust Bank", path: "ntb" }
     },
-    activeGateways: {}
+    activeGateways: {},
+    
+      contact: {
+      "Phone number":"123456",
+      "email":"infor@gmail.com"
+    }
   }
 ];
 
