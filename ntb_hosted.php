@@ -1,22 +1,31 @@
 <?php
-require_once "ntb_sessionAuth.php";
-require_once "config/config.php";
-//require_once "config/config.sample.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+error_log("Session ID: " . session_id());
 
-try {
-    $ntbToken = new ntbToken(APP_LIVE);
-    $ntbToken->setOrderDetails([
-        'amount' => isset($_GET['amount']) ? $_GET['amount'] : 1.00,
-        'description' => isset($_GET['description']) ? $_GET['description'] : 'N/A',
-        'orderId' => isset($_GET['orderId']) ? $_GET['orderId'] : '',
-        'currency' => isset($_GET['currency']) ? $_GET['currency'] : 'USD'
+//require_once 'config/config.sample.php';
+require_once('config/config.php');
+require 'ntb_sessionAuth.php';
 
-    ]);
+$errorMessage = null;
+$txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
 
-    $sessionId = $ntbToken->getSessionId();
-} catch (Exception $e) {
-    echo json_encode(['error' => $e->getMessage()]);
-    exit;
+if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
+    $errorMessage = "Error: order Id or amount is missing. ";
+} else {
+    $payment = $_SESSION['payments'][$txnId];
+    $amount = $payment['amount'];
+    $currency = $payment['currency'];
+    $description = $payment['description'];
+    $orderId = $payment['orderId'];
+    $sessionId = isset($payment['sessionId']) ? $payment['sessionId'] : null;
+
+    if (!$sessionId) {
+        $errorMessage = "Error: Session could not be created. Please try again.";
+    } elseif (!is_numeric($amount) || $amount <= 0) {
+        $errorMessage = "Error: Invalid amount.";
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -47,7 +56,7 @@ try {
                             <i class='bx bx-receipt text-lg text-blue-600'></i>
                             <div class="text-left">
                                 <p class="text-sm text-gray-500">Order Reference</p>
-                                <p class="font-semibold text-gray-800 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                                <p class="font-semibold text-blue-600 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
                             </div>
                         </div>
 
@@ -71,7 +80,7 @@ try {
                         <i class='bx bx-detail text-2xl text-blue-600'></i>
                         <div class="text-left">
                             <p class="text-sm text-gray-500">Description</p>
-                            <p class="font-semibold text-gray-800"><?php echo htmlspecialchars($ntbToken->getDescreption()); ?></p>
+                             <p class="font-bold text-blue-600  text-sm pl-4"><?php echo htmlspecialchars($description); ?></p>
                         </div>
                     </div>
 
@@ -111,7 +120,7 @@ try {
                 <span class="mr-2">256-bit SSL Secured Connection</span>
             </div>
             <div>
-                <img src="/assets/card.png" alt="bank logo" class="h-10 ">
+                <img src="assets/card.png" alt="bank logo" class="h-10 ">
             </div>
         </div>
 

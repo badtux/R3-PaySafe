@@ -27,10 +27,11 @@ if (APP_LIVE) {
     define('MERCHANT_ID', 'TEST9170372718'); // sandbox 
     define('API_USERNAME', 'merchant.TEST9170372718');
     define('API_PASSWORD', '9561cde89b146e22afd2dbec7d145a4f');
-    define('RETURN_URL', 'http://cmbgateway.loc/paysafe/status');
+    define('RETURN_URL', 'http://cmbgateway.loc/status');
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
+
 }
 define('NAME', 'Malkey Rent A Car');
 

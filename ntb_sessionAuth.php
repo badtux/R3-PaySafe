@@ -1,94 +1,166 @@
 <?php
-require_once 'config/config.php';
-//require_once 'config/config.sample.php';
-require 'vendor/autoload.php';
 
-class ntbToken {
-    private $amount = 0;
-    private $orderId = '';
-    private $description = 'N/A';
-    private $currency = 'USD';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-    public function setOrderDetails(array $details){
-        $this->amount = $details['amount'];
-        $this->currency = $details['currency'];
-        $this->description = $details['description'];
-        $_SESSION['orderId'] = $this->orderId = $details['orderId'] == '' ? 'ORDR' . time() : $details['orderId'];
-    
-    }
+error_log("Session ID: " . session_id());
 
-    public function getOrderId() {
-        return $this->orderId;
-    }
-    public function getAmount() {
-        return $this->amount;
-    }
-    public function getDescreption() {
-        return $this->description;
-    }
-    public function getCurrency() {
-        return $this->currency;
-    }
+require_once "cmb_hostedAuth.php";
+//require_once "config/config.sample.php"; 
+require_once "config/config.php"; 
 
-    public function getSessionId() {
-        $sessionId = null;
-        
-        $url = 'https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/'.MERCHANT_ID.'/session';
+require "vendor/autoload.php";
+
+use MongoDB\Client;
+use MongoDB\BSON\UTCDateTime;
+use Ramsey\Uuid\Uuid;
+
+$errorMessage = null;
+$txnId = filter_input(INPUT_GET, 'txnId', FILTER_SANITIZE_STRING);
+$uuid = Uuid::uuid4()->toString();
+
+
+$database_url = defined('DATABASE_URL') ? DATABASE_URL : '';
+$collection_name = defined('COLLECTION') ? COLLECTION : '';
+$database_name = defined('DB') ? DB : '';
+$merchantId = defined('MERCHANT_ID') ? MERCHANT_ID : '';
+$apiUserName = defined('API_USERNAME') ? API_USERNAME : '';
+$apiPassWord = defined('API_PASSWORD') ? API_PASSWORD : '';
+$basePath = defined('BASE_PATH') ? BASE_PATH : '';
+
+if (!$txnId) {
+
+    $amount = filter_input(INPUT_GET, 'amount', FILTER_VALIDATE_FLOAT, ['options' => ['min_range' => 0.01]]);
+    $currency = filter_input(INPUT_GET, 'currency', FILTER_SANITIZE_STRING) ?? 'LKR';
+    $description = filter_input(INPUT_GET, 'description', FILTER_SANITIZE_STRING) ?? 'No description provided.';
+    $orderId = filter_input(INPUT_GET, 'orderId', FILTER_SANITIZE_STRING) ?? '';
+
+
+    $_SESSION['uuid'] = $uuid;
+    $_SESSION['orderId'] = $orderId;
+    $_SESSION['currency'] = $currency;
+
+    error_log("UUID in session: " . ($_SESSION['uuid'] ?? 'not set'));
+
+    if ($amount === false || $amount <= 0) {
+        $errorMessage = "Error: Amount is required and must be a valid number greater than 0.";
+    } elseif (empty($orderId)) {
+        $errorMessage = "Error: Order ID is required and cannot be empty.";
+    } elseif (empty($merchantId) || empty($apiPassWord) || empty($database_url) || empty($collection_name) || empty($database_name)) {
+        $errorMessage = "Error: Configuration values are missing.";
+    } else {
+
+        $txnId = bin2hex(random_bytes(8));
+
+
+        $_SESSION['payments'][$txnId] = [
+            'amount' => $amount,
+            'currency' => $currency,
+            'description' => $description,
+            'orderId' => $orderId,
+            'uuid' => $uuid
+        ];
+        $authString = "merchant.$merchantId:$apiPassWord";
+        $authHeader = "Authorization: Basic " . base64_encode($authString);
+         $url = 'https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/'.MERCHANT_ID.'/session';
 
         $data = [
             "apiOperation" => "INITIATE_CHECKOUT",
-            "checkoutMode" => "WEBSITE",
-            "interaction" => [
+                  "interaction" => [
                 "operation" => "PURCHASE",
                 "merchant" => [
                     "name" => NAME,
                     "logo" => LOGO,
-                    "url" => "https://www.malkey.lk",
-                    "phone" => "+94-112365365",
-                    "email" => "info@malkey.lk"
+                    "url" => "https://www.helpagesl.org/",
+                    "phone" => "+94 11 7418977",
+                    "email" => "helpage@sltnet.lk"
                 ],
                 "returnUrl" => RETURN_URL,
             ],
             "order" => [
-                "currency" => $this->currency,
-                "amount" => $this->amount,
-                "id" => $this->orderId,
-                "description" => $this->description
+                "currency" => $currency,
+                "amount" => $amount,
+                "id" => $orderId,
+                "description" => $description
             ]
         ];
 
-        $options = [
+        $jsonData = json_encode($data);
+         error_log("Request Data: " . $jsonData);
+         error_log("Database: $database, Collection: $collection");
+
+ 
+        $ch = curl_init();
+        curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_POSTFIELDS => $jsonData,
             CURLOPT_HTTPHEADER => [
-                "Content-Type: text/plain",
-                "Authorization: Basic " . base64_encode(API_USERNAME . ":" . API_PASSWORD)
+                "Content-Type: application/json",
+                "Cache-Control: no-cache",
+                $authHeader
             ],
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_FAILONERROR => true
-        ];
+            CURLOPT_SSL_VERIFYPEER => true, 
+        ]);
 
-        $ch = curl_init();
-        curl_setopt_array($ch, $options);
         $response = curl_exec($ch);
 
         if ($response === false) {
             $error_msg = curl_error($ch);
-            $error_msg = curl_strerror(curl_errno($ch));
-            error_log($error_msg);
+            error_log("cURL Error: $error_msg");
             curl_close($ch);
-            throw new Exception('cURL error: : ' . $error_msg, 8);
-        }
-        curl_close($ch);
-
-        $result = json_decode($response, true);
-
-        if (isset($result['session']['id'])) {
-            return $result['session']['id'];
+            $errorMessage = "Error: Failed to connect to payment gateway. Please try again.";
         } else {
-            throw new Exception('Failed to create session: ' . json_encode($result), 9);
+            curl_close($ch);
+            $result = json_decode($response, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || !isset($result['session']['id'])) {
+                $errorMessage = "Error: Failed to create session. Invalid response from gateway.";
+                error_log("API Response Error: " . json_last_error_msg() . " Response: $response");
+            } else {
+                $sessionId = $result['session']['id'];
+
+                try {
+                    $client = new Client($database_url);
+                    $collection = $client->selectDatabase($database_name)->selectCollection($collection_name);
+
+                    $insertResult = $collection->insertOne([
+                        'orderId' => $orderId,
+                        'uuid' => $uuid,
+                        'amount' => (float) $amount,
+                        'currency' => $currency,
+                        'description' => $description,
+                        'merchantId' => $merchantId,
+                        'sessionId' => $sessionId,
+                        'bank'   => "Nation trust Bank",
+                        'createdAt' => new UTCDateTime()
+                    ]);
+
+                    if ($insertResult->getInsertedCount() <= 0) {
+                        $errorMessage = "Error: Failed to store transaction in MongoDB.";
+                    } else {
+                        $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
+                        error_log("sessionId: " . $sessionId);
+                    }
+                } catch (Exception $e) {
+                    $errorMessage = "MongoDB Error: " . $e->getMessage();
+                    error_log("MongoDB Error: " . $e->getMessage());
+                }
+            }
+        }
+
+
+        if (!$errorMessage) {
+            header("Location: $basePath?txnId=$txnId");
+            exit;
         }
     }
+}
+
+
+if ($errorMessage) {
+    http_response_code(400);
+    echo htmlspecialchars($errorMessage);
 }

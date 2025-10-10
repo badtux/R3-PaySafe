@@ -6,6 +6,9 @@ require 'vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use MongoDB\Client;
+use MongoDB\BSON\UTCDateTime;
+
 
 
 if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
@@ -14,12 +17,25 @@ if (isset($_POST['email']) && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
 } else {
     $email = $_SESSION['email'] ?? 'example@example.com';
 }
+ error_log("UUID in session: " . ($_SESSION['uuid'] ?? 'not set'));
+
+
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
-$currency = $_SESSION['currency'];
+$currency = $_SESSION['currency'] ?? 'USD';
+$uuid = $_SESSION['uuid'] ?? null;
+
+$database_url = DATABASE_URL;
+$collection = COLLECTION;
+$database = DB;
+
 
 $merchantId = MERCHANT_ID;
 $apiUserName = API_USERNAME;
 $apiPassword = API_PASSWORD;
+
+
+error_log($orderId);
+error_log($merchantId);
 
 $gatewayUrl = "https://nationstrustbankplc.gateway.mastercard.com/api/rest/version/81/merchant/$merchantId/order/$orderId";
 
@@ -47,17 +63,52 @@ if ($httpCode == 200) {
         $amount = $data['amount'] ?? '';
         $currency = $data['currency'] ?? '';
         $status = strtolower($data['result'] ?? '');
-
-
+        $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard'] ?? 'not-set';
+        $cardNumber     = $data['sourceOfFunds']['provided']['card']['number'] ?? 'N/A';
+        $merchant = $data['merchant'] ?? 'not-set';
+        $device = $data['device'] ?? [];
+        $cardBrand = $data['sourceOfFunds']['provided']['card']['brand'] ?? 'N/A';
+         $fundingMethord = $data['sourceOfFunds']['provided']['card']['fundingMethod'] ?? 'N/A';
+        $lastUpdated = $data['lastUpdatedTime'] ? new UTCDateTime(strtotime($data['lastUpdatedTime']) * 1000) : new UTCDateTime();
         $mailStatus = match ($status) {
+
             'success' => 'success',
             'error' => 'payment error',
             'canceled' => 'payment canceled',
             default => 'unknown',
         };
+                error_log("Response: $response");
+        error_log("uuid:$uuid");
+        try {
+            $client = new Client($database_url);
+            $collection = $client->$database->$collection;
 
-        $subject = "Payment Status Update";
-
+            $updateData = [
+                'paymentStatus' => $paymentStatus,
+                'transactionId' => $transactionId,
+                'nameOnCard' => $nameOnCard,
+                'merchantId' => $merchant,
+                'device' => $device,
+                'cardBrand' => $cardBrand,
+                'orderId' => $orderId,
+                'fundingMethord' => $fundingMethord,
+                'email' => $email,
+                'updatedAt' => $lastUpdated,
+                'cardNumber' => $cardNumber,
+            ];
+            if (!$uuid) {
+                error_log("UUID not set in session! Cannot update MongoDB.");
+            } else {
+                $collection->updateOne(
+                    ['uuid' => $uuid],
+                    ['$set' => $updateData]
+                );
+                error_log("set: " . json_encode($updateData));
+            }
+          } catch (Exception $e) {
+            error_log("MongoDB Update Error: " . $e->getMessage());
+        }   
+       $subject = "Payment Status Update for - OID:$orderId ";
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
@@ -68,6 +119,7 @@ if ($httpCode == 200) {
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
                     </table>
                     <div style="margin-top: 15px; color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 4px;">
                         <h4 style="margin: 0 0 5px 0;">Error Details:</h4>
@@ -85,6 +137,7 @@ if ($httpCode == 200) {
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
                     </table>
                 </div>
             </div>';
@@ -98,6 +151,7 @@ if ($httpCode == 200) {
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
                         <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
+                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
                     </table>
                     <p style="margin: 15px 0 0 0; color: #155724;">Thank you for your payment with Malkey Rent A Car.</p>
                 </div>
