@@ -12,7 +12,7 @@ const { saveHardcodedGateways } = require("./services/setting.service");
 
 require("dotenv").config();
 
-const PORT = process.env.PORT || 3004;
+const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
 const LIVE = process.env.LIVE || false;
 
