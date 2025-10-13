@@ -1,4 +1,3 @@
-// app.js
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -16,31 +15,44 @@ const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
 const LIVE = process.env.LIVE || false;
 
-
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+// -------------------- 1️⃣ Preflight OPTIONS handler --------------------
+app.options('*', (req, res) => {
+    const origin = req.headers.origin;
+    console.log("Preflight request from origin:", origin);
 
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Origin', origin || '*'); // allow origin dynamically
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.sendStatus(200); // respond OK
+});
+
+// -------------------- 2️⃣ Existing CORS middleware --------------------
 app.use(cors({
-  origin: function (origin, callback) {
-    console.log("CORS Origin:", origin);
-    if (
-      !origin ||
-      origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost(:\d+)?$/) ||
-      origin.match(/^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:\d+)?$/)
-    ) {
-      callback(null, true);
-    } else {
-      console.error("Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
+    origin: function (origin, callback) {
+        console.log("CORS Origin:", origin);
+        if (!origin ||
+            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/) ||
+            origin.match(/^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io$/)) {
+            callback(null, true);
+        } else {
+            console.error("Blocked by CORS:", origin);
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
 }));
 
+// -------------------- 3️⃣ Body parsers --------------------
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// -------------------- 4️⃣ Static files --------------------
+app.use(express.static("public"));
+
+// -------------------- 5️⃣ Routes --------------------
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -53,6 +65,7 @@ app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
 app.use('/api/settings', gatewayRoutes);
 
+// -------------------- 6️⃣ Start server --------------------
 async function startServer() {
     try {
         await connectToMongo();
@@ -61,10 +74,7 @@ async function startServer() {
         if (LIVE) {
             const key = fs.readFileSync(__dirname + '/../certs/privkey.pem');
             const cert = fs.readFileSync(__dirname + '/../certs/fullchain.pem');
-            const options = {
-                key: key,
-                cert: cert,
-            };
+            const options = { key, cert };
 
             https.createServer(options, app).listen(PORT, () => {
                 console.log(`Server running at https://${APP_FQDN}:${PORT}`);
@@ -72,7 +82,6 @@ async function startServer() {
         } else {
             app.listen(PORT, () => {
                 console.log(`Node.js backend listening at http://${APP_FQDN}:${PORT}`);
-                console.log('Ensure your .env file is configured correctly.');
             });
         }
     } catch (err) {
