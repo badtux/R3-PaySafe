@@ -462,7 +462,7 @@
         if (checkAuth()) {
           const tenant = localStorage.getItem("tenant");
           BASE_URL = IS_LOCAL
-            ? `http://${tenant}.localhost:3004/api`
+            ? `http://${tenant}.localhost:3008/api`
             : `https://${tenant}.go.digitable.io:3008/api`;
           console.log("BASE_URL set to:", BASE_URL);
           $("#login-section").addClass("hidden");
@@ -554,7 +554,7 @@
           localStorage.setItem("isAuthenticated", "true");
           localStorage.setItem("tenant", inputTenant);
           BASE_URL = IS_LOCAL
-            ? `http://${inputTenant}.localhost:3004/api`
+            ? `http://${inputTenant}.localhost:3008/api`
             : `https://${inputTenant}.go.digitable.io:3008/api`;
           console.log("Login successful, BASE_URL:", BASE_URL);
           return true;
@@ -885,102 +885,117 @@
         }
       }
 
-      function showGatewayModal(tenantData, tenant) {
-        const { allGateways = {}, activeGateways = {} } = tenantData;
+     function showGatewayModal(tenantData, tenant) {
+  const { allGateways = {}, activeGateways = {} } = tenantData;
 
-        let modalContent = '<div class="flex flex-col space-y-3">';
-        for (const [card, gateway] of Object.entries(allGateways)) {
-          const checked = activeGateways[card] ? "checked" : "";
-          const labelName =
-            card === "visa/master"
-              ? `Visa / Master - ${gateway.name}`
-              : `Amex - ${gateway.name}`;
-          modalContent += `
+  let modalContent = '<div class="flex flex-col space-y-3">';
+  for (const [card, gateway] of Object.entries(allGateways)) {
+    const checked = activeGateways[card] ? "checked" : "";
+    const labelName =
+      card === "visa/master"
+        ? `Visa / Master - ${gateway.name}`
+        : `Amex - ${gateway.name}`;
+    modalContent += `
       <label class="flex items-center space-x-2">
         <input type="checkbox" class="gatewayChk" data-card="${card}" ${checked}/>
         <span>${labelName}</span>
       </label>
     `;
-        }
-        modalContent += `<button id="activateGateways" class="mt-2 bg-green-600 text-white py-2 rounded" disabled>Activate</button></div>`;
+  }
 
-        $("#topupButtons").html(modalContent);
-        $("#topupModal").removeClass("hidden");
+  modalContent += `
+    <button id="activateGateways" class="mt-2 bg-green-600 text-white py-2 rounded" disabled>
+      Activate
+    </button>
+  </div>`;
 
-        $(".gatewayChk").on("change", function () {
-          $("#activateGateways").prop("disabled", false);
-        });
+  $("#topupButtons").html(modalContent);
+  $("#topupModal").removeClass("hidden");
 
-        $("#activateGateways")
-          .off("click")
-          .on("click", async () => {
-            const updatedActiveGateways = {};
-            $(".gatewayChk:checked").each(function () {
-              const card = $(this).data("card");
-              updatedActiveGateways[card] = allGateways[card];
-            });
+  $(".gatewayChk").on("change", function () {
+    $("#activateGateways").prop("disabled", false);
+  });
 
-            const activateBtn = $("#activateGateways");
-            activateBtn.prop("disabled", true).text("Activating...");
+  $("#activateGateways")
+    .off("click")
+    .on("click", function () {
+      const updatedActiveGateways = {};
+      $(".gatewayChk:checked").each(function () {
+        const card = $(this).data("card");
+        updatedActiveGateways[card] = allGateways[card];
+      });
 
-            try {
-              const res = await fetch(
-                `/api/settings/${tenant}/gateways/activate`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ gateways: updatedActiveGateways }),
-                }
-              );
-              const result = await res.json();
-              if (result.success) {
-                displayActiveGateways({ activeGateways: result.data.activeGateways });
-                showToast("✅ Gateways updated successfully!", "success");
-              } else {
-                showToast("❌ Failed to update gateways", "error");
-              }
-            } catch (err) {
-              console.error(err);
-              showToast("❌ Error updating gateways", "error");
-            } finally {
-              activateBtn.prop("disabled", false).text("Activate");
-              $("#topupModal").addClass("hidden");
-            }
-          });
-      }
+      const activateBtn = $("#activateGateways");
+      activateBtn.prop("disabled", true).text("Activating...");
 
-      $("#closeTopup").on("click", () => $("#topupModal").addClass("hidden"));
+      // 🔹 Use AJAX to activate gateways
+      $.ajax({
+        url: `${BASE_URL}/settings/${tenant}/gateways/activate`,
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ gateways: updatedActiveGateways }),
+        success: function (result) {
+          if (result.success) {
+            displayActiveGateways({ activeGateways: result.data.activeGateways });
+            showToast("✅ Gateways updated successfully!", "success");
+          } else {
+            showToast("❌ Failed to update gateways", "error");
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("Error:", error);
+          showToast("❌ Error updating gateways", "error");
+        },
+        complete: function () {
+          activateBtn.prop("disabled", false).text("Activate");
+          $("#topupModal").addClass("hidden");
+        },
+      });
+    });
+}
 
-      async function fetchTenantGateways(tenant) {
-        try {
-          const res = await fetch(`/api/settings/${tenant}/gateways`);
-          const data = await res.json();
-          if (!data.success || !data.data)
-            return { allGateways: {}, activeGateways: {} };
-          return {
-            allGateways: data.data.allGateways || {},
-            activeGateways: data.data.activeGateways || {},
-          };
-        } catch (err) {
-          console.error("Error fetching gateways:", err);
-          return { allGateways: {}, activeGateways: {} };
-        }
-      }
+// 🔹 Close modal
+$("#closeTopup").on("click", function () {
+  $("#topupModal").addClass("hidden");
+});
 
-      function showToast(message, type = "info") {
-        const bg =
-          type === "success"
-            ? "bg-green-600"
-            : type === "error"
-            ? "bg-red-600"
-            : "bg-gray-600";
-        const toast = $(`
-    <div class="fixed bottom-4 right-4 px-4 py-2 text-white rounded shadow ${bg} opacity-0 transition-opacity duration-500">${message}</div>
+// 🔹 Fetch tenant gateways using AJAX
+function fetchTenantGateways(tenant) {
+  return $.ajax({
+    url: `${BASE_URL}/settings/${tenant}/gateways`,
+    method: "GET",
+  })
+    .then((data) => {
+      if (!data.success || !data.data)
+        return { allGateways: {}, activeGateways: {} };
+      return {
+        allGateways: data.data.allGateways || {},
+        activeGateways: data.data.activeGateways || {},
+      };
+    })
+    .catch((err) => {
+      console.error("Error fetching gateways:", err);
+      return { allGateways: {}, activeGateways: {} };
+    });
+}
+
+// 🔹 Toast message helper
+function showToast(message, type = "info") {
+  const bg =
+    type === "success"
+      ? "bg-green-600"
+      : type === "error"
+      ? "bg-red-600"
+      : "bg-gray-600";
+  const toast = $(`
+    <div class="fixed bottom-4 right-4 px-4 py-2 text-white rounded shadow ${bg} opacity-0 transition-opacity duration-500">
+      ${message}
+    </div>
   `);
-        $("body").append(toast);
-        setTimeout(() => toast.css("opacity", 1), 50);
-        setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
-      }
+  $("body").append(toast);
+  setTimeout(() => toast.css("opacity", 1), 50);
+  setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
+}
     </script>
   </body>
 </html>
