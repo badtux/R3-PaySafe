@@ -936,13 +936,16 @@
         data: JSON.stringify({ gateways: updatedActiveGateways }),
         success: function (result) {
           if (result.success) {
+            console.log(url);
             displayActiveGateways({ activeGateways: result.data.activeGateways });
             showToast("✅ Gateways updated successfully!", "success");
           } else {
+            console.log(url);
             showToast("❌ Failed to update gateways", "error");
           }
         },
         error: function (xhr, status, error) {
+          console.log(url);
           console.error("Error:", error);
           showToast("❌ Error updating gateways", "error");
         },
