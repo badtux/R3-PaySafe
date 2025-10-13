@@ -24,28 +24,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-const allowedOrigins = [
-    /^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/,
-    /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/
+const allowedOrigins = [                  
+  /^http:\/\/([a-zA-Z0-9-]+)\.localhost:(3004|3008)$/,    
+  /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/ 
 ];
-
-
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (
-      !origin ||
-      allowedOrigins.some(regex => regex.test(origin))
-    ) {
+    console.log("CORS Origin:", origin);
+    if (!origin || allowedOrigins.some(regex => regex.test(origin))) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
 };
-
-
 
 app.use(cors(corsOptions));
 

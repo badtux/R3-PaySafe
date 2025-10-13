@@ -1,584 +1,601 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard &raquo; Transactions</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: "#4e73df",
-              secondary: "#f8f9fc",
-              accent: "#36b9cc",
-              text: "#5a5c69",
-              border: "#e3e6f0",
-            },
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard &raquo; Transactions</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#4e73df",
+            secondary: "#f8f9fc",
+            accent: "#36b9cc",
+            text: "#5a5c69",
+            border: "#e3e6f0",
           },
         },
-      };
-    </script>
-    <style>
-      .card-number {
-        font-family: monospace;
-        letter-spacing: 1px;
-      }
-      .table-container {
-        overflow-x: auto;
-      }
-      .table-container::-webkit-scrollbar {
-        height: 8px;
-      }
-      .table-container::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-      }
-      .table-container::-webkit-scrollbar-thumb {
-        background: #c2c2c2;
-        border-radius: 10px;
-      }
-      .table-container::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-      }
-      /* Dark theme styles */
-      body.bg-gray-800 input,
-      body.bg-gray-800 select {
-        background-color: #2d3748;
-        color: #e2e8f0;
-        border-color: #4a5568;
-      }
-      body.bg-gray-800 input::placeholder {
-        color: #a0aec0;
-        opacity: 1;
-      }
-      body.bg-gray-800 select option {
-        background-color: #2d3748;
-        color: #e2e8f0;
-      }
-      body.bg-gray-800 select option:checked {
-        background-color: #4a5568;
-        color: #ffffff;
-      }
-      body.bg-gray-800 select:focus,
-      body.bg-gray-800 input:focus {
-        border-color: #4e73df;
-        box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.5);
-      }
-      /* Transaction ID cursor and hover in dark theme */
-      body.bg-gray-800 .cursor-pointer.group {
-        color: #e2e8f0;
-      }
-      body.bg-gray-800 .cursor-pointer.group:hover {
-        color: #ffffff;
-        text-decoration: underline;
-      }
-      /* Responsive styles for active gateways */
+      },
+    };
+  </script>
+  <style>
+    .card-number {
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    .table-container::-webkit-scrollbar {
+      height: 8px;
+    }
+    .table-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background: #c2c2c2;
+      border-radius: 10px;
+    }
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    /* Dark theme styles */
+    body.bg-gray-800 input,
+    body.bg-gray-800 select {
+      background-color: #2d3748;
+      color: #e2e8f0;
+      border-color: #4a5568;
+    }
+    body.bg-gray-800 input::placeholder {
+      color: #a0aec0;
+      opacity: 1;
+    }
+    body.bg-gray-800 select option {
+      background-color: #2d3748;
+      color: #e2e8f0;
+    }
+    body.bg-gray-800 select option:checked {
+      background-color: #4a5568;
+      color: #ffffff;
+    }
+    body.bg-gray-800 select:focus,
+    body.bg-gray-800 input:focus {
+      border-color: #4e73df;
+      box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.5);
+    }
+    /* Transaction ID cursor and hover in dark theme */
+    body.bg-gray-800 .cursor-pointer.group {
+      color: #e2e8f0;
+    }
+    body.bg-gray-800 .cursor-pointer.group:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+    /* Responsive styles for active gateways */
+    #activeGatewaysDisplay {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    @media (max-width: 640px) {
       #activeGatewaysDisplay {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
+        gap: 0.25rem;
       }
-      @media (max-width: 640px) {
-        #activeGatewaysDisplay {
-          gap: 0.25rem;
-        }
-        #activeGatewaysDisplay span {
-          font-size: 0.75rem;
-          padding: 0.25rem 0.5rem;
-        }
+      #activeGatewaysDisplay span {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
       }
-    </style>
-  </head>
+    }
+  </style>
+</head>
 
-  <body class="bg-gray-50 text-gray-700 font-sans antialiased" id="body">
-    <header
-      class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md"
-    >
-      <div class="container mx-auto px-4 py-5">
-        <div
-          class="flex flex-col md:flex-row md:justify-between md:items-center"
-        >
-          <div class="mb-4 md:mb-0">
-            <h1 class="text-2xl md:text-3xl font-bold">
-              <i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions
-            </h1>
-            <p class="mt-1 text-blue-100">
-              Manage and review your payment transactions
-            </p>
-          </div>
-          <div
-            class="flex items-center justify-between md:justify-end space-x-4"
-          >
-            <div id="dashboard-icons" class="flex items-center space-x-2 hidden">
-              <button
-                id="themeToggle"
-                class="text-white hover:bg-blue-600 p-2 rounded-full"
-                title="Toggle Theme"
-              >
-                <i class="fas fa-sun text-sm"></i>
-              </button>
-              <button
-                id="activateGatewayBtn"
-                class="text-white hover:bg-blue-600 p-2 rounded-full"
-                title="Activate Gateway"
-              >
-                <i class="fas fa-credit-card text-sm"></i>
-              </button>
-              <div id="activeGatewaysDisplay" class="flex space-x-2 flex-wrap"></div>
-            </div>
-            <div class="relative">
-              <button
-                id="userProfile"
-                class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
-              >
-                <i class="fas fa-user mr-2"></i>
-                <span id="userName">Guest</span>
-                <i class="fas fa-chevron-down ml-2 text-xs"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <main class="container mx-auto px-4 py-6" id="main-content">
+<body class="bg-gray-50 text-gray-700 font-sans antialiased" id="body">
+  <header
+    class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md"
+  >
+    <div class="container mx-auto px-4 py-5">
       <div
-        id="topupModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        class="flex flex-col md:flex-row md:justify-between md:items-center"
       >
+        <div class="mb-4 md:mb-0">
+          <h1 class="text-2xl md:text-3xl font-bold">
+            <i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions
+          </h1>
+          <p class="mt-1 text-blue-100">
+            Manage and review your payment transactions
+          </p>
+        </div>
         <div
-          class="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-80 border border-gray-200 dark:border-gray-700 transition-all"
+          class="flex items-center justify-between md:justify-end space-x-4"
         >
-          <h2
-            class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center"
-          >
-            Activate Gateway
-          </h2>
-          <div id="topupButtons" class="flex flex-col space-y-3"></div>
-          <button
-            id="closeTopup"
-            class="mt-4 w-full py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm transition"
-          >
-            Cancel
-          </button>
+          <div id="dashboard-icons" class="flex items-center space-x-2 hidden">
+            <button
+              id="themeToggle"
+              class="text-white hover:bg-blue-600 p-2 rounded-full"
+              title="Toggle Theme"
+            >
+              <i class="fas fa-sun text-sm"></i>
+            </button>
+            <button
+              id="activateGatewayBtn"
+              class="text-white hover:bg-blue-600 p-2 rounded-full"
+              title="Activate Gateway"
+            >
+              <i class="fas fa-credit-card text-sm"></i>
+            </button>
+            <div id="activeGatewaysDisplay" class="flex space-x-2 flex-wrap"></div>
+          </div>
+          <div class="relative">
+            <button
+              id="userProfile"
+              class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
+            >
+              <i class="fas fa-user mr-2"></i>
+              <span id="userName">Guest</span>
+              <i class="fas fa-chevron-down ml-2 text-xs"></i>
+            </button>
+          </div>
         </div>
       </div>
+    </div>
+  </header>
 
-      <div id="login-section" class="bg-white rounded-lg shadow p-5 mb-6">
-        <h2 class="text-lg font-semibold mb-4 text-gray-700">
-          <i class="fas fa-sign-in-alt mr-2 text-primary"></i>Login
+  <main class="container mx-auto px-4 py-6" id="main-content">
+    <div
+      id="topupModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white dark:bg-gray-900 rounded-lg shadow-2xl p-6 w-80 border border-gray-200 dark:border-gray-700 transition-all"
+      >
+        <h2
+          class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center"
+        >
+          Activate Gateway
         </h2>
-        <div class="grid grid-cols-1 gap-4">
+        <div id="topupButtons" class="flex flex-col space-y-3"></div>
+        <button
+          id="closeTopup"
+          class="mt-4 w-full py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white text-sm transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div id="dashboard-content">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
+        id="statsCards"
+      ></div>
+
+      <div class="bg-white rounded-lg shadow p-5 mb-6">
+        <h2 class="text-lg font-semibold mb-4 text-gray-700">
+          <i class="fas fa-filter mr-2 text-primary"></i>Filter Transactions
+        </h2>
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
+        >
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Tenant Name</label
+              >From Date</label
+            >
+            <input
+              type="date"
+              id="fromDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Select start date"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >To Date</label
+            >
+            <input
+              type="date"
+              id="toDate"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Select end date"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Payment Status</label
+            >
+            <select
+              id="transactionType"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">All Statuses</option>
+              <option value="SUCCESS">Success</option>
+              <option value="PENDING">Pending</option>
+              <option value="FAILED">Failed</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Items Per Page</label
+            >
+            <select
+              id="itemsPerPage"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Search</label
             >
             <input
               type="text"
-              id="username"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter your tenant name"
+              id="searchQuery"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Search by order ID, email, or description..."
             />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Password</label
-            >
-            <input
-              type="password"
-              id="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter your password"
-            />
-          </div>
-          <div class="flex items-center space-x-2">
+          <div class="flex items-end space-x-2">
             <button
-              id="loginButton"
+              id="applyFilters"
               class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
             >
-              <i class="fas fa-sign-in-alt mr-2"></i> Login
+              <i class="fas fa-filter mr-2"></i> Apply Filters
             </button>
-          </div>
-        </div>
-        <p id="loginError" class="text-red-500 text-sm mt-2 hidden">
-          Invalid tenant name or password.
-        </p>
-      </div>
-
-      <div id="dashboard-content" class="hidden">
-        <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
-          id="statsCards"
-        ></div>
-
-        <div class="bg-white rounded-lg shadow p-5 mb-6">
-          <h2 class="text-lg font-semibold mb-4 text-gray-700">
-            <i class="fas fa-filter mr-2 text-primary"></i>Filter Transactions
-          </h2>
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
-          >
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >From Date</label
-              >
-              <input
-                type="date"
-                id="fromDate"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Select start date"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >To Date</label
-              >
-              <input
-                type="date"
-                id="toDate"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Select end date"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Payment Status</label
-              >
-              <select
-                id="transactionType"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">All Statuses</option>
-                <option value="SUCCESS">Success</option>
-                <option value="PENDING">Pending</option>
-                <option value="FAILED">Failed</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Items Per Page</label
-              >
-              <select
-                id="itemsPerPage"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Search</label
-              >
-              <input
-                type="text"
-                id="searchQuery"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Search by order ID, email, or description..."
-              />
-            </div>
-            <div class="flex items-end space-x-2">
-              <button
-                id="applyFilters"
-                class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-              >
-                <i class="fas fa-filter mr-2"></i> Apply Filters
-              </button>
-              <button
-                id="resetFilters"
-                class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center"
-              >
-                <i class="fas fa-redo mr-2"></i> Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-          <div
-            class="flex justify-between items-center border-b border-gray-200 px-5 py-4"
-          >
-            <h2 class="text-lg font-semibold text-gray-700">
-              <i class="fas fa-list mr-2 text-primary"></i>Transaction History
-            </h2>
             <button
-              id="exportData"
-              class="border border-primary text-primary hover:bg-blue-50 px-3 py-1 rounded-md text-sm flex items-center"
+              id="resetFilters"
+              class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center"
             >
-              <i class="fas fa-download mr-2"></i> Export
+              <i class="fas fa-redo mr-2"></i> Reset
             </button>
-          </div>
-          <div class="table-container">
-            <table class="w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Created At
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Merchant ID
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Order ID
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Amount
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Currency
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Email
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Description
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Card Brand
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Name on Card
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Transaction Id
-                  </th>
-                  <th
-                    class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Payment Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="transactionTable" class="divide-y divide-gray-200">
-                <tr>
-                  <td colspan="11" class="px-5 py-4 text-center">Loading...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div
-            class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4"
-          >
-            <div
-              class="text-sm text-gray-700 mb-4 md:mb-0"
-              id="tableInfo"
-            ></div>
-            <div class="flex space-x-2">
-              <button
-                id="prevPage"
-                class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled
-              >
-                Previous
-              </button>
-              <div id="pageButtons" class="flex space-x-2"></div>
-              <button
-                id="nextPage"
-                class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200"
-              >
-                Next
-              </button>
-            </div>
           </div>
         </div>
       </div>
-    </main>
 
-    <footer class="bg-white mt-8 py-4 border-t border-gray-200">
-      <div class="container mx-auto px-4 text-center text-sm text-gray-500">
-        <p id="footerText"></p>
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div
+          class="flex justify-between items-center border-b border-gray-200 px-5 py-4"
+        >
+          <h2 class="text-lg font-semibold text-gray-700">
+            <i class="fas fa-list mr-2 text-primary"></i>Transaction History
+          </h2>
+          <button
+            id="exportData"
+            class="border border-primary text-primary hover:bg-blue-50 px-3 py-1 rounded-md text-sm flex items-center"
+          >
+            <i class="fas fa-download mr-2"></i> Export
+          </button>
+        </div>
+        <div class="table-container">
+          <table class="w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Created At
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Merchant ID
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Order ID
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Amount
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Currency
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Email
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Description
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Card Brand
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Name on Card
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Transaction Id
+                </th>
+                <th
+                  class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Payment Status
+                </th>
+              </tr>
+            </thead>
+            <tbody id="transactionTable" class="divide-y divide-gray-200">
+              <tr>
+                <td colspan="11" class="px-5 py-4 text-center">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div
+          class="flex flex-col md:flex-row justify-between items-center border-t border-gray-200 px-5 py-4"
+        >
+          <div
+            class="text-sm text-gray-700 mb-4 md:mb-0"
+            id="tableInfo"
+          ></div>
+          <div class="flex space-x-2">
+            <button
+              id="prevPage"
+              class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Previous
+            </button>
+            <div id="pageButtons" class="flex space-x-2"></div>
+            <button
+              id="nextPage"
+              class="flex items-center justify-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-200"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
-    </footer>
+    </div>
+  </main>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <footer class="bg-white mt-8 py-4 border-t border-gray-200">
+    <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+      <p id="footerText"></p>
+    </div>
+  </footer>
 
-    <script>
-      let BASE_URL;
-      const today = new Date().toISOString().split("T")[0];
-      const UNIVERSAL_PASSWORD = "admin@123";
-      const IS_LOCAL = window.location.hostname.includes("localhost");
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    let BASE_URL;
+    const today = new Date().toISOString().split("T")[0];
+    const UNIVERSAL_PASSWORD = "admin@123";
+    const IS_LOCAL = window.location.hostname.includes("localhost");
 
-      $(document).ready(() => {
-        const hostname = window.location.hostname;
-        const tenantFromUrl = hostname.split(".")[0];
-        console.log(
-          "Hostname:",
-          hostname,
-          "IS_LOCAL:",
-          IS_LOCAL,
-          "Tenant:",
-          tenantFromUrl
-        );
+$(document).ready(() => {
+  const hostname = window.location.hostname;
+  const tenantFromUrl = hostname.split(".")[0];
+  console.log(
+    "Hostname:",
+    hostname,
+    "IS_LOCAL:",
+    IS_LOCAL,
+    "Tenant:",
+    tenantFromUrl
+  );
 
-        const tenantName =
-          tenantFromUrl &&
-          tenantFromUrl !== "localhost" &&
-          tenantFromUrl !== "go"
-            ? tenantFromUrl.charAt(0).toUpperCase() +
-              tenantFromUrl.slice(1) +
-              " Bank"
-            : "Payment Dashboard";
-        $("#footerText").text(`© 2025 ${tenantName}`);
+  // ✅ Hardcoded footer text
+  $("#footerText").text("© 2025 Digitable.IO Plutos");
 
-        const savedTheme = localStorage.getItem("theme") || "light";
-        const savedItemsPerPage = localStorage.getItem("itemsPerPage") || "10";
-        applyTheme(savedTheme);
-        $("#themeToggle i").removeClass("fa-sun fa-moon").addClass(savedTheme === "dark" ? "fa-moon" : "fa-sun");
-        $("#itemsPerPage").val(savedItemsPerPage);
-        currentFilters.limit = parseInt(savedItemsPerPage);
+  const savedTheme = localStorage.getItem("theme") || "light";
+  const savedItemsPerPage = localStorage.getItem("itemsPerPage") || "10";
+  applyTheme(savedTheme);
+  $("#themeToggle i")
+    .removeClass("fa-sun fa-moon")
+    .addClass(savedTheme === "dark" ? "fa-moon" : "fa-sun");
+  $("#itemsPerPage").val(savedItemsPerPage);
+  currentFilters.limit = parseInt(savedItemsPerPage);
 
-        if (checkAuth()) {
-          const tenant = localStorage.getItem("tenant");
-          BASE_URL = IS_LOCAL
-            ? `http://${tenant}.localhost:3008/api`
-            : `https://${tenant}.go.digitable.io:3008/api`;
-          console.log("BASE_URL set to:", BASE_URL);
-          $("#login-section").addClass("hidden");
-          $("#dashboard-content").removeClass("hidden");
-          $("#dashboard-icons").removeClass("hidden");
-          $("#userName").text(tenant || "User");
-          $("#transactionTable").html(`
-            <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
-          `);
-          checkHealth();
-          loadData();
-          setupEventListeners();
-          fetchTenantGateways(tenant).then(displayActiveGateways);
-        } else {
-          $("#login-section").removeClass("hidden");
-          $("#dashboard-content").addClass("hidden");
-          $("#dashboard-icons").addClass("hidden");
-          setupLoginEventListener();
-        }
+  if (checkAuth()) {
+    const tenant = localStorage.getItem("tenant");
+    BASE_URL = IS_LOCAL
+      ? `http://${tenant}.localhost:3008/api`
+      : `https://${tenant}.go.digitable.io:3008/api`;
+    console.log("BASE_URL set to:", BASE_URL);
+    $("#dashboard-icons").removeClass("hidden");
+    $("#userName").text(tenant || "User");
+    $("#transactionTable").html(`
+      <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
+    `);
+    checkHealth();
+    loadData();
+    setupEventListeners();
+    fetchTenantGateways(tenant).then(displayActiveGateways);
+  } else {
+    window.location.href = "login.html";
+  }
 
-        $("#userProfile").on("click", () => {
-          if (checkAuth()) {
-            logout();
-          }
-        });
+  $("#userProfile").on("click", () => {
+    if (checkAuth()) {
+      logout();
+    }
+  });
 
-        $("#themeToggle").on("click", () => {
-          const currentTheme = localStorage.getItem("theme") || "light";
-          const newTheme = currentTheme === "light" ? "dark" : "light";
-          localStorage.setItem("theme", newTheme);
-          applyTheme(newTheme);
-          $("#themeToggle i").removeClass("fa-sun fa-moon").addClass(newTheme === "dark" ? "fa-moon" : "fa-sun");
-          displayActiveGateways({ activeGateways: $("#activeGatewaysDisplay").data("activeGateways") || {} });
-        });
+  $("#themeToggle").on("click", () => {
+    const currentTheme = localStorage.getItem("theme") || "light";
+    const newTheme = currentTheme === "light" ? "dark" : "light";
+    localStorage.setItem("theme", newTheme);
+    applyTheme(newTheme);
+    $("#themeToggle i")
+      .removeClass("fa-sun fa-moon")
+      .addClass(newTheme === "dark" ? "fa-moon" : "fa-sun");
+    displayActiveGateways({
+      activeGateways: $("#activeGatewaysDisplay").data("activeGateways") || {},
+    });
+  });
 
-        $("#activateGatewayBtn").on("click", async () => {
-          const tenant = localStorage.getItem("tenant") || tenantFromUrl;
-          const tenantData = await fetchTenantGateways(tenant);
-          showGatewayModal(tenantData, tenant);
-        });
+  $("#activateGatewayBtn").on("click", async () => {
+    const tenant = localStorage.getItem("tenant") || tenantFromUrl;
+    const tenantData = await fetchTenantGateways(tenant);
+    showGatewayModal(tenantData, tenant);
+  });
+});
+
+    function applyTheme(theme) {
+      if (theme === "dark") {
+        $("#body").addClass("bg-gray-800 text-white");
+        $(".bg-white").addClass("bg-gray-900").removeClass("bg-white");
+        $(".text-gray-700").addClass("text-gray-200").removeClass("text-gray-700");
+        $(".bg-gray-50").addClass("bg-gray-700").removeClass("bg-gray-50");
+        $(".border-gray-200").addClass("border-gray-600").removeClass("border-gray-200");
+        $(".text-gray-500").addClass("text-gray-300").removeClass("text-gray-500");
+        $(".bg-gray-100").addClass("bg-gray-600").removeClass("bg-gray-100");
+        $(".hover\\:bg-gray-100").addClass("hover:bg-gray-500").removeClass("hover:bg-gray-100");
+        $("#footerText").addClass("text-gray-300").removeClass("text-gray-500");
+        $("#activeGatewaysDisplay span").addClass("bg-gray-700").removeClass("bg-gray-200");
+      } else {
+        $("#body").removeClass("bg-gray-800 text-white");
+        $(".bg-gray-900").addClass("bg-white").removeClass("bg-gray-900");
+        $(".text-gray-200").addClass("text-gray-700").removeClass("text-gray-200");
+        $(".bg-gray-700").addClass("bg-gray-50").removeClass("bg-gray-700");
+        $(".border-gray-600").addClass("border-gray-200").removeClass("border-gray-600");
+        $(".text-gray-300").addClass("text-gray-500").removeClass("text-gray-300");
+        $(".bg-gray-600").addClass("bg-gray-100").removeClass("bg-gray-600");
+        $(".hover\\:bg-gray-500").addClass("hover:bg-gray-100").removeClass("hover:bg-gray-500");
+        $("#footerText").addClass("text-gray-500").removeClass("text-gray-300");
+        $("#activeGatewaysDisplay span").addClass("bg-gray-200").removeClass("bg-gray-700");
+      }
+    }
+
+    function checkAuth() {
+      return localStorage.getItem("isAuthenticated") === "true";
+    }
+
+    function logout() {
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("tenant");
+      window.location.href = "login.html";
+    }
+
+    let currentFilters = {
+      from: "",
+      to: "",
+      status: "SUCCESS",
+      search: "",
+      page: 1,
+      limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
+    };
+
+    function setupEventListeners() {
+      $("#applyFilters").on("click", applyFilters);
+      $("#resetFilters").on("click", resetFilters);
+      $("#prevPage").on("click", () => changePage(currentFilters.page - 1));
+      $("#nextPage").on("click", () => changePage(currentFilters.page + 1));
+      $("#itemsPerPage").on("change", (e) => {
+        const limit = parseInt($(e.target).val());
+        localStorage.setItem("itemsPerPage", limit);
+        currentFilters.limit = limit;
+        currentFilters.page = 1;
+        loadData();
       });
+      $("#exportData").on("click", exportToCSV);
+    }
 
-      function applyTheme(theme) {
-        if (theme === "dark") {
-          $("#body").addClass("bg-gray-800 text-white");
-          $(".bg-white").addClass("bg-gray-900").removeClass("bg-white");
-          $(".text-gray-700").addClass("text-gray-200").removeClass("text-gray-700");
-          $(".bg-gray-50").addClass("bg-gray-700").removeClass("bg-gray-50");
-          $(".border-gray-200").addClass("border-gray-600").removeClass("border-gray-200");
-          $(".text-gray-500").addClass("text-gray-300").removeClass("text-gray-500");
-          $(".bg-gray-100").addClass("bg-gray-600").removeClass("bg-gray-100");
-          $(".hover\\:bg-gray-100").addClass("hover:bg-gray-500").removeClass("hover:bg-gray-100");
-          $("#footerText").addClass("text-gray-300").removeClass("text-gray-500");
-          $("#activeGatewaysDisplay span").addClass("bg-gray-700").removeClass("bg-gray-200");
-        } else {
-          $("#body").removeClass("bg-gray-800 text-white");
-          $(".bg-gray-900").addClass("bg-white").removeClass("bg-gray-900");
-          $(".text-gray-200").addClass("text-gray-700").removeClass("text-gray-200");
-          $(".bg-gray-700").addClass("bg-gray-50").removeClass("bg-gray-700");
-          $(".border-gray-600").addClass("border-gray-200").removeClass("border-gray-600");
-          $(".text-gray-300").addClass("text-gray-500").removeClass("text-gray-300");
-          $(".bg-gray-600").addClass("bg-gray-100").removeClass("bg-gray-600");
-          $(".hover\\:bg-gray-500").addClass("hover:bg-gray-100").removeClass("hover:bg-gray-500");
-          $("#footerText").addClass("text-gray-500").removeClass("text-gray-300");
-          $("#activeGatewaysDisplay span").addClass("bg-gray-200").removeClass("bg-gray-700");
+    async function checkHealth() {
+      try {
+        const url = `${BASE_URL}/transactions`;
+        console.log("Checking health at:", url);
+        const response = await $.ajax({
+          url: url,
+          method: "GET",
+        });
+        console.log("Health check:", response);
+        if (!response.collectionExists || response.documentCount === 0) {
+          $("#transactionTable").html(`
+            <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
+              ${
+                response.collectionExists
+                  ? "No successful transactions found in database"
+                  : 'Collection "payments" does not exist'
+              }
+            </td></tr>
+          `);
         }
+      } catch (error) {
+        console.error("Health check failed:", error);
+        $("#transactionTable").html(`
+          <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to connect to server. Please check if the backend is running.</td></tr>
+        `);
       }
+    }
 
-      function login(inputTenant, password) {
-        const hostname = window.location.hostname;
-        const tenantFromUrl = hostname.split(".")[0];
-        console.log(
-          "Login - Hostname:",
-          hostname,
-          "Tenant from URL:",
-          tenantFromUrl,
-          "Input Tenant:",
-          inputTenant
-        );
-        if (
-          tenantFromUrl !== "localhost" &&
-          tenantFromUrl !== "go" &&
-          inputTenant !== tenantFromUrl
-        ) {
-          console.log("Tenant mismatch");
-          return false;
+    async function loadData() {
+      try {
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(currentFilters)) {
+          if (value !== undefined && value !== "") {
+            params.append(key, value);
+          }
         }
-        if (password === UNIVERSAL_PASSWORD && inputTenant.trim() !== "") {
-          localStorage.setItem("isAuthenticated", "true");
-          localStorage.setItem("tenant", inputTenant);
-          BASE_URL = IS_LOCAL
-            ? `http://${inputTenant}.localhost:3008/api`
-            : `https://${inputTenant}.go.digitable.io:3008/api`;
-          console.log("Login successful, BASE_URL:", BASE_URL);
-          return true;
-        }
-        console.log("Login failed: Invalid password or tenant");
-        return false;
+        params.set("status", "SUCCESS");
+        const url = `${BASE_URL}/payments?${params}`;
+        console.log("Fetching data from:", url);
+        const response = await $.ajax({
+          url: url,
+          method: "GET",
+        });
+        console.log("Fetched data:", response);
+        updateStats(response.stats);
+        updateTable(response.transactions, response.total);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        $("#transactionTable").html(`
+          <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to load transactions. Please try again later.</td></tr>
+        `);
       }
+    }
 
-      function checkAuth() {
-        return localStorage.getItem("isAuthenticated") === "true";
-      }
+    function applyFilters() {
+      const fromDate = $("#fromDate").val() || today;
+      const toDate = $("#toDate").val() || today;
+      const searchQuery = $("#searchQuery").val().toLowerCase();
+      console.log("Applying filters:", {
+        fromDate,
+        toDate,
+        status: "SUCCESS",
+        searchQuery,
+      });
+      currentFilters.from = fromDate;
+      currentFilters.to = toDate;
+      currentFilters.status = "SUCCESS";
+      currentFilters.search = searchQuery || undefined;
+      currentFilters.page = 1;
+      loadData();
+    }
 
-      function logout() {
-        localStorage.removeItem("isAuthenticated");
-        localStorage.removeItem("tenant");
-        $("#login-section").removeClass("hidden");
-        $("#dashboard-content").addClass("hidden");
-        $("#dashboard-icons").addClass("hidden");
-        $("#userName").text("Guest");
-        BASE_URL = undefined;
-        console.log("Logged out");
-      }
-
-      let currentFilters = {
+    function resetFilters() {
+      $("#fromDate").val("");
+      $("#toDate").val("");
+      $("#transactionType").val("SUCCESS");
+      $("#searchQuery").val("");
+      $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
+      currentFilters = {
         from: "",
         to: "",
         status: "SUCCESS",
@@ -586,174 +603,46 @@
         page: 1,
         limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
       };
+      console.log("Filters reset");
+      loadData();
+    }
 
-      function setupLoginEventListener() {
-        $("#loginButton").on("click", () => {
-          const tenant = $("#username").val().trim();
-          const password = $("#password").val();
-          if (tenant && password) {
-            if (login(tenant, password)) {
-              $("#login-section").addClass("hidden");
-              $("#dashboard-content").removeClass("hidden");
-              $("#dashboard-icons").removeClass("hidden");
-              $("#userName").text(tenant || "User");
-              $("#transactionTable").html(`
-                <tr><td colspan="11" class="px-5 py-4 text-center">Loading...</td></tr>
-              `);
-              checkHealth();
-              loadData();
-              setupEventListeners();
-              fetchTenantGateways(tenant).then(displayActiveGateways);
-            } else {
-              $("#loginError").removeClass("hidden");
-            }
-          } else {
-            $("#loginError").removeClass("hidden");
-          }
-        });
-      }
+    function updateStats(stats) {
+      $("#statsCards").html(`
+        <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
+          <div class="text-3xl font-bold">${stats.totalTransactions}</div>
+          <div class="text-sm opacity-90 mt-1">Total Transactions</div>
+        </div>
+        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
+          <div class="text-3xl font-bold">${stats.successfulTransactions}</div>
+          <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
+        </div>
+        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
+          <div class="text-3xl font-bold">LKR ${stats.totalAmountLKR}</div>
+          <div class="text-sm opacity-90 mt-1">Total Amount (LKR)</div>
+        </div>
+        <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-5">
+          <div class="text-3xl font-bold">USD ${stats.totalAmountUSD}</div>
+          <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
+        </div>
+      `);
+    }
 
-      function setupEventListeners() {
-        $("#applyFilters").on("click", applyFilters);
-        $("#resetFilters").on("click", resetFilters);
-        $("#prevPage").on("click", () => changePage(currentFilters.page - 1));
-        $("#nextPage").on("click", () => changePage(currentFilters.page + 1));
-        $("#itemsPerPage").on("change", (e) => {
-          const limit = parseInt($(e.target).val());
-          localStorage.setItem("itemsPerPage", limit);
-          currentFilters.limit = limit;
-          currentFilters.page = 1;
-          loadData();
-        });
-        $("#exportData").on("click", exportToCSV);
-      }
-
-      async function checkHealth() {
-        try {
-          const url = `${BASE_URL}/transactions`;
-          console.log("Checking health at:", url);
-          const response = await $.ajax({
-            url: url,
-            method: "GET",
-          });
-          console.log("Health check:", response);
-          if (!response.collectionExists || response.documentCount === 0) {
-            $("#transactionTable").html(`
-              <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
-                ${
-                  response.collectionExists
-                    ? "No successful transactions found in database"
-                    : 'Collection "payments" does not exist'
-                }
-              </td></tr>
-            `);
-          }
-        } catch (error) {
-          console.error("Health check failed:", error);
-          $("#transactionTable").html(`
-            <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to connect to server. Please check if the backend is running.</td></tr>
-          `);
-        }
-      }
-
-      async function loadData() {
-        try {
-          const params = new URLSearchParams();
-          for (const [key, value] of Object.entries(currentFilters)) {
-            if (value !== undefined && value !== "") {
-              params.append(key, value);
-            }
-          }
-          params.set("status", "SUCCESS");
-          const url = `${BASE_URL}/payments?${params}`;
-          console.log("Fetching data from:", url);
-          const response = await $.ajax({
-            url: url,
-            method: "GET",
-          });
-          console.log("Fetched data:", response);
-          updateStats(response.stats);
-          updateTable(response.transactions, response.total);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          $("#transactionTable").html(`
-            <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to load transactions. Please try again later.</td></tr>
-          `);
-        }
-      }
-
-      function applyFilters() {
-        const fromDate = $("#fromDate").val() || today;
-        const toDate = $("#toDate").val() || today;
-        const searchQuery = $("#searchQuery").val().toLowerCase();
-        console.log("Applying filters:", {
-          fromDate,
-          toDate,
-          status: "SUCCESS",
-          searchQuery,
-        });
-        currentFilters.from = fromDate;
-        currentFilters.to = toDate;
-        currentFilters.status = "SUCCESS";
-        currentFilters.search = searchQuery || undefined;
-        currentFilters.page = 1;
-        loadData();
-      }
-
-      function resetFilters() {
-        $("#fromDate").val("");
-        $("#toDate").val("");
-        $("#transactionType").val("SUCCESS");
-        $("#searchQuery").val("");
-        $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
-        currentFilters = {
-          from: "",
-          to: "",
-          status: "SUCCESS",
-          search: "",
-          page: 1,
-          limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
-        };
-        console.log("Filters reset");
-        loadData();
-      }
-
-      function updateStats(stats) {
-        $("#statsCards").html(`
-          <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
-            <div class="text-3xl font-bold">${stats.totalTransactions}</div>
-            <div class="text-sm opacity-90 mt-1">Total Transactions</div>
-          </div>
-          <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-            <div class="text-3xl font-bold">${stats.successfulTransactions}</div>
-            <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
-          </div>
-          <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-            <div class="text-3xl font-bold">LKR ${stats.totalAmountLKR}</div>
-            <div class="text-sm opacity-90 mt-1">Total Amount (LKR)</div>
-          </div>
-          <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-5">
-            <div class="text-3xl font-bold">USD ${stats.totalAmountUSD}</div>
-            <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
-          </div>
-        `);
-      }
-
-      function updateTable(transactions, total) {
-        $("#transactionTable").html(
-          transactions.length > 0
-            ? transactions
-                .map((t) => {
-                  const transactionId = t.transactionId || "N/A";
-                  const displayId =
-                    transactionId === "N/A"
-                      ? "N/A"
-                      : transactionId.length > 8
-                      ? transactionId.slice(0, 4).toUpperCase() +
-                        "..." +
-                        transactionId.slice(-4).toUpperCase()
-                      : transactionId.toUpperCase();
-                  return `
+    function updateTable(transactions, total) {
+      $("#transactionTable").html(
+        transactions.length > 0
+          ? transactions
+              .map((t) => {
+                const transactionId = t.transactionId || "N/A";
+                const displayId =
+                  transactionId === "N/A"
+                    ? "N/A"
+                    : transactionId.length > 8
+                    ? transactionId.slice(0, 4).toUpperCase() +
+                      "..." +
+                      transactionId.slice(-4).toUpperCase()
+                    : transactionId.toUpperCase();
+                return `
             <tr class="hover:bg-gray-400">
               <td class="px-5 py-4">${
                 new Date(t.createdAt).toISOString().split("T")[0]
@@ -774,27 +663,27 @@
               </td>
             </tr>
           `;
-                })
-                .join("")
-            : `
+              })
+              .join("")
+          : `
           <tr><td colspan="11" class="px-5 py-4 text-center">No successful transactions found</td></tr>
         `
-        );
+      );
 
-        const start = (currentFilters.page - 1) * currentFilters.limit + 1;
-        const end = Math.min(start + currentFilters.limit - 1, total);
-        $("#tableInfo").text(`Showing ${start} to ${end} of ${total} entries`);
+      const start = (currentFilters.page - 1) * currentFilters.limit + 1;
+      const end = Math.min(start + currentFilters.limit - 1, total);
+      $("#tableInfo").text(`Showing ${start} to ${end} of ${total} entries`);
 
-        const totalPages = Math.ceil(total / currentFilters.limit);
-        $("#prevPage").prop("disabled", currentFilters.page === 1);
-        $("#nextPage").prop("disabled", currentFilters.page === totalPages);
+      const totalPages = Math.ceil(total / currentFilters.limit);
+      $("#prevPage").prop("disabled", currentFilters.page === 1);
+      $("#nextPage").prop("disabled", currentFilters.page === totalPages);
 
-        $("#pageButtons").html(
-          Array.from(
-            {
-              length: totalPages,
-            },
-            (_, i) => `
+      $("#pageButtons").html(
+        Array.from(
+          {
+            length: totalPages,
+          },
+          (_, i) => `
           <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
             currentFilters.page === i + 1
               ? "bg-primary text-white"
@@ -805,87 +694,87 @@
               i + 1
             }</button>
         `
-          ).join("")
+        ).join("")
+      );
+    }
+
+    function changePage(page) {
+      if (page < 1) return;
+      currentFilters.page = page;
+      loadData();
+    }
+
+    async function exportToCSV() {
+      try {
+        const params = new URLSearchParams();
+        ["from", "to", "search"].forEach((key) => {
+          const value = currentFilters[key];
+          if (value !== undefined && value !== "") {
+            params.append(key, value);
+          }
+        });
+        params.append("status", "SUCCESS");
+        const url = `${BASE_URL}/payments/export?${params}`;
+        console.log("Exporting data from:", url);
+        const response = await $.ajax({
+          url: url,
+          method: "GET",
+        });
+        const headers = [
+          "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status",
+        ];
+        const rows = response.map(
+          (t) =>
+            `"${new Date(t.createdAt).toISOString().split("T")[0]}","${
+              t.merchantId || "N/A"
+            }","${t.orderId || "N/A"}",${parseFloat(t.amount || 0).toFixed(
+              2
+            )},"${t.currency || "N/A"}","${t.email || "N/A"}","${
+              t.description || "N/A"
+            }","${t.cardBrand || "N/A"}","${t.nameOnCard || "N/A"}","SUCCESS"`
         );
+        const csv = [...headers, ...rows].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const urlObj = URL.createObjectURL(blob);
+        const $a = $("<a>", {
+          href: urlObj,
+          download: "successful_transactions.csv",
+        }).appendTo("body");
+        $a[0].click();
+        URL.revokeObjectURL(urlObj);
+        $a.remove();
+      } catch (error) {
+        console.error("Error exporting data:", error);
+        alert("Failed to export data. Please try again.");
       }
+    }
 
-      function changePage(page) {
-        if (page < 1) return;
-        currentFilters.page = page;
-        loadData();
-      }
+    function displayActiveGateways(data) {
+      const activeGateways = data.activeGateways || {};
+      const container = $("#activeGatewaysDisplay");
+      container.empty().data("activeGateways", activeGateways); 
+      if (!activeGateways || Object.keys(activeGateways).length === 0) return;
 
-      async function exportToCSV() {
-        try {
-          const params = new URLSearchParams();
-          ["from", "to", "search"].forEach((key) => {
-            const value = currentFilters[key];
-            if (value !== undefined && value !== "") {
-              params.append(key, value);
-            }
-          });
-          params.append("status", "SUCCESS");
-          const url = `${BASE_URL}/payments/export?${params}`;
-          console.log("Exporting data from:", url);
-          const response = await $.ajax({
-            url: url,
-            method: "GET",
-          });
-          const headers = [
-            "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status",
-          ];
-          const rows = response.map(
-            (t) =>
-              `"${new Date(t.createdAt).toISOString().split("T")[0]}","${
-                t.merchantId || "N/A"
-              }","${t.orderId || "N/A"}",${parseFloat(t.amount || 0).toFixed(
-                2
-              )},"${t.currency || "N/A"}","${t.email || "N/A"}","${
-                t.description || "N/A"
-              }","${t.cardBrand || "N/A"}","${t.nameOnCard || "N/A"}","SUCCESS"`
-          );
-          const csv = [...headers, ...rows].join("\n");
-          const blob = new Blob([csv], { type: "text/csv" });
-          const urlObj = URL.createObjectURL(blob);
-          const $a = $("<a>", {
-            href: urlObj,
-            download: "successful_transactions.csv",
-          }).appendTo("body");
-          $a[0].click();
-          URL.revokeObjectURL(urlObj);
-          $a.remove();
-        } catch (error) {
-          console.error("Error exporting data:", error);
-          alert("Failed to export data. Please try again.");
-        }
-      }
+      const currentTheme = localStorage.getItem("theme") || "light";
+      const bgClass = currentTheme === "dark" ? "bg-gray-700" : "bg-gray-200";
+      const textClass = currentTheme === "dark" ? "text-gray-200" : "text-gray-700";
 
-      function displayActiveGateways(data) {
-        const activeGateways = data.activeGateways || {};
-        const container = $("#activeGatewaysDisplay");
-        container.empty().data("activeGateways", activeGateways); 
-        if (!activeGateways || Object.keys(activeGateways).length === 0) return;
-
-        const currentTheme = localStorage.getItem("theme") || "light";
-        const bgClass = currentTheme === "dark" ? "bg-gray-700" : "bg-gray-200";
-        const textClass = currentTheme === "dark" ? "text-gray-200" : "text-gray-700";
-
-        for (const [card, gateway] of Object.entries(activeGateways)) {
-          const icon = card === "visa/master" ? "💳" : "🟡";
-          const displayName =
-            card === "visa/master"
-              ? `Master - ${gateway.name}`
-              : `Amex - ${gateway.name}`;
-          container.append(`
+      for (const [card, gateway] of Object.entries(activeGateways)) {
+        const icon = card === "visa/master" ? "💳" : "🟡";
+        const displayName =
+          card === "visa/master"
+            ? `Master - ${gateway.name}`
+            : `Amex - ${gateway.name}`;
+        container.append(`
       <span class="px-3 py-1 sm:px-2 sm:py-0.5 ${bgClass} ${textClass} rounded flex items-center space-x-2 sm:space-x-1 text-sm sm:text-xs">
         <span>${icon}</span>
         <span class="truncate">${displayName}</span>
       </span>
     `);
-        }
       }
+    }
 
-     function showGatewayModal(tenantData, tenant) {
+   function showGatewayModal(tenantData, tenant) {
   const { allGateways = {}, activeGateways = {} } = tenantData;
 
   let modalContent = '<div class="flex flex-col space-y-3">';
@@ -927,6 +816,7 @@
 
       const activateBtn = $("#activateGateways");
       activateBtn.prop("disabled", true).text("Activating...");
+
       $.ajax({
         url: `${BASE_URL}/settings/${tenant}/gateways/activate`,
         method: "POST",
@@ -934,7 +824,7 @@
         data: JSON.stringify({ gateways: updatedActiveGateways }),
         success: function (result) {
           if (result.success) {
-            console.log(url);
+            console.log(this.url); // Use this.url to log the correct URL
             displayActiveGateways({ activeGateways: result.data.activeGateways });
             showToast("✅ Gateways updated successfully!", "success");
           } else {
@@ -946,16 +836,17 @@
           showToast("❌ Error updating gateways", "error");
         },
         complete: function () {
+          const activateBtn = $("#activateGateways"); // Re-select button to ensure it's still valid
           activateBtn.prop("disabled", false).text("Activate");
           $("#topupModal").addClass("hidden");
         },
       });
     });
 }
+
 $("#closeTopup").on("click", function () {
   $("#topupModal").addClass("hidden");
 });
-
 
 function fetchTenantGateways(tenant) {
   return $.ajax({
@@ -963,8 +854,7 @@ function fetchTenantGateways(tenant) {
     method: "GET",
   })
     .then((data) => {
-      if (!data.success || !data.data)
-        return { allGateways: {}, activeGateways: {} };
+      if (!data.success || !data.data) return { allGateways: {}, activeGateways: {} };
       return {
         allGateways: data.data.allGateways || {},
         activeGateways: data.data.activeGateways || {},
@@ -992,6 +882,5 @@ function showToast(message, type = "info") {
   setTimeout(() => toast.css("opacity", 1), 50);
   setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
 }
-    </script>
-  </body>
+  </script>
 </html>

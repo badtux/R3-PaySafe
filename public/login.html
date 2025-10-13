@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Digitable</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #1a202c;
+      color: #e2e8f0;
+      font-family: Arial, sans-serif;
+    }
+    .login-container {
+      max-width: 800px;
+      min-height: 400px;
+    }
+    .welcome-section img {
+      width: 50px;
+    }
+    .icon {
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+    }
+    @media (max-width: 640px) {
+      .login-container {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+  <div class="flex flex-col md:flex-row w-full max-w-4xl bg-gray-800 rounded-lg shadow-lg overflow-hidden login-container">
+    <!-- Welcome Section -->
+    <div class="w-full md:w-1/2 p-6 md:p-8 text-white flex flex-col justify-center items-center md:items-start">
+      <img src="https://via.placeholder.com/50" alt="Digitable Logo" class="mb-4">
+      <h2 class="text-xl md:text-2xl font-bold text-center md:text-left">Welcome to Your Workspace</h2>
+      <p class="mt-2 text-gray-300 text-center md:text-left">Streamline your workflow with our intuitive platform</p>
+      <div class="mt-4 md:mt-6 flex justify-center md:justify-start space-x-4">
+        <span class="icon">⚡</span>
+        <span class="icon">🛡️</span>
+        <span class="icon">🚀</span>
+      </div>
+    </div>
+    <!-- Login Form -->
+    <div class="w-full md:w-1/2 p-6 bg-gray-700 text-white flex items-center">
+      <div class="w-full space-y-4">
+        <h2 class="text-lg md:text-xl font-semibold mb-4 text-center md:text-left">Sign in to your account</h2>
+        <div>
+          <label class="block text-sm font-medium mb-1">Tenant Name</label>
+          <input
+            type="text"
+            id="username"
+            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="Enter your tenant name"
+            readonly
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Password</label>
+          <input
+            type="password"
+            id="password"
+            class="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="Enter your password"
+          />
+        </div>
+        <button
+          id="loginButton"
+          class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center justify-center"
+        >
+          Continue
+        </button>
+        <div class="text-center text-gray-400 my-2">or</div>
+        <button
+          class="w-full bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-md flex items-center justify-center"
+        >
+          <span class="mr-2">G</span> Continue with Google
+        </button>
+        <p id="loginError" class="text-red-500 text-sm mt-2 text-center hidden">
+          Invalid tenant name or password.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    let BASE_URL;
+    const today = new Date().toISOString().split("T")[0];
+    const UNIVERSAL_PASSWORD = "admin@123";
+    const IS_LOCAL = window.location.hostname.includes("localhost");
+
+    $(document).ready(() => {
+      const hostname = window.location.hostname;
+      const tenantFromUrl = hostname.split(".")[0];
+      // Load tenant from URL and make it read-only
+      $("#username").val(tenantFromUrl || "").prop("readonly", true);
+
+      $("#loginButton").on("click", () => {
+        const tenant = $("#username").val().trim();
+        const password = $("#password").val();
+        if (tenant && password) {
+          if (login(tenant, password)) {
+            window.location.href = "index.html";
+          } else {
+            $("#loginError").removeClass("hidden");
+          }
+        } else {
+          $("#loginError").removeClass("hidden");
+        }
+      });
+
+      function login(inputTenant, password) {
+        const hostname = window.location.hostname;
+        const tenantFromUrl = hostname.split(".")[0];
+        console.log(
+          "Login - Hostname:",
+          hostname,
+          "Tenant from URL:",
+          tenantFromUrl,
+          "Input Tenant:",
+          inputTenant
+        );
+        if (
+          tenantFromUrl !== "localhost" &&
+          tenantFromUrl !== "go" &&
+          inputTenant !== tenantFromUrl
+        ) {
+          console.log("Tenant mismatch");
+          return false;
+        }
+        if (password === UNIVERSAL_PASSWORD && inputTenant.trim() !== "") {
+          localStorage.setItem("isAuthenticated", "true");
+          localStorage.setItem("tenant", inputTenant);
+          BASE_URL = IS_LOCAL
+            ? `http://${inputTenant}.localhost:3008/api`
+            : `https://${inputTenant}.go.digitable.io:3008/api`;
+          console.log("Login successful, BASE_URL:", BASE_URL);
+          return true;
+        }
+        console.log("Login failed: Invalid password or tenant");
+        return false;
+      }
+    });
+  </script>
+</body>
+</html>
