@@ -24,18 +24,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.use(cors({
-    origin: function (origin, callback) {
-        console.log("CORS Origin:", origin);
-        if (!origin ||
-            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/) ||
-            origin.match(/^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:\d+)?$/)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    credentials: true,
+  origin: function (origin, callback) {
+    console.log("CORS Origin:", origin);
+    if (
+      !origin ||
+      origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost(:\d+)?$/) ||
+      origin.match(/^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:\d+)?$/)
+    ) {
+      callback(null, true);
+    } else {
+      console.error("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
+
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
