@@ -16,6 +16,7 @@ const PORT = process.env.PORT || 3004;
 const APP_FQDN = process.env.APP_FQDN;
 const LIVE = process.env.LIVE || false;
 
+
 const app = express();
 
 app.use(express.json());
@@ -26,7 +27,7 @@ app.use(cors({
     origin: function (origin, callback) {
         console.log("CORS Origin:", origin);
         if (!origin ||
-            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/) ||
+            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost:3004$/) ||
             origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io$/)) {
             callback(null, true);
         } else {

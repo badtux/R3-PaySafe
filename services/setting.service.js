@@ -1,9 +1,6 @@
 const { getActiveGatewayCollection } = require('../config/db');
 
-/**
- * Save hardcoded tenants with their allGateways
- * Initially all gateways inactive
- */
+
 async function saveHardcodedGateways() {
   const collection = await getActiveGatewayCollection();
 
