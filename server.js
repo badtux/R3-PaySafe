@@ -14,7 +14,7 @@ require("dotenv").config();
 
 const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
-const LIVE = process.env.LIVE === true;
+const LIVE = process.env.LIVE || false;
 
 
 const app = express();
