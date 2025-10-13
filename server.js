@@ -27,8 +27,8 @@ app.use(cors({
     origin: function (origin, callback) {
         console.log("CORS Origin:", origin);
         if (!origin ||
-            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost:3004$/) ||
-            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io$/)) {
+            origin.match(/^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/) ||
+            origin.match(/^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io$/)) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
