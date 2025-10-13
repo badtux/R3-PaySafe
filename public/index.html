@@ -927,8 +927,6 @@
 
       const activateBtn = $("#activateGateways");
       activateBtn.prop("disabled", true).text("Activating...");
-
-      // 🔹 Use AJAX to activate gateways
       $.ajax({
         url: `${BASE_URL}/settings/${tenant}/gateways/activate`,
         method: "POST",
@@ -940,12 +938,10 @@
             displayActiveGateways({ activeGateways: result.data.activeGateways });
             showToast("✅ Gateways updated successfully!", "success");
           } else {
-            console.log(url);
             showToast("❌ Failed to update gateways", "error");
           }
         },
         error: function (xhr, status, error) {
-          console.log(url);
           console.error("Error:", error);
           showToast("❌ Error updating gateways", "error");
         },
@@ -956,13 +952,11 @@
       });
     });
 }
-
-// 🔹 Close modal
 $("#closeTopup").on("click", function () {
   $("#topupModal").addClass("hidden");
 });
 
-// 🔹 Fetch tenant gateways using AJAX
+
 function fetchTenantGateways(tenant) {
   return $.ajax({
     url: `${BASE_URL}/settings/${tenant}/gateways`,
@@ -982,7 +976,6 @@ function fetchTenantGateways(tenant) {
     });
 }
 
-// 🔹 Toast message helper
 function showToast(message, type = "info") {
   const bg =
     type === "success"
