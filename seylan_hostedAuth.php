@@ -4,10 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-error_log("Session ID: " . session_id());
-
 require_once "seylan_hostedAuth.php"; 
-
+require_once "config/config.php"; 
 
 require "vendor/autoload.php";
 
@@ -156,6 +154,7 @@ if (!$txnId) {
             exit;
         }
     }
+    error_log("________________________________________$sessionId , $uuid , $amount , $orderId" );
 }
 
 

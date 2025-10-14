@@ -22,7 +22,5 @@ $router->setNotFound(function () {
 $router->handleRequest();
 
 
-error_log("Session ID: " . session_id());
-
 
 ?>
