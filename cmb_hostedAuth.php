@@ -5,7 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 require_once "cmb_hostedAuth.php";
-//require_once "config/config.sample.php";
 require "vendor/autoload.php";
 require_once 'config/config.php';
 
@@ -118,6 +117,7 @@ if (!$txnId) {
                         'description' => $description,
                         'merchantId' => $merchantId,
                         'sessionId' => $sessionId,
+                        'bank' => "Commercial Bank",
                         'createdAt' => new UTCDateTime()
                     ]);
 
