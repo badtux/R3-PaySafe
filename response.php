@@ -7,7 +7,7 @@ error_log("Session ID: " . session_id());
 
 require 'vendor/autoload.php';
 require_once('config/config.php');
-//require_once('config/config.sample.php');
+
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

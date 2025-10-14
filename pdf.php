@@ -4,7 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require 'vendor/autoload.php';
-require 'config/config.sample.php';
+//require 'config/config.sample.php';
+require 'config/config.php';
+
 
 use MongoDB\Client;
 use TCPDF;
