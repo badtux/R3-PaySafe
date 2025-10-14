@@ -24,15 +24,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-const allowedOrigins = [                  
-  /^http:\/\/([a-zA-Z0-9-]+)\.localhost:(3004|3008)$/,    
-  /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/ 
+const allowedOrigins = [
+  /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/,
+  /^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/,
+  // "http://malkey.localhost:3008"
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
     console.log("CORS Origin:", origin);
-    if (!origin || allowedOrigins.some(regex => regex.test(origin))) {
+    if (
+      !origin ||
+      allowedOrigins.some((pattern) =>
+        pattern instanceof RegExp ? pattern.test(origin) : pattern === origin
+      )
+    ) {
       callback(null, true);
     } else {
       console.log("❌ Blocked by CORS:", origin);
@@ -41,8 +47,6 @@ const corsOptions = {
   },
   credentials: true,
 };
-
-app.use(cors(corsOptions));
 
 
 // app.use(cors({
