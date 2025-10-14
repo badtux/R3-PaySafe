@@ -156,9 +156,3 @@ if (!$txnId) {
         }
     }
 }
-
-
-if ($errorMessage) {
-    http_response_code(400);
-    echo htmlspecialchars($errorMessage);
-}

@@ -54,7 +54,7 @@ merchanrtsales@combank.com
 
 url http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=223&orderId=167u77iu212ew76mnk89&description=test
 
-http://malkey.paymentgateway.loc/?currency=LKR&amount=15&orderId=test100&description=test
+http://malkey.paymentgateway.loc/?currency=LKR&amount=&orderId=test100&description=test
 
 
 
