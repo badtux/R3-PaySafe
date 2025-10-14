@@ -16,6 +16,7 @@ const paymentSchema = {
     nameOnCard: String,
     paymentStatus: String,
     transactionId: String,
+    bank:String,
     updatedAt: Date
 };
 

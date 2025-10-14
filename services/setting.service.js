@@ -24,7 +24,7 @@ const tenants = [
     merchantName: "Helpage",
     allGateways: {
       "visa/master": { name: "Seylan Bank", path: "seylan" },
-      "amex": { name: "NationTrust Bank", path: "ntb" }
+      // "amex": { name: "NationTrust Bank", path: "ntb" }
     },
     activeGateways: {},
     

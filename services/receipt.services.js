@@ -16,10 +16,9 @@ function validateTenantAndOrderId(tenant, orderId) {
 
 
 function buildReplacements(payment, tenant) {
-    const bankName = tenant.charAt(0).toUpperCase() + tenant.slice(1) + ' Bank';
     const bankLogo = `file://${path.join(__dirname, '..', 'public', 'images', 'default-bank-logo.png')}`;
-    const bankFooter = `© ${new Date().getFullYear()} ${bankName}. All rights reserved.`;
-    const bankHeader = `${bankName} - Online Transfer`;
+    const bankFooter = `© ${new Date().getFullYear()} ${payment.bank}. All rights reserved.`;
+    const bankHeader = `${payment.bank} - Online Transfer`;
 
     return {
         status: payment.paymentStatus || 'N/A',
@@ -33,7 +32,7 @@ function buildReplacements(payment, tenant) {
         sourceAccount: payment.cardNumber || '************',
         beneficiaryAccount: payment.beneficiaryAccount || 'N/A',
         remarks: payment.description || 'N/A',
-        bank: bankName,
+        bank: payment.bank,
         bankLogo,
         bankFooter,
         bankHeader,
