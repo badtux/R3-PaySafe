@@ -2,7 +2,6 @@
 session_start();
 
 require_once('config/route.php');
-require_once('config/config.php');
 require_once('vendor/autoload.php');
 
 $router = new Router();
@@ -21,6 +20,8 @@ $router->setNotFound(function () {
 });
 $router->handleRequest();
 
+
+error_log("Session ID: " . session_id());
 
 
 ?>

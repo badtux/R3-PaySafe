@@ -4,7 +4,7 @@ define('APP_LIVE',true);
 define('BASE_PATH','/paysafe/sey');
 
 
-define('LOGO', 'https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png');
+ define('LOGO', 'https://www.helpagesl.org/assets/images/logo-sri-lanka.webp');
 
 $host = $_SERVER['HTTP_HOST']; 
 $tenant = explode('.', $host)[0];
@@ -22,7 +22,7 @@ if (APP_LIVE) {
     define('API_PASSWORD_LKR', '4692ad4aa61548f504e79cd5535d03af');
 
 
-    define('REDIRECT_URL', 'https://malkey.go.digitable.io/paysafe/seylan/status');
+    define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
      define('COLLECTION', 'payments');
      define('DB', $databaseName);
