@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 require_once 'config/config.php';
 require 'vendor/autoload.php';
 
@@ -211,4 +211,4 @@ if (!$isValidAmount) {
 }
 elseif (!isset($sessionId)) {
     $errorMessage = "Error: Session could not be created. Please try again.";
-}
+} -->

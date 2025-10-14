@@ -1,7 +1,7 @@
 <?php
 
 define('APP_LIVE',true);
-define('BASE_PATH','/paysafe/cmb');
+define('BASE_PATH','/paysafe/sey');
 
 
 define('LOGO', 'https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png');

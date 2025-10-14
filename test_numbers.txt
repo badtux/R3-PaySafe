@@ -46,7 +46,6 @@ merchanrtsales@combank.com
 1020	NO_MATCH
 
 
-$gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/merchant/$merchantId/order/$orderId";
 
 //https://malkey.go.digitable.io/paysafe/?currency=LKR&price=100&email=abc@gmail.com&reference=123LKRTX
 
@@ -59,7 +58,7 @@ http://malkey.paymentgateway.loc/?currency=LKR&amount=15&orderId=test100&descrip
 
 
 
-https://malkey.go.digitable.io/paysafe/cmb?currency=LKR&amount=12&orderId=SW7128890&description=test
+https://helpage.go.digitable.io/paysafe/seylan?currency=LKR&amount=12&orderId=SW7128890&description=test
 
 
 change server name in deb 

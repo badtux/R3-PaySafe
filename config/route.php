@@ -21,8 +21,6 @@ class Router
     public function handleRequest()
     {
         $requestedPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-        // normalize: strip trailing slash and ".php"
         $requestedPath = rtrim($requestedPath, '/');
         $requestedPath = preg_replace('/\.php$/', '', $requestedPath);
 
