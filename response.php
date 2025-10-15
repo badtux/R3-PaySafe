@@ -274,7 +274,7 @@ if ($httpCode == 200) {
 <body class="bg-gradient-red-orange-light min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-red-orange transition-all duration-300 hover:shadow-red-orange w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-red-orange p-6 text-center">
-            <img src="https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png" alt="Logo" class="w-20 h-10 mx-auto mb-2 shadow-xl">
+            <!-- <img src="https://www.helpagesl.org/wp-content/uploads/2016/05/logo.png" alt="Logo" class="w-20 h-10 mx-auto mb-2 shadow-xl"> -->
             <h1 class="text-2xl font-bold text-white">Secure Payment</h1>
             <p class="text-white text-xs">Protected by Selan Bank</p>
         </div>
@@ -292,11 +292,11 @@ if ($httpCode == 200) {
             Return to Merchant
         </button>
 
-        <button 
+        <!-- <button 
             onclick="window.location.href='pdf.php'" 
             class="text-red-400 underline hover:text-red-800 transition-all duration-300 transform hover:scale-[1.02] mt-4 w-1/2 mx-auto">
             Download Receipt 
-        </button>
+        </button> -->
     </div>
 </div>
 

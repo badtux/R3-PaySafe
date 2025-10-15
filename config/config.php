@@ -17,9 +17,9 @@ $databaseName = "{$tenant}_paysafe";
 
 
 if (APP_LIVE) {
-    define('MERCHANT_ID', 'SEYLAN124'); //live 
-    define('API_USERNAME', 'merchant.SEYLAN124op');
-    define('API_PASSWORD', '4692ad4aa61548f504e79cd5535d03af');
+    define('MERCHANT_ID', 'TESTSEYLAN124');
+    define('API_USERNAME', 'merchant.TESTSEYLAN124');
+    define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
 
 
     define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
