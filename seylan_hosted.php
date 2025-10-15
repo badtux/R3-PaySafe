@@ -35,7 +35,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($errorMessage) ? 'Payment Error | Commercial Bank' : 'Secure Payment | Commercial Bank'; ?></title>
+    <title><?php echo isset($errorMessage) ? 'Payment Error | Seylan Bank' : 'Secure Payment | Seylan Bank'; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <style>
