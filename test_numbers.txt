@@ -56,7 +56,7 @@ http://paymentgateway.loc/seylan?currency=LKR&amount=&orderId=test112wq&descript
 
 
 
-https://helpage.go.digitable.io/paysafe/sey?currency=LKR&amount=30&orderId=livetest1&description=test
+https://helpage.go.digitable.io/paysafe/sey?currency=LKR&amount=30&orderId=livetest4&description=testtransactions
 
 
 change server name in deb 
