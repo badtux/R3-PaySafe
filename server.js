@@ -14,7 +14,7 @@ require("dotenv").config();
 
 const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
-const LIVE = process.env.LIVE ||false;
+const LIVE = process.env.LIVE || false;
 
 
 const app = express();
@@ -48,7 +48,7 @@ const corsOptions = {
   credentials: true,
 };
 
-
+app.use(cors(corsOptions));
 // app.use(cors({
 //     origin: function (origin, callback) {
 //         console.log("CORS Origin:", origin);
@@ -70,6 +70,23 @@ app.get("/", (req, res) => {
 app.get("/dashboard.html", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin || 'undefined';
+  const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+  console.log(`\n--- Incoming Request ---`);
+  console.log(`Full URL: ${fullUrl}`);
+  console.log(`Method: ${req.method}`);
+  console.log(`Origin: ${origin}`);
+  console.log(`-------------------------\n`);
+
+  next();
+});
+
+
+
 
 app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
