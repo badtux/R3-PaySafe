@@ -63,15 +63,6 @@ app.use(cors(corsOptions));
 //     credentials: true,
 // }));
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-app.get("/dashboard.html", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-
 app.use((req, res, next) => {
   const origin = req.headers.origin || 'undefined';
   const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
@@ -84,9 +75,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-
-
 
 app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
