@@ -1,5 +1,4 @@
-.env
-node_modules/
-node_modules
-vendor/
+/dashboard_backend/.env
+/dashboard_backend/node_modules/
+/dashboard_backend/vendor/
 vendor

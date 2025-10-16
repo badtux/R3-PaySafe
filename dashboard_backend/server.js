@@ -14,7 +14,7 @@ require("dotenv").config();
 
 const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
-const LIVE = process.env.LIVE || false;
+const LIVE = process.env.LIVE === 'true';
 
 
 const app = express();
@@ -27,7 +27,7 @@ app.use(express.static("public"));
 const allowedOrigins = [
   /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/,
   /^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/,
-  // "http://malkey.localhost:3008"
+  /^http:\/\/127\.0\.0\.1:5500\/?$/
 ];
 
 const corsOptions = {

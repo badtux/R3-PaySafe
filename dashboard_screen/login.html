@@ -45,7 +45,7 @@
       </div>
     </div>
     
-    <!-- Right Section - Updated to match left side -->
+    <!-- Right Section -->
     <div class="w-full md:w-1/2 p-6 bg-white text-gray-800 flex items-center justify-center">
       <div class="w-full max-w-xs space-y-4">
         <h2 class="text-xl md:text-2xl font-bold text-center mb-6">Sign in to your account</h2>
@@ -95,74 +95,7 @@
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    let BASE_URL;
-    const today = new Date().toISOString().split("T")[0];
-    const UNIVERSAL_PASSWORD = "admin@123";
-    const IS_LOCAL = window.location.hostname.includes("localhost");
+  <script src="assets/js/login.js"></script>
 
-    $(document).ready(() => {
-      const hostname = window.location.hostname;
-      const tenantFromUrl = hostname.split(".")[0];
-      // Load tenant from URL and make it read-only
-      $("#username").val(tenantFromUrl || "").prop("readonly", true);
-
-      // Show password functionality
-      $("#showPassword").on("change", function() {
-        const passwordInput = $("#password");
-        if ($(this).is(":checked")) {
-          passwordInput.attr("type", "text");
-        } else {
-          passwordInput.attr("type", "password");
-        }
-      });
-
-      $("#loginButton").on("click", () => {
-        const tenant = $("#username").val().trim();
-        const password = $("#password").val();
-        if (tenant && password) {
-          if (login(tenant, password)) {
-            window.location.href = "index.html";
-          } else {
-            $("#loginError").removeClass("hidden");
-          }
-        } else {
-          $("#loginError").removeClass("hidden");
-        }
-      });
-
-      function login(inputTenant, password) {
-        const hostname = window.location.hostname;
-        const tenantFromUrl = hostname.split(".")[0];
-        console.log(
-          "Login - Hostname:",
-          hostname,
-          "Tenant from URL:",
-          tenantFromUrl,
-          "Input Tenant:",
-          inputTenant
-        );
-        if (
-          tenantFromUrl !== "localhost" &&
-          tenantFromUrl !== "go" &&
-          inputTenant !== tenantFromUrl
-        ) {
-          console.log("Tenant mismatch");
-          return false;
-        }
-        if (password === UNIVERSAL_PASSWORD && inputTenant.trim() !== "") {
-          localStorage.setItem("isAuthenticated", "true");
-          localStorage.setItem("tenant", inputTenant);
-          BASE_URL = IS_LOCAL
-            ? `http://${inputTenant}.localhost:3008/api`
-            : `https://${inputTenant}.go.digitable.io:3008/api`;
-          console.log("Login successful, BASE_URL:", BASE_URL);
-          return true;
-        }
-        console.log("Login failed: Invalid password or tenant");
-        return false;
-      }
-    });
-  </script>
 </body>
 </html>
