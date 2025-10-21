@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 error_log("Session ID: " . session_id());
 
-require_once('config/config.php');
+require_once('config/config.sample.php');
 require 'vendor/autoload.php';
 require 'seylan_hostedAuth.php';
 
@@ -37,6 +37,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($errorMessage) ? 'Payment Error | Seylan Bank' : 'Secure Payment | Seylan Bank'; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <style>
         .bg-gradient-red-orange {
@@ -147,6 +148,9 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         </label>
                         <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
                     </div>
+                      <div class="g-recaptcha" data-sitekey="<?php echo ROBOT_SITE_KEY; ?>"></div><br>
+
+
                     <button onclick="validateAndProceed()"
                         class="w-full bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2">
                         <i class='bx bx-lock-alt text-xl'></i>

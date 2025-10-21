@@ -33,6 +33,9 @@ if (APP_LIVE) {
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
 
     define('REDIRECT_URL', 'http://paymentgateway.loc/seylan/status');
+    define('ROBOT_SITE_KEY', '6Le94fErAAAAANqCat3dgugSOr-Twcbs7IHAO2n0');
+    define('ROBOT_SECRET_KEY', '6Le94fErAAAAAAPMTFYNNDk6ZVwm_jaHBBkl6wOT');
+
     
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'payments');
