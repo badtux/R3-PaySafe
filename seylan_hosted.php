@@ -138,7 +138,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
                             <span>I agree to the
-                                <a href="https://www.helpage.lk/terms-conditions.html"
+                                <a href="https://helpagesl.org/terms.html"
                                     target="_blank"
                                     class="underline text-red-600 hover:text-orange-500 transition duration-300">
                                     Terms and Conditions
@@ -156,7 +156,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             </div>
             <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
             <div class="flex justify-center">
-                <button onclick="window.location.href='https://www.malkey.lk/'" id="return-to-merchant-btn"
+                <button onclick="window.location.href='https://www.helpagesl.org/'" id="return-to-merchant-btn"
                     class="hidden bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 mt-2 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2">
                     <span>Return to Merchant</span>
                 </button>
