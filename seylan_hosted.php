@@ -138,7 +138,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         </div>
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" id="termsCheckbox" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
-                            <span>I agree to the
+                            <span>By proceeding,I agree to the
                                 <a href="https://helpagesl.org/terms.html"
                                     target="_blank"
                                     class="underline text-red-600 hover:text-orange-500 transition duration-300">
