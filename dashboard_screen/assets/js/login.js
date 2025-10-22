@@ -32,7 +32,7 @@
 
       if (tenant && password) {
         if (login(tenant, password)) {
-          window.location.href = "dashboard.html";
+          window.location.href = "index.html";
         } else {
           $("#loginError").removeClass("hidden");
         }
