@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 error_log("Session ID: " . session_id());
 
-require_once('config/config.sample.php');
+require_once('config/config.php');
 require 'vendor/autoload.php';
 require 'seylan_hostedAuth.php';
 
@@ -148,7 +148,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         </label>
                         <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
                     </div>
-                      <div class="g-recaptcha" data-sitekey="<?php echo ROBOT_SITE_KEY; ?>"></div><br>
+                      <!-- <div class="g-recaptcha" data-sitekey="<?php echo ROBOT_SITE_KEY; ?>"></div><br> -->
 
 
                     <button onclick="validateAndProceed()"
