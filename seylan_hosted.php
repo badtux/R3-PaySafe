@@ -148,7 +148,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         </label>
                         <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
                     </div>
-                      <!-- <div class="g-recaptcha" data-sitekey="<?php echo ROBOT_SITE_KEY; ?>"></div><br> -->
+
 
 
                     <button onclick="validateAndProceed()"
