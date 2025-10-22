@@ -86,8 +86,8 @@ async function startServer() {
         await saveHardcodedGateways();
 
         if (LIVE) {
-            const key = fs.readFileSync(__dirname + '/../certs/privkey.pem');
-            const cert = fs.readFileSync(__dirname + '/../certs/fullchain.pem');
+            const key = fs.readFileSync(__dirname + '/../../certs/privkey.pem');
+            const cert = fs.readFileSync(__dirname + '/../../certs/fullchain.pem');
             const options = {
                 key: key,
                 cert: cert,
