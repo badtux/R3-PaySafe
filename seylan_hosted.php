@@ -37,27 +37,33 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($errorMessage) ? 'Payment Error | Seylan Bank' : 'Secure Payment | Seylan Bank'; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <style>
         .bg-gradient-red-orange {
             background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
         }
+
         .bg-gradient-red-orange-light {
             background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
         }
+
         .bg-gradient-red-orange-hover {
             background: linear-gradient(135deg, #b91c1c 0%, #c2410c 100%);
         }
+
         .text-red-orange {
             color: #ea580c;
         }
+
         .border-red-orange {
             border-color: #ea580c;
         }
+
         .shadow-red-orange {
             box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1), 0 4px 6px -2px rgba(220, 38, 38, 0.05);
         }
+
         .hover-shadow-red-orange:hover {
             box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.1), 0 10px 10px -5px rgba(220, 38, 38, 0.04);
         }
@@ -65,18 +71,18 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <?php if (!isset($errorMessage)): ?>
 
 
-  <script src="https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
+        <script src="https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
 
-<script >
-    const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
+        <script>
+            const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
 
-    Checkout.configure({
-        session: {
-            id: sessionId
-        },
-    });
-    console.log("Loaded sessionId: " + sessionId);
-</script>
+            Checkout.configure({
+                session: {
+                    id: sessionId
+                },
+            });
+            console.log("Loaded sessionId: " + sessionId);
+        </script>
 
     <?php endif; ?>
 </head>
@@ -149,7 +155,8 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                         <span id="terms-error-message" class="text-red-500 text-sm hidden">You must agree to the Terms and Conditions to proceed.</span>
                     </div>
 
-
+                    <div class="g-recaptcha mb-5" data-sitekey="<?php echo ROBOT_SITE_KEY; ?>"></div>
+                    <p id="recaptcha-error-message" class="text-red-500 text-sm hidden mb-5">Please verify you are not a robot.</p>
 
                     <button onclick="validateAndProceed()"
                         class="w-full bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2">
@@ -166,17 +173,17 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                 </button>
             </div>
         <?php endif; ?>
-       <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
-    <div class="flex items-center mr-4">
-        <i class='bx bx-shield-quarter text-green-500'></i>
-        <span class="ml-2">256-bit SSL Secured Connection</span>
-    </div>
-    <div class="flex items-center space-x-3">
-        <img src="assets/card_logo.png" alt="another logo" class="h-10">
-        <img src="assets/bank_logo.png" alt="bank logo" class="h-10">
-        
-    </div>
-</div>
+        <div class="mt-3 mb-6 flex items-center justify-center text-sm text-gray-500">
+            <div class="flex items-center mr-4">
+                <i class='bx bx-shield-quarter text-green-500'></i>
+                <span class="ml-2">256-bit SSL Secured Connection</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <img src="assets/card_logo.png" alt="another logo" class="h-10">
+                <img src="assets/bank_logo.png" alt="bank logo" class="h-10">
+
+            </div>
+        </div>
 
     </div>
 
@@ -211,16 +218,26 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                 let emailInput = document.getElementById("email");
                 let termsCheckbox = document.getElementById("termsCheckbox");
                 let termsErrorMessage = document.getElementById("terms-error-message");
+                let recaptchaErrorMessage = document.getElementById("recaptcha-error-message");
+                let recaptchaResponse = grecaptcha.getResponse();
 
                 termsErrorMessage.classList.add("hidden");
                 if (!termsCheckbox.checked) {
                     termsErrorMessage.classList.remove("hidden");
                     return;
                 }
+
+                if (recaptchaResponse.length === 0) {
+                    recaptchaErrorMessage.classList.remove("hidden");
+                    return false;
+                }
+
+
                 if (emailPattern.test(email)) {
                     emailInput.classList.remove("border-red-500");
                     emailInput.classList.add("border-green-500");
                     errorMessage.classList.add("hidden");
+
 
                     fetch('response.php', {
                             method: 'POST',
@@ -254,6 +271,29 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                 }
             }
         </script>
+
+        <?php
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $recaptchaSecret = ROBOT_SECRET_KEY;
+            $recaptchaResponse = $_POST['g-recaptcha-response'];
+
+            $response = file_get_contents(
+                "https://www.google.com/recaptcha/api/siteverify?secret=$recaptchaSecret&response=$recaptchaResponse"
+            );
+
+            $responseKeys = json_decode($response, true);
+
+            if (!empty($responseKeys["success"]) && $responseKeys["success"] === true) {
+                echo "✅ Verification successful! You are not a robot.";
+            } else {
+                echo "❌ Please verify you are not a robot.";
+            }
+        }
+        ?>
+
+
+
+
     <?php endif; ?>
 </body>
 

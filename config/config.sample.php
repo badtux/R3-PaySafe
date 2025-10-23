@@ -26,6 +26,10 @@ if (APP_LIVE) {
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
+
+    define('ROBOT_SITE_KEY', '6LfFD_QrAAAAAFN9rh4-zClDQ3jhdDsR7CKtiFNG');
+    define('ROBOT_SECRET_KEY', '6LfFD_QrAAAAAO6IB7_gw_oDuRteZ-M3A7gYWkHr');
+
 } else {
 
     define('MERCHANT_ID', 'TESTSEYLAN124');
@@ -33,8 +37,8 @@ if (APP_LIVE) {
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
 
     define('REDIRECT_URL', 'http://paymentgateway.loc/seylan/status');
-    define('ROBOT_SITE_KEY', '6Le94fErAAAAANqCat3dgugSOr-Twcbs7IHAO2n0');
-    define('ROBOT_SECRET_KEY', '6Le94fErAAAAAAPMTFYNNDk6ZVwm_jaHBBkl6wOT');
+    define('ROBOT_SITE_KEY', '6LfFD_QrAAAAAFN9rh4-zClDQ3jhdDsR7CKtiFNG');
+    define('ROBOT_SECRET_KEY', '6LfFD_QrAAAAAO6IB7_gw_oDuRteZ-M3A7gYWkHr');
 
     
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
