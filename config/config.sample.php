@@ -26,7 +26,7 @@ if (APP_LIVE) {
     define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
-
+    
     define('ROBOT_SITE_KEY', '6LfFD_QrAAAAAFN9rh4-zClDQ3jhdDsR7CKtiFNG');
     define('ROBOT_SECRET_KEY', '6LfFD_QrAAAAAO6IB7_gw_oDuRteZ-M3A7gYWkHr');
 

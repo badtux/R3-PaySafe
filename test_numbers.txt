@@ -52,7 +52,7 @@ merchanrtsales@combank.com
 
 
 
-http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=123&orderId=test11223&description=test
+http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=123&orderId=test112yu7&description=test
 
 
 

@@ -296,4 +296,4 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 
     <?php endif; ?>
 </body>
- -->
+
