@@ -255,66 +255,63 @@ function updateStats(stats) {
 $(document).ready(function () {
   console.log("jQuery initialized for transaction table");
 
-
-  const currentFilters = { page: 1, limit: 5 };
+  // Removed conflicting 'const currentFilters = { page: 1, limit: 5 };' to use the global currentFilters
 
   function updateTable(transactions, total) {
     console.log("Updating table with", transactions.length, "transactions");
 
-$("#transactionTable").html(
-  transactions.length > 0
-    ? transactions
-        .map((t, index) => {
-          const transactionId = t.transactionId || "N/A";
-          const displayId = transactionId.toUpperCase(); // Show full transaction ID
+    $("#transactionTable").html(
+      transactions.length > 0
+        ? transactions
+            .map((t, index) => {
+              const transactionId = t.transactionId || "N/A";
+              const displayId = transactionId.toUpperCase(); // Show full transaction ID
 
-          return `
-<tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
-  <td colspan="8" class=" px-2 py-4">
-    <div class="main-row grid grid-cols-8 gap-4">
-      <span class="flex items-center justify-start break-words">${
-        new Date(t.createdAt).toISOString().split("T")[0]
-      }</span>
-      <span class="flex items-center justify-start break-words">${
-        t.orderId || "N/A"
-      }</span>
-      <span class="flex items-center justify-start break-words">${
-        parseFloat(t.amount || 0).toFixed(2)
-      }</span>
-      <span class="flex items-center justify-start break-words">${
-        t.currency || "N/A"
-      }</span>
-      <span class="flex items-center justify-start break-words truncate max-w-[220px]" title="${
-        t.email || "N/A"
-      }">${t.email || "N/A"}</span>
-      <span class="flex items-center justify-start break-words truncate max-w-[200px]" title="${
-        t.description || "N/A"
-      }">${t.description || "N/A"}</span>
-      <span class="flex items-center justify-start break-words">${
-        t.cardBrand || "N/A"
-      }</span>
-      <span class="flex items-center justify-start">
-        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
-      </span>
-    </div>
-    <div class="expand-content mt-2 text-sm text-gray-700 hidden">
-      <div class="flex flex-row gap-5">
-        <span class="flex items-start justify-start"><strong>Name on Card : </strong> ${
-          t.nameOnCard || "N/A"
-        }</span>
-        <span class="flex items-start justify-start"><strong>Transaction ID :</strong> <span title=" ${transactionId}">${displayId}</span></span>
-      </div>
-    </div>
-  </td>
-</tr>
-`;
-        })
-        .join("")
-    : `<tr><td colspan="8" class="px-5 py-4 text-center">No successful transactions found</td></tr>`
-);
+              return `
+    <tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
+      <td colspan="8" class=" px-2 py-4">
+        <div class="main-row grid grid-cols-8 gap-4">
+          <span class="flex items-center justify-start break-words">${
+            new Date(t.createdAt).toISOString().split("T")[0]
+          }</span>
+          <span class="flex items-center justify-start break-words">${
+            t.orderId || "N/A"
+          }</span>
+          <span class="flex items-center justify-start break-words">${
+            parseFloat(t.amount || 0).toFixed(2)
+          }</span>
+          <span class="flex items-center justify-start break-words">${
+            t.currency || "N/A"
+          }</span>
+          <span class="flex items-center justify-start break-words truncate max-w-[220px]" title="${
+            t.email || "N/A"
+          }">${t.email || "N/A"}</span>
+          <span class="flex items-center justify-start break-words truncate max-w-[200px]" title="${
+            t.description || "N/A"
+          }">${t.description || "N/A"}</span>
+          <span class="flex items-center justify-start break-words">${
+            t.cardBrand || "N/A"
+          }</span>
+          <span class="flex items-center justify-start">
+            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
+          </span>
+        </div>
+        <div class="expand-content mt-2 text-sm text-gray-700 hidden">
+          <div class="flex flex-row gap-5">
+            <span class="flex items-start justify-start"><strong>Name on Card : </strong> ${
+              t.nameOnCard || "N/A"
+            }</span>
+            <span class="flex items-start justify-start"><strong>Transaction ID :</strong> <span title=" ${transactionId}">${displayId}</span></span>
+          </div>
+        </div>
+      </td>
+    </tr>
+    `;
+            })
+            .join("")
+        : `<tr><td colspan="8" class="px-5 py-4 text-center">No successful transactions found</td></tr>`
+    );
 
-
- 
     const start = (currentFilters.page - 1) * currentFilters.limit + 1;
     const end = Math.min(start + currentFilters.limit - 1, total);
     $("#tableInfo").text(`Showing ${start} to ${end} of ${total} entries`);
@@ -327,17 +324,16 @@ $("#transactionTable").html(
       Array.from(
         { length: totalPages },
         (_, i) => `
-        <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
-          currentFilters.page === i + 1
-            ? "bg-primary text-white"
-            : "bg-gray-100 text-gray-700"
-        } rounded-md border border-${
-          currentFilters.page === i + 1 ? "primary" : "gray-300"
-        } hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
-      `
+          <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
+            currentFilters.page === i + 1
+              ? "bg-primary text-white"
+              : "bg-gray-100 text-gray-700"
+          } rounded-md border border-${
+            currentFilters.page === i + 1 ? "primary" : "gray-300"
+          } hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
+        `
       ).join("")
     );
-
 
     $(".expandable-row")
       .off("click")
@@ -346,7 +342,6 @@ $("#transactionTable").html(
         toggleRow(index);
       });
   }
-
 
   function toggleRow(index) {
     const $row = $(`#row-${index}`);
@@ -368,11 +363,11 @@ $("#transactionTable").html(
   // Expose updateTable globally
   window.updateTable = updateTable;
 
-  // Example pagination function
+  // Updated pagination function to use global currentFilters and call loadData()
   window.changePage = function (page) {
+    if (page < 1) return;
     currentFilters.page = page;
-    console.log("Changing to page", page);
-    // You should fetch new transactions from API and call updateTable here
+    loadData();
   };
 });
 
