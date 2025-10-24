@@ -3,9 +3,6 @@ const today = new Date().toISOString().split("T")[0];
 const UNIVERSAL_PASSWORD = "admin@123";
 const IS_LOCAL = window.location.hostname.includes("127.0.0.1");
 
-
-
-
 $(document).ready(() => {
   const hostname = window.location.hostname;
   const tenantFromUrl = window.location.tenent;
