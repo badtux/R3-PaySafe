@@ -7,7 +7,7 @@
   $(document).ready(() => {
     console.log("Environment check - Hostname:", window.location.hostname, "Is Local:", IS_LOCAL);
 
-    // --- Get tenant from hostname or localStorage ---
+   
     let tenantFromUrl = IS_LOCAL 
       ? DEFAULT_TENANT 
       : (window.location.hostname.split(".")[0] === "go" ? "" : window.location.hostname.split(".")[0]);

@@ -1,7 +1,9 @@
- let BASE_URL;
-    const today = new Date().toISOString().split("T")[0];
-    const UNIVERSAL_PASSWORD = "admin@123";
-    const IS_LOCAL = window.location.hostname.includes("127.0.0.1");
+let BASE_URL;
+const today = new Date().toISOString().split("T")[0];
+const UNIVERSAL_PASSWORD = "admin@123";
+const IS_LOCAL = window.location.hostname.includes("127.0.0.1");
+
+
 
 
 $(document).ready(() => {
@@ -11,18 +13,15 @@ $(document).ready(() => {
   const savedTheme = localStorage.getItem("theme") || "light";
   const savedItemsPerPage = localStorage.getItem("itemsPerPage") || "10";
 
+  console.log("Hostname:", hostname, "IS_LOCAL:", IS_LOCAL, "Tenant:", tenant);
 
-  console.log( "Hostname:", hostname, "IS_LOCAL:", IS_LOCAL,  "Tenant:",    tenant   );
-  
   applyTheme(savedTheme);
- currentFilters.limit = parseInt(savedItemsPerPage);
+  currentFilters.limit = parseInt(savedItemsPerPage);
 
   $("#themeToggle i")
     .removeClass("fa-sun fa-moon")
     .addClass(savedTheme === "dark" ? "fa-moon" : "fa-sun");
   $("#itemsPerPage").val(savedItemsPerPage);
-
-
 
   if (checkAuth()) {
     const tenant = localStorage.getItem("tenant");
@@ -66,80 +65,96 @@ $(document).ready(() => {
     const tenantData = await fetchTenantGateways(tenant);
     showGatewayModal(tenantData, tenant);
   });
-});
 
-
-    function applyTheme(theme) {
-      if (theme === "dark") {
-        $("#body").addClass("bg-gray-800 text-white");
-        $(".bg-white").addClass("bg-gray-900").removeClass("bg-white");
-        $(".text-gray-700").addClass("text-gray-200").removeClass("text-gray-700");
-        $(".bg-gray-50").addClass("bg-gray-700").removeClass("bg-gray-50");
-        $(".border-gray-200").addClass("border-gray-600").removeClass("border-gray-200");
-        $(".text-gray-500").addClass("text-gray-300").removeClass("text-gray-500");
-        $(".bg-gray-100").addClass("bg-gray-600").removeClass("bg-gray-100");
-        $(".hover\\:bg-gray-100").addClass("hover:bg-gray-500").removeClass("hover:bg-gray-100");
-        $("#footerText").addClass("text-gray-300").removeClass("text-gray-500");
-        $("#activeGatewaysDisplay span").addClass("bg-gray-700").removeClass("bg-gray-200");
-      } else {
-        $("#body").removeClass("bg-gray-800 text-white");
-        $(".bg-gray-900").addClass("bg-white").removeClass("bg-gray-900");
-        $(".text-gray-200").addClass("text-gray-700").removeClass("text-gray-200");
-        $(".bg-gray-700").addClass("bg-gray-50").removeClass("bg-gray-700");
-        $(".border-gray-600").addClass("border-gray-200").removeClass("border-gray-600");
-        $(".text-gray-300").addClass("text-gray-500").removeClass("text-gray-300");
-        $(".bg-gray-600").addClass("bg-gray-100").removeClass("bg-gray-600");
-        $(".hover\\:bg-gray-500").addClass("hover:bg-gray-100").removeClass("hover:bg-gray-500");
-        $("#footerText").addClass("text-gray-500").removeClass("text-gray-300");
-        $("#activeGatewaysDisplay span").addClass("bg-gray-200").removeClass("bg-gray-700");
-      }
-    }
-
-    function checkAuth() {
-      return localStorage.getItem("isAuthenticated") === "true";
-    }
-
-    function logout() {
-      localStorage.removeItem("isAuthenticated");
-      localStorage.removeItem("tenant");
-      window.location.href = "login.html";
-    }
-
-    let currentFilters = {
-      from: "",
-      to: "",
-      status: "SUCCESS",
-      search: "",
-      page: 1,
-      limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
-    };
-
-    function setupEventListeners() {
-      $("#applyFilters").on("click", applyFilters);
-      $("#resetFilters").on("click", resetFilters);
-      $("#prevPage").on("click", () => changePage(currentFilters.page - 1));
-      $("#nextPage").on("click", () => changePage(currentFilters.page + 1));
-      $("#itemsPerPage").on("change", (e) => {
-        const limit = parseInt($(e.target).val());
-        localStorage.setItem("itemsPerPage", limit);
-        currentFilters.limit = limit;
-        currentFilters.page = 1;
-        loadData();
+   $("#toggleFilter").click(function () {
+        $("#filterSection").toggleClass("show");
       });
-      $("#exportData").on("click", exportToCSV);
-    }
+    });
 
-    async function checkHealth() {
-      try {
-        const url = `${BASE_URL}/transactions`;
-        console.log("Checking health at:", url);
-        const response = await $.ajax({
-          url: url,
-          method: "GET",
-        });
-        console.log("Health check:", response);
-        if (!response.collectionExists || response.documentCount === 0) {
-          $("#transactionTable").html(`
+
+function applyTheme(theme) {
+  if (theme === "dark") {
+    $("#body").addClass("bg-gray-800 text-white");
+    $(".bg-white").addClass("bg-gray-900").removeClass("bg-white");
+    $(".text-gray-700").addClass("text-gray-200").removeClass("text-gray-700");
+    $(".bg-gray-50").addClass("bg-gray-700").removeClass("bg-gray-50");
+    $(".border-gray-200")
+      .addClass("border-gray-600")
+      .removeClass("border-gray-200");
+    $(".text-gray-500").addClass("text-gray-300").removeClass("text-gray-500");
+    $(".bg-gray-100").addClass("bg-gray-600").removeClass("bg-gray-100");
+    $(".hover\\:bg-gray-100")
+      .addClass("hover:bg-gray-500")
+      .removeClass("hover:bg-gray-100");
+    $("#footerText").addClass("text-gray-300").removeClass("text-gray-500");
+    $("#activeGatewaysDisplay span")
+      .addClass("bg-gray-700")
+      .removeClass("bg-gray-200");
+  } else {
+    $("#body").removeClass("bg-gray-800 text-white");
+    $(".bg-gray-900").addClass("bg-white").removeClass("bg-gray-900");
+    $(".text-gray-200").addClass("text-gray-700").removeClass("text-gray-200");
+    $(".bg-gray-700").addClass("bg-gray-50").removeClass("bg-gray-700");
+    $(".border-gray-600")
+      .addClass("border-gray-200")
+      .removeClass("border-gray-600");
+    $(".text-gray-300").addClass("text-gray-500").removeClass("text-gray-300");
+    $(".bg-gray-600").addClass("bg-gray-100").removeClass("bg-gray-600");
+    $(".hover\\:bg-gray-500")
+      .addClass("hover:bg-gray-100")
+      .removeClass("hover:bg-gray-500");
+    $("#footerText").addClass("text-gray-500").removeClass("text-gray-300");
+    $("#activeGatewaysDisplay span")
+      .addClass("bg-gray-200")
+      .removeClass("bg-gray-700");
+  }
+}
+
+function checkAuth() {
+  return localStorage.getItem("isAuthenticated") === "true";
+}
+
+function logout() {
+  localStorage.removeItem("isAuthenticated");
+  localStorage.removeItem("tenant");
+  window.location.href = "login.html";
+}
+
+let currentFilters = {
+  from: "",
+  to: "",
+  status: "SUCCESS",
+  search: "",
+  page: 1,
+  limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
+};
+
+function setupEventListeners() {
+  $("#applyFilters").on("click", applyFilters);
+  $("#resetFilters").on("click", resetFilters);
+  $("#prevPage").on("click", () => changePage(currentFilters.page - 1));
+  $("#nextPage").on("click", () => changePage(currentFilters.page + 1));
+  $("#itemsPerPage").on("change", (e) => {
+    const limit = parseInt($(e.target).val());
+    localStorage.setItem("itemsPerPage", limit);
+    currentFilters.limit = limit;
+    currentFilters.page = 1;
+    loadData();
+  });
+  $("#exportData").on("click", exportToCSV);
+}
+
+async function checkHealth() {
+  try {
+    const url = `${BASE_URL}/transactions`;
+    console.log("Checking health at:", url);
+    const response = await $.ajax({
+      url: url,
+      method: "GET",
+    });
+    console.log("Health check:", response);
+    if (!response.collectionExists || response.documentCount === 0) {
+      $("#transactionTable").html(`
             <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">
               ${
                 response.collectionExists
@@ -148,79 +163,79 @@ $(document).ready(() => {
               }
             </td></tr>
           `);
-        }
-      } catch (error) {
-        console.error("Health check failed:", error);
-        $("#transactionTable").html(`
+    }
+  } catch (error) {
+    console.error("Health check failed:", error);
+    $("#transactionTable").html(`
           <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to connect to server. Please check if the backend is running.</td></tr>
         `);
+  }
+}
+
+async function loadData() {
+  try {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(currentFilters)) {
+      if (value !== undefined && value !== "") {
+        params.append(key, value);
       }
     }
-
-    async function loadData() {
-      try {
-        const params = new URLSearchParams();
-        for (const [key, value] of Object.entries(currentFilters)) {
-          if (value !== undefined && value !== "") {
-            params.append(key, value);
-          }
-        }
-        params.set("status", "SUCCESS");
-        const url = `${BASE_URL}/payments?${params}`;
-        console.log("Fetching data from:", url);
-        const response = await $.ajax({
-          url: url,
-          method: "GET",
-        });
-        console.log("Fetched data:", response);
-        updateStats(response.stats);
-        updateTable(response.transactions, response.total);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        $("#transactionTable").html(`
+    params.set("status", "SUCCESS");
+    const url = `${BASE_URL}/payments?${params}`;
+    console.log("Fetching data from:", url);
+    const response = await $.ajax({
+      url: url,
+      method: "GET",
+    });
+    console.log("Fetched data:", response);
+    updateStats(response.stats);
+    updateTable(response.transactions, response.total);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    $("#transactionTable").html(`
           <tr><td colspan="11" class="px-5 py-4 text-center text-red-500">Failed to load transactions. Please try again later.</td></tr>
         `);
-      }
-    }
+  }
+}
 
-    function applyFilters() {
-      const fromDate = $("#fromDate").val() || today;
-      const toDate = $("#toDate").val() || today;
-      const searchQuery = $("#searchQuery").val().toLowerCase();
-      console.log("Applying filters:", {
-        fromDate,
-        toDate,
-        status: "SUCCESS",
-        searchQuery,
-      });
-      currentFilters.from = fromDate;
-      currentFilters.to = toDate;
-      currentFilters.status = "SUCCESS";
-      currentFilters.search = searchQuery || undefined;
-      currentFilters.page = 1;
-      loadData();
-    }
+function applyFilters() {
+  const fromDate = $("#fromDate").val() || today;
+  const toDate = $("#toDate").val() || today;
+  const searchQuery = $("#searchQuery").val().toLowerCase();
+  console.log("Applying filters:", {
+    fromDate,
+    toDate,
+    status: "SUCCESS",
+    searchQuery,
+  });
+  currentFilters.from = fromDate;
+  currentFilters.to = toDate;
+  currentFilters.status = "SUCCESS";
+  currentFilters.search = searchQuery || undefined;
+  currentFilters.page = 1;
+  loadData();
+}
 
-    function resetFilters() {
-      $("#fromDate").val("");
-      $("#toDate").val("");
-      $("#transactionType").val("SUCCESS");
-      $("#searchQuery").val("");
-      $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
-      currentFilters = {
-        from: "",
-        to: "",
-        status: "SUCCESS",
-        search: "",
-        page: 1,
-        limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
-      };
-      console.log("Filters reset");
-      loadData();
-    }
+function resetFilters() {
+  $("#fromDate").val("");
+  $("#toDate").val("");
+  $("#transactionType").val("SUCCESS");
+  $("#searchQuery").val("");
+  $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
+  currentFilters = {
+    from: "",
+    to: "",
+    status: "SUCCESS",
+    search: "",
+    page: 1,
+    limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
+  };
+  console.log("Filters reset");
+  loadData();
+}
 
-    function updateStats(stats) {
-      $("#statsCards").html(`
+function updateStats(stats) {
+  $("#statsCards").html(`
         <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
           <div class="text-3xl font-bold">${stats.totalTransactions}</div>
           <div class="text-sm opacity-90 mt-1">Total Transactions</div>
@@ -238,155 +253,209 @@ $(document).ready(() => {
           <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
         </div>
       `);
+}
+
+$(document).ready(function () {
+  console.log("jQuery initialized for transaction table");
+
+
+  const currentFilters = { page: 1, limit: 5 };
+
+  function updateTable(transactions, total) {
+    console.log("Updating table with", transactions.length, "transactions");
+
+$("#transactionTable").html(
+  transactions.length > 0
+    ? transactions
+        .map((t, index) => {
+          const transactionId = t.transactionId || "N/A";
+          const displayId = transactionId.toUpperCase(); // Show full transaction ID
+
+          return `
+<tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
+  <td colspan="8" class=" px-2 py-4">
+    <div class="main-row grid grid-cols-8 gap-4">
+      <span class="flex items-center justify-start break-words">${
+        new Date(t.createdAt).toISOString().split("T")[0]
+      }</span>
+      <span class="flex items-center justify-start break-words">${
+        t.orderId || "N/A"
+      }</span>
+      <span class="flex items-center justify-start break-words">${
+        parseFloat(t.amount || 0).toFixed(2)
+      }</span>
+      <span class="flex items-center justify-start break-words">${
+        t.currency || "N/A"
+      }</span>
+      <span class="flex items-center justify-start break-words truncate max-w-[220px]" title="${
+        t.email || "N/A"
+      }">${t.email || "N/A"}</span>
+      <span class="flex items-center justify-start break-words truncate max-w-[200px]" title="${
+        t.description || "N/A"
+      }">${t.description || "N/A"}</span>
+      <span class="flex items-center justify-start break-words">${
+        t.cardBrand || "N/A"
+      }</span>
+      <span class="flex items-center justify-start">
+        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
+      </span>
+    </div>
+    <div class="expand-content mt-2 text-sm text-gray-700 hidden">
+      <div class="flex flex-row gap-5">
+        <span class="flex items-start justify-start"><strong>Name on Card : </strong> ${
+          t.nameOnCard || "N/A"
+        }</span>
+        <span class="flex items-start justify-start"><strong>Transaction ID :</strong> <span title=" ${transactionId}">${displayId}</span></span>
+      </div>
+    </div>
+  </td>
+</tr>
+`;
+        })
+        .join("")
+    : `<tr><td colspan="8" class="px-5 py-4 text-center">No successful transactions found</td></tr>`
+);
+
+
+ 
+    const start = (currentFilters.page - 1) * currentFilters.limit + 1;
+    const end = Math.min(start + currentFilters.limit - 1, total);
+    $("#tableInfo").text(`Showing ${start} to ${end} of ${total} entries`);
+
+    const totalPages = Math.ceil(total / currentFilters.limit);
+    $("#prevPage").prop("disabled", currentFilters.page === 1);
+    $("#nextPage").prop("disabled", currentFilters.page === totalPages);
+
+    $("#pageButtons").html(
+      Array.from(
+        { length: totalPages },
+        (_, i) => `
+        <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
+          currentFilters.page === i + 1
+            ? "bg-primary text-white"
+            : "bg-gray-100 text-gray-700"
+        } rounded-md border border-${
+          currentFilters.page === i + 1 ? "primary" : "gray-300"
+        } hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
+      `
+      ).join("")
+    );
+
+
+    $(".expandable-row")
+      .off("click")
+      .on("click", function () {
+        const index = $(this).attr("id").split("-")[1];
+        toggleRow(index);
+      });
+  }
+
+
+  function toggleRow(index) {
+    const $row = $(`#row-${index}`);
+    const $expandContent = $row.find(".expand-content");
+
+    // Close other expanded rows
+    $(".expand-content").not($expandContent).slideUp(200).addClass("hidden");
+
+    // Toggle this row
+    if ($expandContent.hasClass("hidden")) {
+      $expandContent.removeClass("hidden").slideDown(200);
+    } else {
+      $expandContent.slideUp(200, function () {
+        $expandContent.addClass("hidden");
+      });
     }
+  }
 
-    function updateTable(transactions, total) {
-      $("#transactionTable").html(
-        transactions.length > 0
-          ? transactions
-              .map((t) => {
-                const transactionId = t.transactionId || "N/A";
-                const displayId =
-                  transactionId === "N/A"
-                    ? "N/A"
-                    : transactionId.length > 8
-                    ? transactionId.slice(0, 4).toUpperCase() +
-                      "..." +
-                      transactionId.slice(-4).toUpperCase()
-                    : transactionId.toUpperCase();
-                return `
-            <tr class="hover:bg-gray-400">
-              <td class="px-5 py-4">${
-                new Date(t.createdAt).toISOString().split("T")[0]
-              }</td>
-              <td class="px-5 py-4">${t.merchantId || "N/A"}</td>
-              <td class="px-5 py-4">${t.orderId || "N/A"}</td>
-              <td class="px-5 py-4">${parseFloat(t.amount || 0).toFixed(2)}</td>
-              <td class="px-5 py-4">${t.currency || "N/A"}</td>
-              <td class="px-5 py-4">${t.email || "N/A"}</td>
-              <td class="px-5 py-4">${t.description || "N/A"}</td>
-              <td class="px-5 py-4">${t.cardBrand || "N/A"}</td>
-              <td class="px-5 py-4">${t.nameOnCard || "N/A"}</td>
-              <td class="px-5 py-4 relative">
-                <span class="cursor-pointer group" title="${transactionId}">${displayId}</span>
-              </td>
-              <td class="px-5 py-4">
-                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
-              </td>
-            </tr>
-          `;
-              })
-              .join("")
-          : `
-          <tr><td colspan="11" class="px-5 py-4 text-center">No successful transactions found</td></tr>
-        `
-      );
+  // Expose updateTable globally
+  window.updateTable = updateTable;
 
-      const start = (currentFilters.page - 1) * currentFilters.limit + 1;
-      const end = Math.min(start + currentFilters.limit - 1, total);
-      $("#tableInfo").text(`Showing ${start} to ${end} of ${total} entries`);
+  // Example pagination function
+  window.changePage = function (page) {
+    currentFilters.page = page;
+    console.log("Changing to page", page);
+    // You should fetch new transactions from API and call updateTable here
+  };
+});
 
-      const totalPages = Math.ceil(total / currentFilters.limit);
-      $("#prevPage").prop("disabled", currentFilters.page === 1);
-      $("#nextPage").prop("disabled", currentFilters.page === totalPages);
+function changePage(page) {
+  if (page < 1) return;
+  currentFilters.page = page;
+  loadData();
+}
 
-      $("#pageButtons").html(
-        Array.from(
-          {
-            length: totalPages,
-          },
-          (_, i) => `
-          <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
-            currentFilters.page === i + 1
-              ? "bg-primary text-white"
-              : "bg-gray-100 text-gray-700"
-          } rounded-md border border-${
-              currentFilters.page === i + 1 ? "primary" : "gray-300"
-            } hover:bg-gray-200" onclick="changePage(${i + 1})">${
-              i + 1
-            }</button>
-        `
-        ).join("")
-      );
-    }
-
-    function changePage(page) {
-      if (page < 1) return;
-      currentFilters.page = page;
-      loadData();
-    }
-
-    async function exportToCSV() {
-      try {
-        const params = new URLSearchParams();
-        ["from", "to", "search"].forEach((key) => {
-          const value = currentFilters[key];
-          if (value !== undefined && value !== "") {
-            params.append(key, value);
-          }
-        });
-        params.append("status", "SUCCESS");
-        const url = `${BASE_URL}/payments/export?${params}`;
-        console.log("Exporting data from:", url);
-        const response = await $.ajax({
-          url: url,
-          method: "GET",
-        });
-        const headers = [
-          "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status",
-        ];
-        const rows = response.map(
-          (t) =>
-            `"${new Date(t.createdAt).toISOString().split("T")[0]}","${
-              t.merchantId || "N/A"
-            }","${t.orderId || "N/A"}",${parseFloat(t.amount || 0).toFixed(
-              2
-            )},"${t.currency || "N/A"}","${t.email || "N/A"}","${
-              t.description || "N/A"
-            }","${t.cardBrand || "N/A"}","${t.nameOnCard || "N/A"}","SUCCESS"`
-        );
-        const csv = [...headers, ...rows].join("\n");
-        const blob = new Blob([csv], { type: "text/csv" });
-        const urlObj = URL.createObjectURL(blob);
-        const $a = $("<a>", {
-          href: urlObj,
-          download: "successful_transactions.csv",
-        }).appendTo("body");
-        $a[0].click();
-        URL.revokeObjectURL(urlObj);
-        $a.remove();
-      } catch (error) {
-        console.error("Error exporting data:", error);
-        alert("Failed to export data. Please try again.");
+async function exportToCSV() {
+  try {
+    const params = new URLSearchParams();
+    ["from", "to", "search"].forEach((key) => {
+      const value = currentFilters[key];
+      if (value !== undefined && value !== "") {
+        params.append(key, value);
       }
-    }
+    });
+    params.append("status", "SUCCESS");
+    const url = `${BASE_URL}/payments/export?${params}`;
+    console.log("Exporting data from:", url);
+    const response = await $.ajax({
+      url: url,
+      method: "GET",
+    });
+    const headers = [
+      "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status",
+    ];
+    const rows = response.map(
+      (t) =>
+        `"${new Date(t.createdAt).toISOString().split("T")[0]}","${
+          t.merchantId || "N/A"
+        }","${t.orderId || "N/A"}",${parseFloat(t.amount || 0).toFixed(2)},"${
+          t.currency || "N/A"
+        }","${t.email || "N/A"}","${t.description || "N/A"}","${
+          t.cardBrand || "N/A"
+        }","${t.nameOnCard || "N/A"}","SUCCESS"`
+    );
+    const csv = [...headers, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const urlObj = URL.createObjectURL(blob);
+    const $a = $("<a>", {
+      href: urlObj,
+      download: "successful_transactions.csv",
+    }).appendTo("body");
+    $a[0].click();
+    URL.revokeObjectURL(urlObj);
+    $a.remove();
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    alert("Failed to export data. Please try again.");
+  }
+}
 
-    function displayActiveGateways(data) {
-      const activeGateways = data.activeGateways || {};
-      const container = $("#activeGatewaysDisplay");
-      container.empty().data("activeGateways", activeGateways); 
-      if (!activeGateways || Object.keys(activeGateways).length === 0) return;
+function displayActiveGateways(data) {
+  const activeGateways = data.activeGateways || {};
+  const container = $("#activeGatewaysDisplay");
+  container.empty().data("activeGateways", activeGateways);
+  if (!activeGateways || Object.keys(activeGateways).length === 0) return;
 
-      const currentTheme = localStorage.getItem("theme") || "light";
-      const bgClass = currentTheme === "dark" ? "bg-gray-700" : "bg-gray-200";
-      const textClass = currentTheme === "dark" ? "text-gray-200" : "text-gray-700";
+  const currentTheme = localStorage.getItem("theme") || "light";
+  const bgClass = currentTheme === "dark" ? "bg-gray-700" : "bg-gray-200";
+  const textClass = currentTheme === "dark" ? "text-gray-200" : "text-gray-700";
 
-      for (const [card, gateway] of Object.entries(activeGateways)) {
-        const icon = card === "visa/master" ? "💳" : "🟡";
-        const displayName =
-          card === "visa/master"
-            ? `Master - ${gateway.name}`
-            : `Amex - ${gateway.name}`;
-        container.append(`
+  for (const [card, gateway] of Object.entries(activeGateways)) {
+    const icon = card === "visa/master" ? "💳" : "🟡";
+    const displayName =
+      card === "visa/master"
+        ? `Master - ${gateway.name}`
+        : `Amex - ${gateway.name}`;
+    container.append(`
       <span class="px-3 py-1 sm:px-2 sm:py-0.5 ${bgClass} ${textClass} rounded flex items-center space-x-2 sm:space-x-1 text-sm sm:text-xs">
         <span>${icon}</span>
         <span class="truncate">${displayName}</span>
       </span>
     `);
-      }
-    }
+  }
+}
 
-   function showGatewayModal(tenantData, tenant) {
+function showGatewayModal(tenantData, tenant) {
   const { allGateways = {}, activeGateways = {} } = tenantData;
 
   let modalContent = '<div class="flex flex-col space-y-3">';
@@ -436,8 +505,10 @@ $(document).ready(() => {
         data: JSON.stringify({ gateways: updatedActiveGateways }),
         success: function (result) {
           if (result.success) {
-            console.log(this.url); 
-            displayActiveGateways({ activeGateways: result.data.activeGateways });
+            console.log(this.url);
+            displayActiveGateways({
+              activeGateways: result.data.activeGateways,
+            });
             showToast("✅ Gateways updated successfully!", "success");
           } else {
             showToast("❌ Failed to update gateways", "error");
@@ -448,7 +519,7 @@ $(document).ready(() => {
           showToast("❌ Error updating gateways", "error");
         },
         complete: function () {
-          const activateBtn = $("#activateGateways"); 
+          const activateBtn = $("#activateGateways");
           activateBtn.prop("disabled", false).text("Activate");
           $("#topupModal").addClass("hidden");
         },
@@ -466,7 +537,8 @@ function fetchTenantGateways(tenant) {
     method: "GET",
   })
     .then((data) => {
-      if (!data.success || !data.data) return { allGateways: {}, activeGateways: {} };
+      if (!data.success || !data.data)
+        return { allGateways: {}, activeGateways: {} };
       return {
         allGateways: data.data.allGateways || {},
         activeGateways: data.data.activeGateways || {},
@@ -495,4 +567,4 @@ function showToast(message, type = "info") {
   setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
 }
 
-  $("#footerText").text("© 2025 Digitable.IO Plutos");
+$("#footerText").text("© 2025 Digitable.IO Plutos");
