@@ -1,6 +1,4 @@
-
 const { getPaymentCollection } = require('../models/Payment');
-
 
 function extractTenant(hostname) {
     const tenant = hostname.split('.')[0];
@@ -9,7 +7,6 @@ function extractTenant(hostname) {
     }
     return tenant;
 }
-
 
 async function checkHealth(hostname) {
     const tenant = extractTenant(hostname);
@@ -29,10 +26,9 @@ async function checkHealth(hostname) {
     };
 }
 
-
 async function fetchPayments(hostname, query) {
     const tenant = extractTenant(hostname);
-    const { from, to, status, search, page = 1, limit = 10 } = query;
+    const { from, to, status, search, page = 1, limit = 10, sort = "createdAt:-1" } = query;
 
     let filter = {};
 
@@ -57,7 +53,20 @@ async function fetchPayments(hostname, query) {
     const collection = await getPaymentCollection(tenant);
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const transactions = await collection.find(filter).skip(skip).limit(parseInt(limit)).toArray();
+    let sortOption = { createdAt: -1 }; // Default sort
+    if (sort) {
+        const [field, direction] = sort.split(':');
+        if (field && ['1', '-1'].includes(direction)) {
+            sortOption = { [field]: parseInt(direction) };
+        }
+    }
+
+    const transactions = await collection
+        .find(filter)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .toArray();
     const total = await collection.countDocuments(filter);
     const successful = await collection.countDocuments({ ...filter, paymentStatus: 'SUCCESS' });
 
@@ -83,10 +92,9 @@ async function fetchPayments(hostname, query) {
     return { transactions, total, stats };
 }
 
-
 async function exportPayments(hostname, query) {
     const tenant = extractTenant(hostname);
-    const { from, to, status, search } = query;
+    const { from, to, status, search, sort = "createdAt:-1" } = query;
 
     let filter = {};
 
@@ -109,7 +117,16 @@ async function exportPayments(hostname, query) {
     }
 
     const collection = await getPaymentCollection(tenant);
-    const transactions = await collection.find(filter).toArray();
+    let queryBuilder = collection.find(filter);
+    if (sort) {
+        const [field, direction] = sort.split(':');
+        if (field && ['1', '-1'].includes(direction)) {
+            queryBuilder = queryBuilder.sort({ [field]: parseInt(direction) });
+        } else {
+            queryBuilder = queryBuilder.sort({ createdAt: -1 });
+        }
+    }
+    const transactions = await queryBuilder.toArray();
     return transactions;
 }
 

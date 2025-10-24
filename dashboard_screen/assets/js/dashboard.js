@@ -1,5 +1,5 @@
 let BASE_URL;
-const today = new Date().toISOString().split("T")[0];
+const today = new Date().toISOString().split("T")[0]; // e.g., "2025-10-24"
 const UNIVERSAL_PASSWORD = "admin@123";
 const IS_LOCAL = window.location.hostname.includes("127.0.0.1");
 
@@ -123,6 +123,7 @@ let currentFilters = {
   search: "",
   page: 1,
   limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
+  sort: "createdAt:-1" // Sort newest first
 };
 
 function setupEventListeners() {
@@ -177,6 +178,7 @@ async function loadData() {
       }
     }
     params.set("status", "SUCCESS");
+    params.set("sort", "createdAt:-1"); // Ensure sort is always applied
     const url = `${BASE_URL}/payments?${params}`;
     console.log("Fetching data from:", url);
     const response = await $.ajax({
@@ -195,19 +197,21 @@ async function loadData() {
 }
 
 function applyFilters() {
-  const fromDate = $("#fromDate").val() || today;
-  const toDate = $("#toDate").val() || today;
+  const fromDate = $("#fromDate").val();
+  const toDate = $("#toDate").val();
   const searchQuery = $("#searchQuery").val().toLowerCase();
   console.log("Applying filters:", {
     fromDate,
     toDate,
     status: "SUCCESS",
     searchQuery,
+    sort: "createdAt:-1"
   });
-  currentFilters.from = fromDate;
-  currentFilters.to = toDate;
+  currentFilters.from = fromDate || "";
+  currentFilters.to = toDate || "";
   currentFilters.status = "SUCCESS";
-  currentFilters.search = searchQuery || undefined;
+  currentFilters.search = searchQuery || "";
+  currentFilters.sort = "createdAt:-1";
   currentFilters.page = 1;
   loadData();
 }
@@ -225,6 +229,7 @@ function resetFilters() {
     search: "",
     page: 1,
     limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
+    sort: "createdAt:-1"
   };
   console.log("Filters reset");
   loadData();
@@ -317,27 +322,23 @@ $(document).ready(function () {
     $("#prevPage").prop("disabled", currentFilters.page === 1);
     $("#nextPage").prop("disabled", currentFilters.page === totalPages);
 
-    // Limit the number of page buttons (e.g., show 5 pages at a time)
     const maxButtons = 5;
     const halfButtons = Math.floor(maxButtons / 2);
     let startPage = Math.max(1, currentFilters.page - halfButtons);
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
 
-    // Adjust startPage if endPage is at the maximum
     if (endPage === totalPages) {
       startPage = Math.max(1, endPage - maxButtons + 1);
     }
 
     const pageButtons = [];
 
-    // Add ellipsis for pages before if startPage > 2
     if (startPage > 2) {
       pageButtons.push(`
         <span class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-700">...</span>
       `);
     }
 
-    // Generate page buttons for the range
     for (let i = startPage; i <= endPage; i++) {
       pageButtons.push(`
         <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
@@ -350,7 +351,6 @@ $(document).ready(function () {
       `);
     }
 
-    // Add ellipsis for pages after if endPage < totalPages
     if (endPage < totalPages) {
       pageButtons.push(`
         <span class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-700">...</span>
@@ -371,10 +371,8 @@ $(document).ready(function () {
     const $row = $(`#row-${index}`);
     const $expandContent = $row.find(".expand-content");
 
-    // Close other expanded rows
     $(".expand-content").not($expandContent).slideUp(200).addClass("hidden");
 
-    // Toggle this row
     if ($expandContent.hasClass("hidden")) {
       $expandContent.removeClass("hidden").slideDown(200);
     } else {
@@ -384,10 +382,8 @@ $(document).ready(function () {
     }
   }
 
-  // Expose updateTable globally
   window.updateTable = updateTable;
 
-  // Pagination function
   window.changePage = function (page) {
     if (page < 1) return;
     currentFilters.page = page;
@@ -404,7 +400,7 @@ function changePage(page) {
 async function exportToCSV() {
   try {
     const params = new URLSearchParams();
-    ["from", "to", "search"].forEach((key) => {
+    ["from", "to", "search", "sort"].forEach((key) => {
       const value = currentFilters[key];
       if (value !== undefined && value !== "") {
         params.append(key, value);
