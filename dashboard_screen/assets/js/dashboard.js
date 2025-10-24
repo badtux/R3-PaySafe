@@ -63,11 +63,10 @@ $(document).ready(() => {
     showGatewayModal(tenantData, tenant);
   });
 
-   $("#toggleFilter").click(function () {
-        $("#filterSection").toggleClass("show");
-      });
-    });
-
+  $("#toggleFilter").click(function () {
+    $("#filterSection").toggleClass("show");
+  });
+});
 
 function applyTheme(theme) {
   if (theme === "dark") {
@@ -255,8 +254,6 @@ function updateStats(stats) {
 $(document).ready(function () {
   console.log("jQuery initialized for transaction table");
 
-  // Removed conflicting 'const currentFilters = { page: 1, limit: 5 };' to use the global currentFilters
-
   function updateTable(transactions, total) {
     console.log("Updating table with", transactions.length, "transactions");
 
@@ -265,7 +262,7 @@ $(document).ready(function () {
         ? transactions
             .map((t, index) => {
               const transactionId = t.transactionId || "N/A";
-              const displayId = transactionId.toUpperCase(); // Show full transaction ID
+              const displayId = transactionId.toUpperCase();
 
               return `
     <tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
@@ -320,20 +317,47 @@ $(document).ready(function () {
     $("#prevPage").prop("disabled", currentFilters.page === 1);
     $("#nextPage").prop("disabled", currentFilters.page === totalPages);
 
-    $("#pageButtons").html(
-      Array.from(
-        { length: totalPages },
-        (_, i) => `
-          <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
-            currentFilters.page === i + 1
-              ? "bg-primary text-white"
-              : "bg-gray-100 text-gray-700"
-          } rounded-md border border-${
-            currentFilters.page === i + 1 ? "primary" : "gray-300"
-          } hover:bg-gray-200" onclick="changePage(${i + 1})">${i + 1}</button>
-        `
-      ).join("")
-    );
+    // Limit the number of page buttons (e.g., show 5 pages at a time)
+    const maxButtons = 5;
+    const halfButtons = Math.floor(maxButtons / 2);
+    let startPage = Math.max(1, currentFilters.page - halfButtons);
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+    // Adjust startPage if endPage is at the maximum
+    if (endPage === totalPages) {
+      startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    const pageButtons = [];
+
+    // Add ellipsis for pages before if startPage > 2
+    if (startPage > 2) {
+      pageButtons.push(`
+        <span class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-700">...</span>
+      `);
+    }
+
+    // Generate page buttons for the range
+    for (let i = startPage; i <= endPage; i++) {
+      pageButtons.push(`
+        <button class="flex items-center justify-center px-3 py-1.5 text-sm ${
+          currentFilters.page === i
+            ? "bg-primary text-white"
+            : "bg-gray-100 text-gray-700"
+        } rounded-md border border-${
+          currentFilters.page === i ? "primary" : "gray-300"
+        } hover:bg-gray-200" onclick="changePage(${i})">${i}</button>
+      `);
+    }
+
+    // Add ellipsis for pages after if endPage < totalPages
+    if (endPage < totalPages) {
+      pageButtons.push(`
+        <span class="flex items-center justify-center px-3 py-1.5 text-sm text-gray-700">...</span>
+      `);
+    }
+
+    $("#pageButtons").html(pageButtons.join(""));
 
     $(".expandable-row")
       .off("click")
@@ -363,7 +387,7 @@ $(document).ready(function () {
   // Expose updateTable globally
   window.updateTable = updateTable;
 
-  // Updated pagination function to use global currentFilters and call loadData()
+  // Pagination function
   window.changePage = function (page) {
     if (page < 1) return;
     currentFilters.page = page;
