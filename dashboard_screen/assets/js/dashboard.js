@@ -270,65 +270,79 @@ $(document).ready(function () {
               const displayId = transactionId.toUpperCase();
 
               return `
-  <tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
+<tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
     <td colspan="8" class="px-2 py-4">
       <div class="main-row grid grid-cols-8 gap-4">
-        <span class="flex items-center justify-start break-words">
+        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)]  break-words">
           ${new Date(t.createdAt).toISOString().split("T")[0]}
         </span>
-        <span class="flex items-center justify-start break-words">
+        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)] break-words">
           ${t.orderId || "N/A"}
         </span>
-        <span class="flex items-center justify-start break-words">
+        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)] break-words">
           ${parseFloat(t.amount || 0).toFixed(2)}
         </span>
-        <span class="flex items-center justify-start break-words">
+        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)]  break-words">
           ${t.currency || "N/A"}
         </span>
-        <span class="flex items-center justify-start break-words truncate max-w-[220px]" title="${t.email || "N/A"}">
+        <span class="flex items-center justify-start break-words  text-[clamp(6px,2vw,15px)] truncate max-w-[220px]" title="${
+          t.email || "N/A"
+        }">
           ${t.email || "N/A"}
         </span>
-        <span class="flex items-center justify-start break-words truncate max-w-[200px]" title="${t.description || "N/A"}">
-          ${t.description || "N/A"}
+        <span class="flex items-center justify-start break-words text-[clamp(6px,2vw,15px)] truncate max-w-[200px]" title="${
+          t.description || "N/A"
+        }">
+         
+              ${t.cardNumber ? "  **** " + t.cardNumber.slice(-4) : "N/A"}
         </span>
-        <span class="flex items-center justify-start break-words">
+        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)] break-words">
           ${t.cardBrand || "N/A"}
         </span>
-        <span class="flex items-center justify-start break-words">
+        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)]  break-words">
           ${(() => {
             const status = t.paymentStatus?.toUpperCase() || "N/A";
             let colorClass = "";
 
             switch (status) {
               case "SUCCESS":
-                colorClass = "bg-green-100 text-green-800";
+                colorClass = "bg-green-500 text-[clamp(6px,2vw,15px)] ";
                 break;
               case "FAILED":
               case "ERROR":
-                colorClass = "bg-red-100 text-red-800";
+                colorClass = "bg-red-100 text-[clamp(6px,2vw,15px)]  text-red-800";
                 break;
               case "PENDING":
-                colorClass = "bg-yellow-100 text-yellow-800";
+                colorClass = "bg-yellow-100 text-[clamp(6px,2vw,15px)]  text-yellow-800";
                 break;
               default:
-                colorClass = "bg-gray-100 text-gray-800";
+                colorClass = "bg-gray-100 text-[clamp(6px,2vw,15px)] text-gray-800";
             }
 
-            return `<span class="${colorClass} text-xs font-medium px-2.5 py-0.5 rounded">${status}</span>`;
+            return `<span class="${colorClass}text-[clamp(6px,2vw,14px)]  px-2.5 py-0.5 rounded">${status}</span>`;
           })()}
         </span>
       </div>
 
-      <div class="expand-content mt-2 text-sm  hidden">
+      <div class="expand-content mt-2 text-sm text-gray-700 hidden">
         <div class="flex flex-row gap-5">
           <span class="flex items-start justify-start">
             <strong>Name on Card :</strong> ${t.nameOnCard || "N/A"}
           </span>
           <span class="flex items-start justify-start">
-            <strong>Card Number :</strong> ${t.cardNumber || "N/A"}
+            <strong>Refference :</strong>  ${t.description || "N/A"}
           </span>
-         <span class="flex items-start justify-start">
-      <strong>Transaction ID :</strong> <span title="${transactionId}">${displayId}</span>
+          <span class="flex items-start justify-start">
+            <strong>Transaction id  :</strong>
+            <span title="${t.transactionId || "N/A"}">
+  ${
+    t.transactionId
+      ? t.transactionId.slice(0, 4) + "..." + t.transactionId.slice(-4)
+      : "N/A"
+  }
+</span>
+
+          </span>
         </div>
       </div>
     </td>
@@ -336,7 +350,7 @@ $(document).ready(function () {
 `;
             })
             .join("")
-        : `<tr><td colspan="8" class="px-5 py-4 text-center">No successful transactions found</td></tr>`
+        : `<tr><td colspan="8"  text-[clamp(6px,2vw,15px)] class="px-5 py-4 text-center">No successful transactions found</td></tr>`
     );
 
     const start = (currentFilters.page - 1) * currentFilters.limit + 1;
@@ -604,4 +618,97 @@ function showToast(message, type = "info") {
   setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
 }
 
+let refundData = {};
+
+function openRefundModal(
+  orderId,
+  nameOnCard,
+  cardNumber,
+  originalAmount,
+  currency
+) {
+  refundData = { orderId, originalAmount, currency };
+
+  $("#modalOrderId").text(orderId);
+  $("#modalNameOnCard").text(nameOnCard);
+  $("#modalCardNumber").text(maskCard(cardNumber));
+  $("#modalOriginalAmount").text(
+    `${parseFloat(originalAmount).toFixed(2)} ${currency}`
+  );
+  $("#refundAmountInput").val("");
+  $("#amountError").addClass("hidden");
+
+  $("#refundModal").removeClass("hidden");
+}
+
+function closeRefundModal() {
+  $("#refundModal").addClass("hidden");
+}
+
+function maskCard(card) {
+  if (!card || card === "N/A") return "N/A";
+  const clean = card.replace(/\s/g, "");
+  return clean.replace(/\d{12}(\d{4})/, "**** **** **** $1");
+}
+
+function submitRefund() {
+  const amount = parseFloat($("#refundAmountInput").val());
+  const errorEl = $("#amountError");
+
+  if (isNaN(amount) || amount <= 0) {
+    errorEl.text("Please enter a valid amount").removeClass("hidden");
+    return;
+  }
+
+  if (amount > refundData.originalAmount) {
+    errorEl
+      .text(`Cannot refund more than ${refundData.originalAmount.toFixed(2)}`)
+      .removeClass("hidden");
+    return;
+  }
+
+  errorEl.addClass("hidden");
+
+  $.ajax({
+    url: `${BASE_URL}/refund`,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({
+      orderId: refundData.orderId,
+      amount: amount,
+      currency: refundData.currency,
+    }),
+    success: function (result) {
+      if (result.success) {
+        alert(`Refund successful! ID: ${result.refundId}`);
+        closeRefundModal();
+        location.reload(); // Refresh the table
+      } else {
+        alert(`Refund failed: ${result.error}`);
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("Network error. Try again.");
+      console.error(error);
+    },
+  });
+}
+
 $("#footerText").text("© 2025 Digitable.IO Plutos");
+
+//         <span class="flex items-center justify-start break-words">
+//   ${
+//     t.paymentStatus === "SUCCESS"
+//       ? `
+//     <button
+//       onclick="openRefundModal('${t.orderId}', '${t.nameOnCard || "N/A"}', '${
+//           t.cardNumber || "N/A"
+//         }', ${t.amount}, '${t.currency}')"
+//       class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded"
+//     >
+//       Refund
+//     </button>
+//   `
+//       : ""
+//   }
+// </span>
