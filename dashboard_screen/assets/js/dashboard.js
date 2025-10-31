@@ -123,7 +123,7 @@ let currentFilters = {
   search: "",
   page: 1,
   limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
-  sort: "createdAt:-1" // Sort newest first
+  sort: "createdAt:-1", // Sort newest first
 };
 
 function setupEventListeners() {
@@ -205,7 +205,7 @@ function applyFilters() {
     toDate,
     status: "SUCCESS",
     searchQuery,
-    sort: "createdAt:-1"
+    sort: "createdAt:-1",
   });
   currentFilters.from = fromDate || "";
   currentFilters.to = toDate || "";
@@ -229,7 +229,7 @@ function resetFilters() {
     search: "",
     page: 1,
     limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
-    sort: "createdAt:-1"
+    sort: "createdAt:-1",
   };
   console.log("Filters reset");
   loadData();
@@ -279,9 +279,9 @@ $(document).ready(function () {
           <span class="flex items-center justify-start break-words">${
             t.orderId || "N/A"
           }</span>
-          <span class="flex items-center justify-start break-words">${
-            parseFloat(t.amount || 0).toFixed(2)
-          }</span>
+          <span class="flex items-center justify-start break-words">${parseFloat(
+            t.amount || 0
+          ).toFixed(2)}</span>
           <span class="flex items-center justify-start break-words">${
             t.currency || "N/A"
           }</span>
@@ -298,14 +298,20 @@ $(document).ready(function () {
             <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
           </span>
         </div>
-        <div class="expand-content mt-2 text-sm text-gray-700 hidden">
-          <div class="flex flex-row gap-5">
-            <span class="flex items-start justify-start"><strong>Name on Card : </strong> ${
-              t.nameOnCard || "N/A"
-            }</span>
-            <span class="flex items-start justify-start"><strong>Transaction ID :</strong> <span title=" ${transactionId}">${displayId}</span></span>
-          </div>
-        </div>
+       <div class="expand-content mt-2 text-sm text-gray-700 hidden">
+  <div class="flex flex-row gap-5">
+    <span class="flex items-start justify-start">
+      <strong>Name on Card : </strong> ${t.nameOnCard || "N/A"}
+    </span>
+    <span class="flex items-start justify-start">
+      <strong>Card Number :</strong> ${t.cardNumber || "N/A"}
+    </span>
+    <span class="flex items-start justify-start">
+      <strong>Transaction ID :</strong> <span title="${transactionId}">${displayId}</span>
+    </span>
+  </div>
+</div>
+
       </td>
     </tr>
     `;
@@ -346,8 +352,8 @@ $(document).ready(function () {
             ? "bg-primary text-white"
             : "bg-gray-100 text-gray-700"
         } rounded-md border border-${
-          currentFilters.page === i ? "primary" : "gray-300"
-        } hover:bg-gray-200" onclick="changePage(${i})">${i}</button>
+        currentFilters.page === i ? "primary" : "gray-300"
+      } hover:bg-gray-200" onclick="changePage(${i})">${i}</button>
       `);
     }
 

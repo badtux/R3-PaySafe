@@ -27,7 +27,7 @@ app.use(express.static("public"));
 const allowedOrigins = [
   /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/,
   /^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/,
-  /^http:\/\/127\.0\.0\.1:5500\/?$/
+  /^http:\/\/127\.0\.0\.1:5501\/?$/
 ];
 
 const corsOptions = {
