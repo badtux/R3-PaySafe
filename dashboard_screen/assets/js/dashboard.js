@@ -270,51 +270,70 @@ $(document).ready(function () {
               const displayId = transactionId.toUpperCase();
 
               return `
-    <tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
-      <td colspan="8" class=" px-2 py-4">
-        <div class="main-row grid grid-cols-8 gap-4">
-          <span class="flex items-center justify-start break-words">${
-            new Date(t.createdAt).toISOString().split("T")[0]
-          }</span>
-          <span class="flex items-center justify-start break-words">${
-            t.orderId || "N/A"
-          }</span>
-          <span class="flex items-center justify-start break-words">${parseFloat(
-            t.amount || 0
-          ).toFixed(2)}</span>
-          <span class="flex items-center justify-start break-words">${
-            t.currency || "N/A"
-          }</span>
-          <span class="flex items-center justify-start break-words truncate max-w-[220px]" title="${
-            t.email || "N/A"
-          }">${t.email || "N/A"}</span>
-          <span class="flex items-center justify-start break-words truncate max-w-[200px]" title="${
-            t.description || "N/A"
-          }">${t.description || "N/A"}</span>
-          <span class="flex items-center justify-start break-words">${
-            t.cardBrand || "N/A"
-          }</span>
-          <span class="flex items-center justify-start">
-            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
-          </span>
-        </div>
-       <div class="expand-content mt-2 text-sm  hidden">
-  <div class="flex flex-row gap-5">
-    <span class="flex items-start justify-start">
-      <strong>Name on Card : </strong> ${t.nameOnCard || "N/A"}
-    </span>
-    <span class="flex items-start justify-start">
-      <strong>Card Number :</strong> ${t.cardNumber || "N/A"}
-    </span>
-    <span class="flex items-start justify-start">
-      <strong>Transaction ID :</strong> <span title="${transactionId}">${displayId}</span>
-    </span>
-  </div>
-</div>
+  <tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
+    <td colspan="8" class="px-2 py-4">
+      <div class="main-row grid grid-cols-8 gap-4">
+        <span class="flex items-center justify-start break-words">
+          ${new Date(t.createdAt).toISOString().split("T")[0]}
+        </span>
+        <span class="flex items-center justify-start break-words">
+          ${t.orderId || "N/A"}
+        </span>
+        <span class="flex items-center justify-start break-words">
+          ${parseFloat(t.amount || 0).toFixed(2)}
+        </span>
+        <span class="flex items-center justify-start break-words">
+          ${t.currency || "N/A"}
+        </span>
+        <span class="flex items-center justify-start break-words truncate max-w-[220px]" title="${t.email || "N/A"}">
+          ${t.email || "N/A"}
+        </span>
+        <span class="flex items-center justify-start break-words truncate max-w-[200px]" title="${t.description || "N/A"}">
+          ${t.description || "N/A"}
+        </span>
+        <span class="flex items-center justify-start break-words">
+          ${t.cardBrand || "N/A"}
+        </span>
+        <span class="flex items-center justify-start break-words">
+          ${(() => {
+            const status = t.paymentStatus?.toUpperCase() || "N/A";
+            let colorClass = "";
 
-      </td>
-    </tr>
-    `;
+            switch (status) {
+              case "SUCCESS":
+                colorClass = "bg-green-100 text-green-800";
+                break;
+              case "FAILED":
+              case "ERROR":
+                colorClass = "bg-red-100 text-red-800";
+                break;
+              case "PENDING":
+                colorClass = "bg-yellow-100 text-yellow-800";
+                break;
+              default:
+                colorClass = "bg-gray-100 text-gray-800";
+            }
+
+            return `<span class="${colorClass} text-xs font-medium px-2.5 py-0.5 rounded">${status}</span>`;
+          })()}
+        </span>
+      </div>
+
+      <div class="expand-content mt-2 text-sm  hidden">
+        <div class="flex flex-row gap-5">
+          <span class="flex items-start justify-start">
+            <strong>Name on Card :</strong> ${t.nameOnCard || "N/A"}
+          </span>
+          <span class="flex items-start justify-start">
+            <strong>Card Number :</strong> ${t.cardNumber || "N/A"}
+          </span>
+         <span class="flex items-start justify-start">
+      <strong>Transaction ID :</strong> <span title="${transactionId}">${displayId}</span>
+        </div>
+      </div>
+    </td>
+  </tr>
+`;
             })
             .join("")
         : `<tr><td colspan="8" class="px-5 py-4 text-center">No successful transactions found</td></tr>`
