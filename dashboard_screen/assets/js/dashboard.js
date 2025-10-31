@@ -310,13 +310,16 @@ $(document).ready(function () {
                 break;
               case "FAILED":
               case "ERROR":
-                colorClass = "bg-red-100 text-[clamp(6px,2vw,15px)]  text-red-800";
+                colorClass =
+                  "bg-red-100 text-[clamp(6px,2vw,15px)]  text-red-800";
                 break;
               case "PENDING":
-                colorClass = "bg-yellow-100 text-[clamp(6px,2vw,15px)]  text-yellow-800";
+                colorClass =
+                  "bg-yellow-100 text-[clamp(6px,2vw,15px)]  text-yellow-800";
                 break;
               default:
-                colorClass = "bg-gray-100 text-[clamp(6px,2vw,15px)] text-gray-800";
+                colorClass =
+                  "bg-gray-100 text-[clamp(6px,2vw,15px)] text-gray-800";
             }
 
             return `<span class="${colorClass}text-[clamp(6px,2vw,14px)]  px-2.5 py-0.5 rounded">${status}</span>`;
@@ -324,7 +327,7 @@ $(document).ready(function () {
         </span>
       </div>
 
-      <div class="expand-content mt-2 text-sm text-gray-700 hidden">
+      <div class="expand-content mt-2 text-sm  hidden">
         <div class="flex flex-row gap-5">
           <span class="flex items-start justify-start">
             <strong>Name on Card :</strong> ${t.nameOnCard || "N/A"}
@@ -343,6 +346,7 @@ $(document).ready(function () {
 </span>
 
           </span>
+                  
         </div>
       </div>
     </td>
@@ -695,20 +699,3 @@ function submitRefund() {
 }
 
 $("#footerText").text("© 2025 Digitable.IO Plutos");
-
-//         <span class="flex items-center justify-start break-words">
-//   ${
-//     t.paymentStatus === "SUCCESS"
-//       ? `
-//     <button
-//       onclick="openRefundModal('${t.orderId}', '${t.nameOnCard || "N/A"}', '${
-//           t.cardNumber || "N/A"
-//         }', ${t.amount}, '${t.currency}')"
-//       class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded"
-//     >
-//       Refund
-//     </button>
-//   `
-//       : ""
-//   }
-// </span>
