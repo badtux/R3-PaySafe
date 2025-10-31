@@ -298,7 +298,7 @@ $(document).ready(function () {
             <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">SUCCESS</span>
           </span>
         </div>
-       <div class="expand-content mt-2 text-sm text-gray-700 hidden">
+       <div class="expand-content mt-2 text-sm  hidden">
   <div class="flex flex-row gap-5">
     <span class="flex items-start justify-start">
       <strong>Name on Card : </strong> ${t.nameOnCard || "N/A"}
