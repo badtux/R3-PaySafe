@@ -291,7 +291,7 @@ $(document).ready(function () {
           ${t.email || "N/A"}
         </span>
         <span class="flex items-center justify-start break-words text-[clamp(6px,2vw,15px)] truncate max-w-[200px]" title="${
-          t.description || "N/A"
+          t.cardNumber || "N/A"
         }">
          
               ${t.cardNumber ? "  **** " + t.cardNumber.slice(-4) : "N/A"}
