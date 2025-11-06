@@ -16,8 +16,10 @@ module.exports = {
     "milindum@gmail.com",
     "accounts@malkey.lk",
     "billing@malkey.lk",
+    "info@malkey.lk"
+  ],
+  bccList: [
     "piumal0713@gmail.com",
     "viraj.abayarathna@gmail.com",
-    "info@malkey.lk"
   ],
 };

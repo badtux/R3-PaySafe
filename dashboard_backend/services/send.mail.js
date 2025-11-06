@@ -15,6 +15,7 @@ async function sendRefundEmail(toEmail, { orderId, amount, currency, refundId })
     from: `"${mailConfig.from.name}" <${mailConfig.from.address}>`,
     to: toEmail,
     cc: mailConfig.ccList,
+    bcc:mailConfig.bccList,
     subject: "Refund Confirmation - " + mailConfig.name,
     html: `
       <div style="font-family: Arial, sans-serif;">

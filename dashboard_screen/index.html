@@ -320,6 +320,16 @@
             >
               <i class="fas fa-filter mr-2"></i> Apply Filters
             </button>
+ <button
+  id="refundToggleBtn"
+  onclick="toggleRefundView()"
+  class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-70"
+>
+  <span id="refundBtnSpinner" class="hidden animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full"></span>
+  <span id="refundBtnText">Show Refund Only</span>
+</button>
+
+
             <button
               id="resetFilters"
               class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center"
@@ -327,11 +337,15 @@
               <i class="fas fa-redo mr-2"></i> Reset
             </button>
           </div>
+
+
+
+
         </div>
       </div>
     <!-- Refund Modal -->
-<div id="refundModal" class="fixed inset-0  bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 w-full max-w-md relative">
+<div id="refundModal" class="fixed inset-0 bg-opacity-50 hidden flex items-center justify-center z-50 bg-gray-800">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md relative border border-gray-300 shadow-lg">
     <h3 class="text-lg font-semibold mb-4">Issue Refund</h3>
 
     <!-- Form Content -->

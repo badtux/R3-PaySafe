@@ -30,89 +30,168 @@ async function checkHealth(hostname) {
 }
 
 async function fetchPayments(hostname, query) {
-    const tenant = extractTenant(hostname);
-    const { from, to, status, search, page = 1, limit = 10, sort = "createdAt:-1" } = query;
+  const tenant = extractTenant(hostname);
+  const {
+    from,
+    to,
+    status,
+    search,
+    showRefundOnly, // <-- frontend flag
+    page = 1,
+    limit = 10,
+    sort = "createdAt:-1",
+  } = query;
 
-    let filter = {};
+  const collection = await getPaymentCollection(tenant);
+  const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    if (from || to) {
-        filter.createdAt = {};
-        if (from) filter.createdAt.$gte = new Date(from);
-        if (to) {
-            const toDate = new Date(to);
-            toDate.setHours(23, 59, 59, 999);
-            filter.createdAt.$lte = toDate;
-        }
+  // Base filter (for both modes)
+  let baseFilter = {};
+
+  if (from || to) {
+    baseFilter.createdAt = {};
+    if (from) baseFilter.createdAt.$gte = new Date(from);
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      baseFilter.createdAt.$lte = toDate;
     }
-    if (status) filter.paymentStatus = status;
-    if (search) {
-        filter.$or = [
-            { orderId: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } }
-        ];
-    }
-
-    const collection = await getPaymentCollection(tenant);
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    let sortOption = { createdAt: -1 }; // Default sort
-    if (sort) {
-        const [field, direction] = sort.split(':');
-        if (field && ['1', '-1'].includes(direction)) {
-            sortOption = { [field]: parseInt(direction) };
-        }
-    }
-
-    const transactions = await collection
-        .find(filter)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(parseInt(limit))
-        .toArray();
-    const total = await collection.countDocuments(filter);
-    const successful = await collection.countDocuments({ ...filter, paymentStatus: 'SUCCESS' });
-
-    const enriched = transactions.map(doc => {
-  const refundKeys = Object.keys(doc).filter(k => /^refund-\d+$/.test(k));
-  let latestRefund = null;
-  if (refundKeys.length) {
-    const lastKey = refundKeys
-      .map(k => ({ key: k, idx: Number(k.split('-')[1]) }))
-      .sort((a, b) => b.idx - a.idx)[0].key;
-    latestRefund = doc[lastKey];
   }
 
-  console.log(latestRefund)
+  if (status) baseFilter.paymentStatus = status;
 
-  return {
-    ...doc,
-    latestTotalRefunded: latestRefund?.totalRefundedAmount ?? 0,
-    latestRefundId: latestRefund?.refundTransactionId ?? null,
-  };
-});
+  if (search) {
+    baseFilter.$or = [
+      { orderId: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
+  }
 
-    const totalLKRResult = await collection.aggregate([
-        { $match: { ...filter, currency: 'LKR' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-    ]).toArray();
-    const totalLKR = totalLKRResult[0]?.total || 0;
+  // Sort option
+  let sortOption = { createdAt: -1 };
+  if (sort) {
+    const [field, dir] = sort.split(":");
+    if (field && ["1", "-1"].includes(dir)) {
+      sortOption = { [field]: parseInt(dir) };
+    }
+  }
 
-    const totalUSDResult = await collection.aggregate([
-        { $match: { ...filter, currency: 'USD' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-    ]).toArray();
-    const totalUSD = totalUSDResult[0]?.total || 0;
+  let transactions = [];
+  let total = 0;
 
-    const stats = {
-        totalTransactions: total,
-        successfulTransactions: successful,
-        totalAmountLKR: totalLKR.toFixed(2),
-        totalAmountUSD: totalUSD.toFixed(2)
+  // ✅ Case 1: Refund-only mode
+  if (showRefundOnly === "true") {
+    const pipeline = [
+      { $match: baseFilter },
+      {
+        $addFields: {
+          refundCount: {
+            $size: {
+              $filter: {
+                input: { $objectToArray: "$$ROOT" },
+                as: "field",
+                cond: { $regexMatch: { input: "$$field.k", regex: /^refund-/ } },
+              },
+            },
+          },
+        },
+      },
+      { $match: { refundCount: { $gt: 0 } } },
+      { $sort: sortOption },
+      { $skip: skip },
+      { $limit: parseInt(limit) },
+    ];
+
+    transactions = await collection.aggregate(pipeline).toArray();
+    total = (
+      await collection
+        .aggregate([
+          { $match: baseFilter },
+          {
+            $addFields: {
+              refundCount: {
+                $size: {
+                  $filter: {
+                    input: { $objectToArray: "$$ROOT" },
+                    as: "field",
+                    cond: { $regexMatch: { input: "$$field.k", regex: /^refund-/ } },
+                  },
+                },
+              },
+            },
+          },
+          { $match: { refundCount: { $gt: 0 } } },
+          { $count: "total" },
+        ])
+        .toArray()
+    )[0]?.total || 0;
+  }
+
+  // ✅ Case 2: Normal mode (all transactions)
+  else {
+    transactions = await collection
+      .find(baseFilter)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .toArray();
+
+    total = await collection.countDocuments(baseFilter);
+  }
+
+  // Enrich refund details
+  const enriched = transactions.map((doc) => {
+    const refundKeys = Object.keys(doc).filter((k) => /^refund-\d+$/.test(k));
+    let latestRefund = null;
+    if (refundKeys.length) {
+      const lastKey = refundKeys
+        .map((k) => ({ key: k, idx: Number(k.split("-")[1]) }))
+        .sort((a, b) => b.idx - a.idx)[0].key;
+      latestRefund = doc[lastKey];
+    }
+
+    return {
+      ...doc,
+      latestTotalRefunded: latestRefund?.totalRefundedAmount ?? 0,
+      latestRefundId: latestRefund?.refundTransactionId ?? null,
     };
+  });
 
-    return { enriched, transactions, total, stats };
+  // Currency stats
+  const totalLKR = (
+    await collection
+      .aggregate([
+        { $match: { ...baseFilter, currency: "LKR" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ])
+      .toArray()
+  )[0]?.total || 0;
+
+  const totalUSD = (
+    await collection
+      .aggregate([
+        { $match: { ...baseFilter, currency: "USD" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ])
+      .toArray()
+  )[0]?.total || 0;
+
+  const successful = await collection.countDocuments({
+    ...baseFilter,
+    paymentStatus: "SUCCESS",
+  });
+
+  const stats = {
+    totalTransactions: total,
+    successfulTransactions: successful,
+    totalAmountLKR: totalLKR.toFixed(2),
+    totalAmountUSD: totalUSD.toFixed(2),
+  };
+
+  return { transactions: enriched, total, stats };
 }
+
 
 async function exportPayments(hostname, query) {
     const tenant = extractTenant(hostname);

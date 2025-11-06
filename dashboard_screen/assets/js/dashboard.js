@@ -141,6 +141,31 @@ function setupEventListeners() {
   $("#exportData").on("click", exportToCSV);
 }
 
+let showRefundOnly = true;
+
+async function toggleRefundView() {
+  // Show loading spinner
+  $("#refundToggleBtn").prop("disabled", true);
+  $("#refundBtnSpinner").removeClass("hidden");
+  $("#refundBtnText").text("Loading...");
+
+  showRefundOnly = true;
+  currentFilters.showRefundOnly = "true";
+
+  try {
+    await loadData(); // Wait for data to load
+  } catch (error) {
+    console.error("Error loading refund data:", error);
+  } finally {
+    // Hide spinner and reset button text
+    $("#refundBtnSpinner").addClass("hidden");
+    $("#refundBtnText").text("Show Refund Only");
+    $("#refundToggleBtn").prop("disabled", false);
+  }
+}
+
+
+
 async function checkHealth() {
   try {
     const url = `${BASE_URL}/transactions`;
@@ -179,7 +204,12 @@ async function loadData() {
     }
     params.set("status", "SUCCESS");
     params.set("sort", "createdAt:-1"); // Ensure sort is always applied
-    const url = `${BASE_URL}/payments?${params}`;
+   if (showRefundOnly) {
+  params.append("refundOnly", "true");
+}
+
+const url = `${BASE_URL}/payments?${params}`;
+
     console.log("Fetching data from:", url);
     const response = await $.ajax({
       url: url,
