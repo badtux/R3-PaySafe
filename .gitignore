@@ -2,3 +2,4 @@
 /dashboard_backend/node_modules/
 /dashboard_backend/vendor/
 vendor
+/dashboard_screen/test.js

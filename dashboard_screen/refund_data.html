@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Refund Management</h1>
+            <p class="text-gray-600">Manage and track customer refund requests</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div id="statsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+            <!-- Stats will be loaded here -->
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <span class="ml-3 text-gray-600">Loading refund data...</span>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+                <div>
+                    <h3 class="text-red-800 font-semibold">Error Loading Data</h3>
+                    <p id="errorMessage" class="text-red-600 text-sm"></p>
+                </div>
+            </div>
+            <button onclick="loadRefundData()" class="mt-3 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm">
+                Retry
+            </button>
+        </div>
+
+        <!-- Refunds Table -->
+        <div id="refundsContainer" class="hidden bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Table Header -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Refund Requests</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" placeholder="Search..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <button onclick="loadRefundData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Order Details
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Customer
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Request Date
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="refundsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API base URL
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // DOM elements
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const errorMessage = document.getElementById('errorMessage');
+        const refundsContainer = document.getElementById('refundsContainer');
+        const refundsTableBody = document.getElementById('refundsTableBody');
+        const statsContainer = document.getElementById('statsContainer');
+
+        // Status badge styling
+        const statusStyles = {
+            completed: 'bg-green-100 text-green-800',
+            pending: 'bg-yellow-100 text-yellow-800',
+            processing: 'bg-blue-100 text-blue-800',
+            rejected: 'bg-red-100 text-red-800'
+        };
+
+        // Status icons
+        const statusIcons = {
+            completed: 'fas fa-check-circle',
+            pending: 'fas fa-clock',
+            processing: 'fas fa-cog',
+            rejected: 'fas fa-times-circle'
+        };
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Create status badge
+        function createStatusBadge(status) {
+            const style = statusStyles[status] || 'bg-gray-100 text-gray-800';
+            const icon = statusIcons[status] || 'fas fa-circle';
+            
+            return `
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${style}">
+                    <i class="${icon} mr-1 text-xs"></i>
+                    ${status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>
+            `;
+        }
+
+        // Load refund statistics
+        async function loadRefundStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/refunds/stats`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderStats(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Render statistics cards
+        function renderStats(stats) {
+            const statsConfig = [
+                {
+                    label: 'Total Refunds',
+                    value: stats.total,
+                    icon: 'fas fa-receipt',
+                    color: 'bg-blue-500'
+                },
+                {
+                    label: 'Completed',
+                    value: stats.completed,
+                    icon: 'fas fa-check-circle',
+                    color: 'bg-green-500'
+                },
+                {
+                    label: 'Pending',
+                    value: stats.pending,
+                    icon: 'fas fa-clock',
+                    color: 'bg-yellow-500'
+                },
+                {
+                    label: 'Processing',
+                    value: stats.processing,
+                    icon: 'fas fa-cog',
+                    color: 'bg-blue-500'
+                },
+                {
+                    label: 'Rejected',
+                    value: stats.rejected,
+                    icon: 'fas fa-times-circle',
+                    color: 'bg-red-500'
+                },
+                {
+                    label: 'Total Amount',
+                    value: formatCurrency(stats.totalAmount),
+                    icon: 'fas fa-dollar-sign',
+                    color: 'bg-purple-500'
+                }
+            ];
+
+            statsContainer.innerHTML = statsConfig.map(stat => `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="${stat.color} rounded-md p-3">
+                                <i class="${stat.icon} text-white text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">${stat.label}</p>
+                            <p class="text-2xl font-semibold text-gray-900">${stat.value}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load refund data
+        async function loadRefundData() {
+            showLoading();
+            hideError();
+            hideRefunds();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/refunds`);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to fetch data');
+                }
+
+                if (result.success) {
+                    renderRefunds(result.data);
+                    await loadRefundStats();
+                    showRefunds();
+                } else {
+                    throw new Error(result.message || 'Failed to load data');
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Render refunds table
+        function renderRefunds(refunds) {
+            refundsTableBody.innerHTML = refunds.map(refund => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${refund.orderId}</div>
+                        <div class="text-sm text-gray-500">${refund.productName}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${refund.customerName}</div>
+                        <div class="text-sm text-gray-500">${refund.customerEmail}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${formatCurrency(refund.amount)}</div>
+                        <div class="text-sm text-gray-500">${refund.refundMethod.replace('_', ' ').toUpperCase()}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${createStatusBadge(refund.status)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${formatDate(refund.requestDate)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="viewRefundDetails(${refund.id})" 
+                                class="text-blue-600 hover:text-blue-900 mr-3">
+                            <i class="fas fa-eye mr-1"></i>View
+                        </button>
+                        <button onclick="processRefund(${refund.id})" 
+                                class="text-green-600 hover:text-green-900 ${refund.status !== 'pending' ? 'hidden' : ''}">
+                            <i class="fas fa-cog mr-1"></i>Process
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // View refund details (placeholder function)
+        function viewRefundDetails(refundId) {
+            alert(`Viewing details for refund ID: ${refundId}`);
+            // In a real application, you would show a modal or navigate to a details page
+        }
+
+        // Process refund (placeholder function)
+        function processRefund(refundId) {
+            if (confirm('Are you sure you want to process this refund?')) {
+                alert(`Processing refund ID: ${refundId}`);
+                // In a real application, you would make an API call to process the refund
+            }
+        }
+
+        // UI state management
+        function showLoading() {
+            loadingState.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingState.classList.add('hidden');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorState.classList.remove('hidden');
+            hideLoading();
+        }
+
+        function hideError() {
+            errorState.classList.add('hidden');
+        }
+
+        function showRefunds() {
+            refundsContainer.classList.remove('hidden');
+            hideLoading();
+        }
+
+        function hideRefunds() {
+            refundsContainer.classList.add('hidden');
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRefundData();
+        });
+    </script>
+</body>
+</html>

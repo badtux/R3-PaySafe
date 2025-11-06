@@ -21,7 +21,7 @@ function buildReplacements(payment, tenant) {
     const bankHeader = `${payment.bank} - Online Transfer`;
 
     return {
-        status: payment.paymentStatus || 'N/A',
+         status: payment.paymentStatus || 'N/A',
         orderId: payment.orderId || 'N/A',
         currency: payment.currency || 'LKR',
         amount: payment.amount != null ? Number(payment.amount).toFixed(2) : '0.00',

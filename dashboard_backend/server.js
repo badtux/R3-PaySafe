@@ -80,6 +80,7 @@ app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
 app.use('/api/settings', gatewayRoutes);
 
+
 async function startServer() {
     try {
         await connectToMongo();

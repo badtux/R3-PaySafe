@@ -271,8 +271,8 @@ $(document).ready(function () {
 
               return `
 <tr class="expandable-row cursor-pointer hover:bg-gray-400" id="row-${index}">
-    <td colspan="8" class="px-2 py-4">
-      <div class="main-row grid grid-cols-8 gap-4">
+    <td colspan="9" class="px-2 py-4">
+      <div class="main-row grid grid-cols-9 gap-4">
         <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)]  break-words">
           ${new Date(t.createdAt).toISOString().split("T")[0]}
         </span>
@@ -296,7 +296,7 @@ $(document).ready(function () {
          
               ${t.cardNumber ? "  **** " + t.cardNumber.slice(-4) : "N/A"}
         </span>
-        <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)] break-words">
+         <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)] break-words">
           ${t.cardBrand || "N/A"}
         </span>
         <span class="flex items-center justify-start text-[clamp(6px,2vw,15px)]  break-words">
@@ -325,7 +325,26 @@ $(document).ready(function () {
             return `<span class="${colorClass}text-[clamp(6px,2vw,14px)]  px-2.5 py-0.5 rounded">${status}</span>`;
           })()}
         </span>
-      </div>
+
+                <span  class="flex items-center justify-start text-[clamp(6px,2vw,15px)] break-words">
+          ${(() => {
+            const refundKeys = Object.keys(t).filter((k) =>
+              k.startsWith("refund-")
+            );
+            if (refundKeys.length === 0) return "0";
+            const lastRefund = t[refundKeys[refundKeys.length - 1]];
+            return (
+              (lastRefund.totalRefundedAmount || lastRefund.refundAmount || 0) +
+              " " +
+              (t.currency || "")
+            );
+          })()}
+</span>
+
+
+         </div>
+
+
 
       <div class="expand-content mt-2 text-sm  hidden">
         <div class="flex flex-row gap-5">
@@ -337,16 +356,25 @@ $(document).ready(function () {
           </span>
           <span class="flex items-start justify-start">
             <strong>Transaction id  :</strong>
-            <span title="${t.transactionId || "N/A"}">
-  ${
-    t.transactionId
-      ? t.transactionId.slice(0, 4) + "..." + t.transactionId.slice(-4)
-      : "N/A"
-  }
-</span>
-
-          </span>
-                  
+            <span title="${t.transactionId || "N/A"}">${
+                t.transactionId
+                  ? t.transactionId.slice(0, 4) +
+                    "..." +
+                    t.transactionId.slice(-4)
+                  : "N/A"
+              } </span>
+            </span>
+          <span class="flex items-center justify-start break-words">${
+            t.paymentStatus === "SUCCESS"
+              ? `
+    <button
+      onclick="openRefundModal('${t.orderId}', '${t.nameOnCard || "N/A"}', '${
+                  t.cardNumber || "N/A"
+                }', ${t.amount}, '${t.currency}', '${t.email}')"
+      class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded"
+ > Refund </button>`
+              : ""
+          }</span>  
         </div>
       </div>
     </td>
@@ -354,7 +382,7 @@ $(document).ready(function () {
 `;
             })
             .join("")
-        : `<tr><td colspan="8"  text-[clamp(6px,2vw,15px)] class="px-5 py-4 text-center">No successful transactions found</td></tr>`
+        : `<tr><td colspan="9"  text-[clamp(6px,2vw,15px)] class="px-5 py-4 text-center">No successful transactions found</td></tr>`
     );
 
     const start = (currentFilters.page - 1) * currentFilters.limit + 1;
@@ -443,40 +471,50 @@ function changePage(page) {
 async function exportToCSV() {
   try {
     const params = new URLSearchParams();
+
     ["from", "to", "search", "sort"].forEach((key) => {
       const value = currentFilters[key];
       if (value !== undefined && value !== "") {
         params.append(key, value);
       }
     });
+
     params.append("status", "SUCCESS");
-    const url = `${BASE_URL}/payments/export?${params}`;
+
+    const url = `${BASE_URL}/payments/export?${params.toString()}`;
     console.log("Exporting data from:", url);
+
     const response = await $.ajax({
       url: url,
       method: "GET",
     });
+
+    // Define CSV headers
     const headers = [
-      "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Payment Status",
+      "Created At,Merchant ID,Order ID,Amount,Currency,Email,Description,Card Brand,Name on Card,Card Number,Payment Status",
     ];
-    const rows = response.map(
-      (t) =>
-        `"${new Date(t.createdAt).toISOString().split("T")[0]}","${
-          t.merchantId || "N/A"
-        }","${t.orderId || "N/A"}",${parseFloat(t.amount || 0).toFixed(2)},"${
-          t.currency || "N/A"
-        }","${t.email || "N/A"}","${t.description || "N/A"}","${
-          t.cardBrand || "N/A"
-        }","${t.nameOnCard || "N/A"}","SUCCESS"`
-    );
+
+    // Map each transaction to a CSV row
+    const rows = response.map((t) => {
+      const createdAt = t.createdAt
+        ? new Date(t.createdAt).toISOString().split("T")[0]
+        : "N/A";
+      const amount = parseFloat(t.amount || 0).toFixed(2);
+
+      return `"${createdAt}","${t.merchantId || "N/A"}","${t.orderId || "N/A"}","${amount}","${t.currency || "N/A"}","${t.email || "N/A"}","${t.description || "N/A"}","${t.cardBrand || "N/A"}","${t.nameOnCard || "N/A"}","${t.cardNumber || "N/A"}","SUCCESS"`;
+    });
+
     const csv = [...headers, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const urlObj = URL.createObjectURL(blob);
     const $a = $("<a>", {
       href: urlObj,
       download: "successful_transactions.csv",
     }).appendTo("body");
+
     $a[0].click();
+
+    // Cleanup
     URL.revokeObjectURL(urlObj);
     $a.remove();
   } catch (error) {
@@ -484,6 +522,7 @@ async function exportToCSV() {
     alert("Failed to export data. Please try again.");
   }
 }
+
 
 function displayActiveGateways(data) {
   const activeGateways = data.activeGateways || {};
@@ -612,41 +651,62 @@ function showToast(message, type = "info") {
       : type === "error"
       ? "bg-red-600"
       : "bg-gray-600";
+
   const toast = $(`
-    <div class="fixed bottom-4 right-4 px-4 py-2 text-white rounded shadow ${bg} opacity-0 transition-opacity duration-500">
+    <div class="fixed bottom-4 right-4 px-4 py-2 text-white rounded shadow ${bg} opacity-0 transition-opacity duration-500 z-50">
       ${message}
     </div>
   `);
   $("body").append(toast);
   setTimeout(() => toast.css("opacity", 1), 50);
-  setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
+  setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3500);
 }
 
-let refundData = {};
+let refundData = {}; // Global to store refund context
 
 function openRefundModal(
   orderId,
   nameOnCard,
   cardNumber,
   originalAmount,
-  currency
+  currency,
+  email
 ) {
-  refundData = { orderId, originalAmount, currency };
+  refundData = {
+    orderId,
+    originalAmount: parseFloat(originalAmount),
+    currency,
+    email,
+  };
+
+  console.log(orderId, currency, email);
 
   $("#modalOrderId").text(orderId);
-  $("#modalNameOnCard").text(nameOnCard);
+  $("#modalNameOnCard").text(nameOnCard || "N/A");
   $("#modalCardNumber").text(maskCard(cardNumber));
   $("#modalOriginalAmount").text(
-    `${parseFloat(originalAmount).toFixed(2)} ${currency}`
+    `${refundData.originalAmount.toFixed(2)} ${currency}`
   );
+
+  $("#modalEmail").text(email || "N/A");
   $("#refundAmountInput").val("");
   $("#amountError").addClass("hidden");
 
-  $("#refundModal").removeClass("hidden");
+  // Reset modal state
+  $("#refundFormContent").removeClass("hidden");
+  $("#refundLoading").addClass("hidden");
+  $("#refundSuccess").addClass("hidden");
+  $("#refundError").addClass("hidden");
+  $("#refundActions").removeClass("hidden");
+  $("#refundDoneActions").addClass("hidden");
+
+  $("#refundModal").removeClass("hidden").addClass("flex");
 }
 
 function closeRefundModal() {
-  $("#refundModal").addClass("hidden");
+  $("#refundModal").addClass("hidden").removeClass("flex");
+  // Optional: reload page after close (only if needed)
+  setTimeout(() => location.reload(), 300);
 }
 
 function maskCard(card) {
@@ -657,21 +717,40 @@ function maskCard(card) {
 
 function submitRefund() {
   const amount = parseFloat($("#refundAmountInput").val());
-  const errorEl = $("#amountError");
+  const $errorEl = $("#amountError");
+  const $form = $("#refundFormContent");
+  const $loading = $("#refundLoading");
+  const $success = $("#refundSuccess");
+  const $error = $("#refundError");
+  const $actions = $("#refundActions");
+  const $doneActions = $("#refundDoneActions");
+  const $confirmBtn = $("#confirmRefundBtn");
 
+  // Reset error
+  $errorEl.addClass("hidden");
+
+  // Validation
   if (isNaN(amount) || amount <= 0) {
-    errorEl.text("Please enter a valid amount").removeClass("hidden");
+    $errorEl.text("Please enter a valid amount").removeClass("hidden");
     return;
   }
 
   if (amount > refundData.originalAmount) {
-    errorEl
+    $errorEl
       .text(`Cannot refund more than ${refundData.originalAmount.toFixed(2)}`)
       .removeClass("hidden");
     return;
   }
 
-  errorEl.addClass("hidden");
+  // Show loading state
+  $form.addClass("hidden");
+  $loading.removeClass("hidden");
+  $actions.addClass("hidden");
+  $confirmBtn
+    .prop("disabled", true)
+    .html(
+      '<div class="flex items-center gap-2"><div class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div> Processing...</div>'
+    );
 
   $.ajax({
     url: `${BASE_URL}/refund`,
@@ -681,21 +760,56 @@ function submitRefund() {
       orderId: refundData.orderId,
       amount: amount,
       currency: refundData.currency,
+      email: refundData.email,
     }),
     success: function (result) {
       if (result.success) {
-        alert(`Refund successful! ID: ${result.refundId}`);
-        closeRefundModal();
-        location.reload(); // Refresh the table
+        $("#successRefundId").text(
+          result.refundId || result.transactionId || "N/A"
+        );
+
+        // ✅ show backend message if available
+        const emailMsg = result.emailStatus
+          ? `<p class="text-sm mt-2">${result.emailStatus}</p>`
+          : "";
+
+        // Insert message under "Refund Successful!"
+        $("#refundSuccess").html(`
+      <div class="text-5xl mb-3">✅</div>
+      <p class="font-medium text-green-700">Refund Successful!</p>
+      <p class="text-sm mt-1">ID: ${result.refundId || "N/A"}</p>
+      ${emailMsg}
+    `);
+
+        $loading.addClass("hidden");
+        $success.removeClass("hidden");
+        $doneActions.removeClass("hidden");
       } else {
-        alert(`Refund failed: ${result.error}`);
+        showRefundError(result.message || "Refund failed");
       }
     },
-    error: function (xhr, status, error) {
-      alert("Network error. Try again.");
-      console.error(error);
+
+    error: function (xhr) {
+      let msg = "Network error. Please try again.";
+      try {
+        const res = xhr.responseJSON || {};
+        msg = res.error?.explanation || res.message || msg;
+      } catch (e) {
+        console.warn("Failed to parse error:", e);
+      }
+      showRefundError(msg);
+    },
+    complete: function () {
+      $confirmBtn.prop("disabled", false).html("Confirm Refund");
     },
   });
+
+  function showRefundError(message) {
+    $("#errorMessage").text(message);
+    $loading.addClass("hidden");
+    $error.removeClass("hidden");
+    $doneActions.removeClass("hidden");
+  }
 }
 
 $("#footerText").text("© 2025 Digitable.IO Plutos");

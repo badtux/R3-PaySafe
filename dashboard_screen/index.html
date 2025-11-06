@@ -114,55 +114,105 @@
 </head>
 
 <body class="bg-gray-50 text-gray-700 font-sans antialiased" id="body">
-  <header
-    class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md"
-  >
-    <div class="container mx-auto px-4 py-5">
-      <div
-        class="flex flex-col md:flex-row md:justify-between md:items-center"
-      >
-        <div class="mb-4 md:mb-0">
-          <h1 class="text-2xl md:text-3xl font-bold">
-            <i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions
-          </h1>
-          <p class="mt-1 text-blue-100">
-            Manage and review your payment transactions
-          </p>
+<header class="bg-gradient-to-r from-primary to-blue-800 text-white shadow-md">
+  <div class="container mx-auto px-4 py-5">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+      <div class="mb-4 md:mb-0">
+        <h1 class="text-2xl md:text-3xl font-bold">
+          <i class="fas fa-money-bill-wave mr-2"></i>Payment Transactions
+        </h1>
+        <p class="mt-1 text-blue-100">
+          Manage and review your payment transactions
+        </p>
+      </div>
+
+      <div class="flex items-center justify-between md:justify-end space-x-4">
+        <!-- Existing icons -->
+        <div id="dashboard-icons" class="flex items-center space-x-2 hidden">
+          <button
+            id="themeToggle"
+            class="text-white hover:bg-blue-600 p-2 rounded-full"
+            title="Toggle Theme"
+          >
+            <i class="fas fa-sun text-sm"></i>
+          </button>
+          <button
+            id="activateGatewayBtn"
+            class="text-white hover:bg-blue-600 p-2 rounded-full"
+            title="Activate Gateway"
+          >
+            <i class="fas fa-credit-card text-sm"></i>
+          </button>
+          <div id="activeGatewaysDisplay" class="flex space-x-2 flex-wrap"></div>
         </div>
-        <div
-          class="flex items-center justify-between md:justify-end space-x-4"
-        >
-          <div id="dashboard-icons" class="flex items-center space-x-2 hidden">
-            <button
-              id="themeToggle"
-              class="text-white hover:bg-blue-600 p-2 rounded-full"
-              title="Toggle Theme"
-            >
-              <i class="fas fa-sun text-sm"></i>
-            </button>
-            <button
-              id="activateGatewayBtn"
-              class="text-white hover:bg-blue-600 p-2 rounded-full"
-              title="Activate Gateway"
-            >
-              <i class="fas fa-credit-card text-sm"></i>
-            </button>
-            <div id="activeGatewaysDisplay" class="flex space-x-2 flex-wrap"></div>
-          </div>
-          <div class="relative">
+
+        <!-- User Profile -->
+        <div class="relative">
+          <div class="flex items-center space-x-2">
             <button
               id="userProfile"
               class="flex items-center text-white bg-blue-700 hover:bg-blue-600 px-3 py-2 rounded-lg text-sm"
             >
               <i class="fas fa-user mr-2"></i>
               <span id="userName">Guest</span>
-              <i class="fas fa-chevron-down ml-2 text-xs"></i>
             </button>
+
+            <!-- Menu Icon -->
+            <button
+              id="menuToggle"
+              class="text-white hover:bg-blue-600 p-2 rounded-full"
+              title="Menu"
+            >
+              <!-- <i class="fas fa-ellipsis-v"></i> -->
+            </button>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div
+            id="dropdownMenu"
+            class="hidden absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded-lg shadow-lg z-50"
+          >
+            <ul class="py-2 text-sm">
+              <li>
+                <a
+                  href="#"
+                  class="block px-4 py-2 hover:bg-blue-100 rounded-t-lg"
+                >
+                  <i class="fas fa-user-circle mr-2 text-blue-600"></i> Profile
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="block px-4 py-2 hover:bg-blue-100"
+                >
+                  <i class="fas fa-cog mr-2 text-blue-600"></i> Settings
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="block px-4 py-2 hover:bg-blue-100 rounded-b-lg"
+                >
+                  <i class="fas fa-sign-out-alt mr-2 text-red-600"></i> Logout
+                </a>
+              </li>
+                   <li>
+                <a
+                  href="refunddata.html"
+                  class="block px-4 py-2 hover:bg-blue-100 rounded-b-lg"
+                >
+                  <i class="fas fa-undo-alt mr-2 text-red-600"></i> Refund
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
-  </header>
+  </div>
+</header>
+
 
   <main class="container mx-auto px-4 py-6" id="main-content">
     <div
@@ -280,39 +330,70 @@
         </div>
       </div>
     <!-- Refund Modal -->
-    <div id="refundModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold mb-4">Issue Refund</h3>
+<div id="refundModal" class="fixed inset-0  bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 w-full max-w-md relative">
+    <h3 class="text-lg font-semibold mb-4">Issue Refund</h3>
 
-        <div class="space-y-3 text-sm">
-          <div><strong>Order ID:</strong> <span id="modalOrderId"></span></div>
-          <div><strong>Name on Card:</strong> <span id="modalNameOnCard"></span></div>
-          <div><strong>Card Number:</strong> <span id="modalCardNumber"></span></div>
-          <div><strong>Original Amount:</strong> <span id="modalOriginalAmount"></span></div>
+    <!-- Form Content -->
+    <div id="refundFormContent" class="space-y-3 text-sm">
+      <div><strong>Order ID:</strong> <span id="modalOrderId"></span></div>
+      <div><strong>Name on Card:</strong> <span id="modalNameOnCard"></span></div>
+      <div><strong>Email:</strong> <span id="modalEmail"></span></div>
+      <div><strong>Card Number:</strong> <span id="modalCardNumber"></span></div>
+      <div><strong>Original Amount:</strong> <span id="modalOriginalAmount"></span></div>
 
-          <div class="mt-4">
-            <label class="block font-medium">Refund Amount:</label>
-            <input 
-              type="number" 
-              step="0.01" 
-              id="refundAmountInput" 
-              class="w-full border rounded px-3 py-2 mt-1"
-              placeholder="Enter amount to refund"
-            >
-            <p id="amountError" class="text-red-600 text-xs mt-1 hidden">Refund cannot exceed original amount</p>
-          </div>
-        </div>
+      <div class="mt-4">
+        <label class="block font-medium">Refund Amount:</label>
+        <input 
+          type="number" 
+          step="0.01" 
+          id="refundAmountInput" 
+          class="w-full border rounded px-3 py-2 mt-1"
+          placeholder="Enter amount to refund"
+        >
+        <p id="amountError" class="text-red-600 text-xs mt-1 hidden">Refund cannot exceed original amount</p>
+      </div>
+    </div>
 
-    <div class="flex justify-end gap-3 mt-6">
+    <!-- Loading State -->
+    <div id="refundLoading" class="hidden flex flex-col items-center py-8">
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-red-600 mb-3"></div>
+      <p class="">Processing refund...</p>
+    </div>
+
+    <!-- Success Message -->
+    <div id="refundSuccess" class="hidden text-center py-6">
+      <div class="text-green-600 text-5xl mb-3">Refund Status</div>
+      <p class="font-medium text-green-700">Refund Successful!</p>
+      <p class="text-sm mt-1">ID: <span id="successRefundId"></span></p>
+    </div>
+
+    <!-- Error Message -->
+    <div id="refundError" class="hidden text-center py-6">
+      <div class="text-red-600 text-5xl mb-3">Cross</div>
+      <p class="font-medium text-red-700">Refund Failed</p>
+      <p id="errorMessage" class="text-sm text-gray-600 mt-2"></p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div id="refundActions" class="flex justify-end gap-3 mt-6">
       <button onclick="closeRefundModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
         Cancel
       </button>
-      <button onclick="submitRefund()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-        Confirm Refund
+      <button id="confirmRefundBtn" onclick="submitRefund()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2">
+        <span>Confirm Refund</span>
+      </button>
+    </div>
+
+    <!-- Final Close Button (after success/error) -->
+    <div id="refundDoneActions" class="hidden mt-6 text-center">
+      <button onclick="closeRefundModal()" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Close
       </button>
     </div>
   </div>
 </div>
+
       <div class="bg-white rounded-lg shadow overflow-hidden mb-4">
         <div class="flex justify-between items-center border-b border-gray-200 px-5 py-4">
           <h2 class="text-lg font-semibold text-gray-700">
@@ -362,11 +443,14 @@
                 <th class="px-5 py-3 text-left text-[clamp(6px,2vw,12px)] font-medium text-gray-500 uppercase tracking-wider">
                   Payment Status
                 </th>
+                  <th class="px-5 py-3 text-left text-[clamp(6px,2vw,12px)] font-medium text-gray-500 uppercase tracking-wider">
+                  Refund Amount
+                </th>
               </tr>
             </thead>
             <tbody id="transactionTable" class="divide-y divide-gray-200">
               <tr>
-                <td colspan="8" class="px-5 py-4 text-center">Loading...</td>
+                <td colspan="9" class="px-5 py-4 text-center">Loading...</td>
               </tr>
             </tbody>
           </table>
@@ -408,4 +492,6 @@
     
   </script>
   <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/manu.js"></script>
+
 </html>

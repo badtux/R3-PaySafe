@@ -15,6 +15,7 @@ const paymentSchema = {
     merchant: String,
     nameOnCard: String,
     paymentStatus: String,
+    refundpaymentStatus :String,
     transactionId: String,
     bank:String,
     updatedAt: Date
