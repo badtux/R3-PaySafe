@@ -715,101 +715,95 @@ function maskCard(card) {
   return clean.replace(/\d{12}(\d{4})/, "**** **** **** $1");
 }
 
-function submitRefund() {
-  const amount = parseFloat($("#refundAmountInput").val());
-  const $errorEl = $("#amountError");
-  const $form = $("#refundFormContent");
-  const $loading = $("#refundLoading");
-  const $success = $("#refundSuccess");
-  const $error = $("#refundError");
-  const $actions = $("#refundActions");
-  const $doneActions = $("#refundDoneActions");
-  const $confirmBtn = $("#confirmRefundBtn");
+async function submitRefund() {
+  const amount = parseFloat(document.querySelector("#refundAmountInput").value);
+  const errorEl = document.querySelector("#amountError");
+  const form = document.querySelector("#refundFormContent");
+  const loading = document.querySelector("#refundLoading");
+  const success = document.querySelector("#refundSuccess");
+  const error = document.querySelector("#refundError");
+  const actions = document.querySelector("#refundActions");
+  const doneActions = document.querySelector("#refundDoneActions");
+  const confirmBtn = document.querySelector("#confirmRefundBtn");
 
   // Reset error
-  $errorEl.addClass("hidden");
+  errorEl.classList.add("hidden");
 
   // Validation
   if (isNaN(amount) || amount <= 0) {
-    $errorEl.text("Please enter a valid amount").removeClass("hidden");
+    errorEl.textContent = "Please enter a valid amount";
+    errorEl.classList.remove("hidden");
     return;
   }
 
   if (amount > refundData.originalAmount) {
-    $errorEl
-      .text(`Cannot refund more than ${refundData.originalAmount.toFixed(2)}`)
-      .removeClass("hidden");
+    errorEl.textContent = `Cannot refund more than ${refundData.originalAmount.toFixed(2)}`;
+    errorEl.classList.remove("hidden");
     return;
   }
 
   // Show loading state
-  $form.addClass("hidden");
-  $loading.removeClass("hidden");
-  $actions.addClass("hidden");
-  $confirmBtn
-    .prop("disabled", true)
-    .html(
-      '<div class="flex items-center gap-2"><div class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div> Processing...</div>'
-    );
+  form.classList.add("hidden");
+  loading.classList.remove("hidden");
+  actions.classList.add("hidden");
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = `
+    <div class="flex items-center gap-2">
+      <div class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+      Processing...
+    </div>
+  `;
 
-  $.ajax({
-    url: `${BASE_URL}/refund`,
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({
-      orderId: refundData.orderId,
-      amount: amount,
-      currency: refundData.currency,
-      email: refundData.email,
-    }),
-    success: function (result) {
-      if (result.success) {
-        $("#successRefundId").text(
-          result.refundId || result.transactionId || "N/A"
-        );
+  try {
+    const response = await fetch(`${BASE_URL}/refund`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: refundData.orderId,
+        amount,
+        currency: refundData.currency,
+        email: refundData.email,
+      }),
+    });
 
-        // ✅ show backend message if available
-        const emailMsg = result.emailStatus
-          ? `<p class="text-sm mt-2">${result.emailStatus}</p>`
-          : "";
+    const result = await response.json();
 
-        // Insert message under "Refund Successful!"
-        $("#refundSuccess").html(`
-      <div class="text-5xl mb-3">✅</div>
-      <p class="font-medium text-green-700">Refund Successful!</p>
-      <p class="text-sm mt-1">ID: ${result.refundId || "N/A"}</p>
-      ${emailMsg}
-    `);
+    if (response.ok && result.success) {
+      document.querySelector("#successRefundId").textContent =
+        result.refundId || result.transactionId || "N/A";
 
-        $loading.addClass("hidden");
-        $success.removeClass("hidden");
-        $doneActions.removeClass("hidden");
-      } else {
-        showRefundError(result.message || "Refund failed");
-      }
-    },
+      const emailMsg = result.emailStatus
+        ? `<p class="text-sm mt-2">${result.emailStatus}</p>`
+        : "";
 
-    error: function (xhr) {
-      let msg = "Network error. Please try again.";
-      try {
-        const res = xhr.responseJSON || {};
-        msg = res.error?.explanation || res.message || msg;
-      } catch (e) {
-        console.warn("Failed to parse error:", e);
-      }
-      showRefundError(msg);
-    },
-    complete: function () {
-      $confirmBtn.prop("disabled", false).html("Confirm Refund");
-    },
-  });
+      success.innerHTML = `
+        <div class="text-5xl mb-3">✅</div>
+        <p class="font-medium text-green-700">Refund Successful!</p>
+        <p class="text-sm mt-1">ID: ${result.refundId || "N/A"}</p>
+        ${emailMsg}
+      `;
+
+      loading.classList.add("hidden");
+      success.classList.remove("hidden");
+      doneActions.classList.remove("hidden");
+    } else {
+      showRefundError(result.message || "Refund failed");
+    }
+  } catch (err) {
+    console.error("Refund error:", err);
+    showRefundError("Network error. Please try again.");
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = "Confirm Refund";
+  }
 
   function showRefundError(message) {
-    $("#errorMessage").text(message);
-    $loading.addClass("hidden");
-    $error.removeClass("hidden");
-    $doneActions.removeClass("hidden");
+    document.querySelector("#errorMessage").textContent = message;
+    loading.classList.add("hidden");
+    error.classList.remove("hidden");
+    doneActions.classList.remove("hidden");
   }
 }
+
 
 $("#footerText").text("© 2025 Digitable.IO Plutos");
