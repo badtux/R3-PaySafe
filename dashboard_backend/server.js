@@ -9,6 +9,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const pdfRoutes = require("./routes/receiptRoutes");
 const gatewayRoutes = require("./routes/settingRouters");
 const { saveHardcodedGateways } = require("./services/setting.service");
+const {refundPayment} = require('./controllers/paymentController');
 
 require("dotenv").config();
 
@@ -79,6 +80,8 @@ app.use((req, res, next) => {
 app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
 app.use('/api/settings', gatewayRoutes);
+app.post("/api/refund", refundPayment);
+
 
 
 async function startServer() {
