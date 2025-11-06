@@ -50,12 +50,12 @@ $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/mercha
 
 //https://malkey.go.digitable.io/paysafe/?currency=LKR&price=100&email=abc@gmail.com&reference=123LKRTX
 
-//https://malkey.go.digitable.io/paysafe/?currency=USD&price=10&email=abc@gmail.com&reference=123USDTX
+//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=10&email=abc@gmail.com&reference=123USDTX
 
 
-url http://paymentgateway.loc/paysafe?currency=LKR&amount=223&orderId=167u77iu212ew76mnk89&description=test
+url http://malkey.paymentgateway.loc/cmb?currency=LKR&amount=1000&orderId=test613&description=test
 
-http://malkey.paymentgateway.loc/?currency=LKR&amount=12&orderId=112wqse&description=test
+http://malkey.paymentgateway.loc/?currency=LKR&amount=12&orderId=78uywqse&description=test
 
 
 
@@ -78,3 +78,5 @@ docker start {
 error log {
     tail -f /var/log/apache2/error.log
 }
+
+http://malkey.paymentgateway.loc/refund?orderId=order-abc123&amount=15&currency=USD

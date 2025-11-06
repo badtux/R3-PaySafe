@@ -1,6 +1,5 @@
 <?php
 
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -15,6 +14,7 @@ use Ramsey\Uuid\Uuid;
 $errorMessage = null;
 $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
 $uuid = Uuid::uuid4()->toString();
+
 if (!$txnId) {
 
     $amount = isset($_GET['amount']) ? $_GET['amount'] : '';
@@ -24,10 +24,13 @@ if (!$txnId) {
     $database_url = DATABASE_URL;
     $collection = COLLECTION;
     $database = DB;
+    $tenent = TENANT;
+
 
     $_SESSION['uuid'] = $uuid;
     $_SESSION['orderId'] = $orderId;
-    $_SESSION['currency'] =$currency;
+    $_SESSION['currency'] = $currency;
+
     $isValidAmount = !empty($amount) && is_numeric($amount) && $amount > 0;
     $isValidOrderId = !empty($orderId);
 
@@ -55,7 +58,33 @@ if (!$txnId) {
             $apiUserName = API_USERNAME_USD;
             $apiPassWord = API_PASSWORD_USD;
         }
-        // Prepare request for checkout session
+
+        try {
+            $plutosDb = "DT-Plutos";
+            $tenantCollection = $tenent;
+
+            $clientPlutos = new Client($database_url);
+            $tenantCol = $clientPlutos->$plutosDb->$tenantCollection;
+
+            $liveStatus = defined('APP_LIVE') ? APP_LIVE : false;
+
+            $tenantCol->updateOne(
+                ['currency' => $currency, 'live' => $liveStatus], 
+                ['$set' => [
+                    'merchantId' => $merchantId,
+                    'apiUserName' => $apiUserName,
+                    'apiPassWord' => $apiPassWord,
+                    'updatedAt' => new UTCDateTime()
+                ],
+                '$setOnInsert' => [
+                    'createdAt' => new UTCDateTime()
+                ]],
+                ['upsert' => true]
+            );
+
+        } catch (Exception $e) {
+            error_log("MongoDB Tenant Error: " . $e->getMessage());
+        }
         $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/57";
         $data = http_build_query([
             'apiOperation' => 'CREATE_CHECKOUT_SESSION',
@@ -70,7 +99,7 @@ if (!$txnId) {
             'interaction.returnUrl' => REDIRECT_URL,
             'interaction.cancelUrl' => REDIRECT_URL,
             'interaction.timeoutUrl' => REDIRECT_URL,
-           // 'interaction.errorUrl'     => REDIRECT_URL,
+           // 'interaction.errorUrl' => REDIRECT_URL,
             'interaction.merchant.name' => NAME
         ]);
 
@@ -131,12 +160,11 @@ if (!$txnId) {
                 }
             }
         }
+
         // Redirect to clean URL if no errors
         if (!$errorMessage) {
-          header("Location: " . BASE_PATH . "?txnId={$txnId}");
-    
+            header("Location: " . BASE_PATH . "?txnId={$txnId}");
             exit;
-        
         }
     }
 }

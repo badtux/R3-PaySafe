@@ -10,9 +10,15 @@ $tenant = explode('.', $host)[0];
 
 if ($tenant === 'localhost' || empty($tenant)) {
     $tenant = 'default';
+
 }
 
+if (!defined('TENANT')) {
+    define('TENANT', $tenant);
+}
 $databaseName = "{$tenant}_paysafe";
+
+
 
 if (APP_LIVE) {
     define('MERCHANT_ID_USD', 'MALKEYRENUSD'); // live 

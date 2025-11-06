@@ -10,6 +10,10 @@ if ($tenant === 'localhost' || empty($tenant)) {
     $tenant = 'default';
 }
 
+if (!defined('TENANT')) {
+    define('TENANT', $tenant);
+}
+
 $databaseName = "{$tenant}_paysafe";
 
 define('LOGO', 'https://static.wixstatic.com/media/c7b147_b3d1abb02b5346b68d176a13f1ae27d5~mv2.jpg/v1/fill/w_847,h_807,al_c,q_85/Malkey%20Logo%20Red%20-%20Milindu%20Mallawaratchie.jpg');
