@@ -29,7 +29,7 @@ if (APP_LIVE) {
     define('API_PASSWORD_LKR', '8ac724a6d1a9b99f4060c808142d47c6');
 
 
-    define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
+    define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
 

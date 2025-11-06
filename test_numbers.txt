@@ -50,7 +50,7 @@ $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/mercha
 
 //https://malkey.go.digitable.io/paysafe/?currency=LKR&price=100&email=abc@gmail.com&reference=123LKRTX
 
-//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=10&email=abc@gmail.com&reference=123USDTX
+//https://malkey.go.digitable.io/paysafe/?currency=LKR&price=30&email=abc@gmail.com&reference=123USDTX
 
 
 url http://malkey.paymentgateway.loc/cmb?currency=LKR&amount=1000&orderId=test613&description=test
