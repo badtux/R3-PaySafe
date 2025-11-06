@@ -1,13 +1,13 @@
+require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-const LIVE = false; // your current environment
+const LIVE = process.env.LIVE === 'true';
 const DATABASE_NAME = 'DT-Plutos';
 const TENANT_COLLECTION = 'malkey';
 
-// Use correct Mongo URI depending on LIVE/DEV
 const DATABASE_URL = LIVE
-  ? 'mongodb://127.0.0.1:27017'
-  : 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority';
+  ? process.env.MONGO_URI_LIVE
+  : process.env.MONGO_URI_DEV;
 
 async function getGatewayCredentials(currency) {
   const client = new MongoClient(DATABASE_URL, { useUnifiedTopology: true });
@@ -18,7 +18,7 @@ async function getGatewayCredentials(currency) {
     const collection = db.collection(TENANT_COLLECTION);
 
     const curr = currency.toUpperCase();
-    const liveStatus = !!LIVE; // ensure boolean
+    const liveStatus = !!LIVE;
 
     console.log('🔹 Searching credentials for:', { currency: curr, live: liveStatus });
 
@@ -37,7 +37,7 @@ async function getGatewayCredentials(currency) {
       merchantId: credential.merchantId,
       apiUsername: credential.apiUserName,
       apiPassword: credential.apiPassWord,
-       live: liveStatus,
+      live: liveStatus,
     };
   } finally {
     await client.close();
