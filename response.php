@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require 'vendor/autoload.php';
-require_once('config/config.php');
+require_once('config/config.sample.php');
 
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -12,39 +12,40 @@ use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 
-if (isset($_POST['email'])) {
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    error_log("Email received: " . $email);
-    $_SESSION['email'] = $email;
-} else {
-    error_log("No email in POST");
-    if (isset($_SESSION['email'])) {
-        $email = $_SESSION['email'];
-        error_log("Email retrieved from session: $email");
-    } 
-    elseif ($uuid = ($_SESSION['uuid'] ?? null)) {
+session_start();
 
-        try {
-            $client = new Client(DATABASE_URL);
-            $collection = $client->mulky->pyment;
-            $document = $collection->findOne(['uuid' => $uuid]);
-            if ($document && isset($document['email'])) {
-                $email = $document['email'];
-                $_SESSION['email'] = $email;
-                error_log("Email retrieved from MongoDB: $email");
-            } else {
-                $email = 'example@example.com';
-                error_log("No email found in MongoDB, using fallback: $email");
-            }
-        } catch (Exception $e) {
-            error_log("MongoDB Query Error: " . $e->getMessage());
-            $email = 'example@example.com';
-        }
-    } else {
-        $email = 'example@example.com';
-        error_log("No email in session or MongoDB, using fallback: $email");
-    }
+// Try to get email from cookie first
+if (isset($_COOKIE['userEmail'])) {
+    $email = filter_var($_COOKIE['userEmail'], FILTER_SANITIZE_EMAIL);
+    $_SESSION['email'] = $email;
+    error_log("Email retrieved from cookie: $email");
+} 
+elseif (isset($_SESSION['email'])) {
+    $email = $_SESSION['email'];
+    error_log("Email retrieved from session: $email");
 }
+elseif ($uuid = ($_SESSION['uuid'] ?? null)) {
+    try {
+        $client = new Client(DATABASE_URL);
+        $collection = $client->mulky->pyment;
+        $document = $collection->findOne(['uuid' => $uuid]);
+        if ($document && isset($document['email'])) {
+            $email = $document['email'];
+            $_SESSION['email'] = $email;
+            error_log("Email retrieved from MongoDB: $email");
+        } else {
+            $email = 'example@example.com';
+            error_log("No email found in MongoDB, using fallback: $email");
+        }
+    } catch (Exception $e) {
+        error_log("MongoDB Query Error: " . $e->getMessage());
+        $email = 'example@example.com';
+    }
+} else {
+    $email = 'example@example.com';
+    error_log("No email in cookie, session, or MongoDB, using fallback: $email");
+}
+
 
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'] ?? 'USD';
@@ -105,7 +106,7 @@ if ($httpCode == 200) {
             'canceled' => 'payment canceled',
             default => 'unknown',
         };
-        error_log("Response: $response");
+        error_log("Response: $data");
         error_log("uuid:$uuid");
         try {
             $client = new Client($database_url);

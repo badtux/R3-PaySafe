@@ -53,7 +53,7 @@ $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/mercha
 //https://malkey.go.digitable.io/paysafe/?currency=LKR&price=30&email=abc@gmail.com&reference=123USDTX
 
 
-url http://malkey.paymentgateway.loc/cmb?currency=LKR&amount=1000&orderId=test613&description=test
+url http://malkey.paymentgateway.loc/cmb?currency=LKR&amount=1000&orderId=1007&description=test
 
 http://malkey.paymentgateway.loc/?currency=LKR&amount=12&orderId=78uywqse&description=test
 
@@ -66,6 +66,9 @@ change server name in deb
 {
     nano /etc/resolv.conf
 }
+
+
+24c3befb-6dd7-4464-b03b-e15891ca5814
 
 
 docker start {

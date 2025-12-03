@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 
-require_once('config/config.php');
+require_once('config/config.sample.php');
 require 'vendor/autoload.php';
 require 'cmb_hostedAuth.php';
 
@@ -41,46 +41,46 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <?php if (!isset($errorMessage)): ?>
         <!-- <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"></script> -->
 
-  <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"
-        data-error="errorCallback"
-        data-cancel="cancelCallback"
-        data-timeout="timeoutCallback"></script>
+        <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"
+            data-error="errorCallback"
+            data-cancel="cancelCallback"
+            data-timeout="timeoutCallback"></script>
 
-<script type="text/javascript">
-    function errorCallback(error) {
-        console.log(JSON.stringify(error));
-        alert('An error occurred during the payment process. Please try again.');
-        window.location.href = "https://www.malkey.lk"; 
-    }
-
-    function cancelCallback() {
-        console.log("Payment cancelled");
-        alert("Payment process was cancelled.");
-        window.location.href = "https://www.malkey.lk"; 
-    }
-
-    function timeoutCallback() {
-        console.log("Payment timed out");
-        alert("The payment session has expired.");
-        window.location.href = "http://paymentgateway.loc/cmb?#__hc-action-timeout";
-    }
-
-    const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
-
-    Checkout.configure({
-        session: {
-            id: sessionId
-        },
-        interaction: {
-            displayControl: {
-                billingAddress: 'HIDE',
-                customerEmail: 'HIDE',
-                orderSummary: 'SHOW',
-                shipping: 'HIDE'
+        <script type="text/javascript">
+            function errorCallback(error) {
+                console.log(JSON.stringify(error));
+                alert('An error occurred during the payment process. Please try again.');
+                window.location.href = "https://www.malkey.lk";
             }
-        }
-    });
-</script>
+
+            function cancelCallback() {
+                console.log("Payment cancelled");
+                alert("Payment process was cancelled.");
+                window.location.href = "https://www.malkey.lk";
+            }
+
+            function timeoutCallback() {
+                console.log("Payment timed out");
+                alert("The payment session has expired.");
+                window.location.href = "http://paymentgateway.loc/cmb?#__hc-action-timeout";
+            }
+
+            const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
+
+            Checkout.configure({
+                session: {
+                    id: sessionId
+                },
+                interaction: {
+                    displayControl: {
+                        billingAddress: 'HIDE',
+                        customerEmail: 'HIDE',
+                        orderSummary: 'SHOW',
+                        shipping: 'HIDE'
+                    }
+                }
+            });
+        </script>
 
     <?php endif; ?>
 </head>
@@ -180,8 +180,6 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 
     <?php if (!isset($errorMessage)): ?>
         <script>
-        
-
             function validateEmail(email) {
                 const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                 return re.test(email);
@@ -218,40 +216,28 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     return;
                 }
                 if (emailPattern.test(email)) {
+                    // Remove error styles, add success styles
                     emailInput.classList.remove("border-red-500");
                     emailInput.classList.add("border-green-500");
                     errorMessage.classList.add("hidden");
 
-                    fetch('response.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: 'email=' + encodeURIComponent(email)
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(data => {
-                            console.log('Success:', data);
-                            Checkout.showPaymentPage();
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            emailInput.classList.remove("border-green-500");
-                            emailInput.classList.add("border-red-500");
-                            errorMessage.textContent = 'Failed to process email. Please try again.';
-                            errorMessage.classList.remove("hidden");
-                        });
+                    // Save email in a cookie that PHP can read
+                    document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
+                    Checkout.showPaymentPage();
+
+
+                    console.log('Email stored in browser storage:', email);
+
+                    // Continue with your flow
+                    Checkout.showPaymentPage();
+
                 } else {
                     emailInput.classList.remove("border-green-500");
                     emailInput.classList.add("border-red-500");
                     errorMessage.classList.remove("hidden");
                     errorMessage.textContent = 'Please enter a valid email address.';
                 }
+
             }
         </script>
     <?php endif; ?>

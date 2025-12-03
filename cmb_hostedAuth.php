@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once "cmb_hostedAuth.php";
 require "vendor/autoload.php";
-require_once 'config/config.php';
+require_once 'config/config.sample.php';
 
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
