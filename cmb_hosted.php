@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 
-require_once('config/config.sample.php');
+require_once('config/config.php');
 require 'vendor/autoload.php';
 require 'cmb_hostedAuth.php';
 
@@ -216,20 +216,14 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     return;
                 }
                 if (emailPattern.test(email)) {
-                    // Remove error styles, add success styles
                     emailInput.classList.remove("border-red-500");
                     emailInput.classList.add("border-green-500");
                     errorMessage.classList.add("hidden");
 
-                    // Save email in a cookie that PHP can read
                     document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
                     Checkout.showPaymentPage();
-
-
                     console.log('Email stored in browser storage:', email);
-
-                    // Continue with your flow
-                    Checkout.showPaymentPage();
+                   // Checkout.showPaymentPage();
 
                 } else {
                     emailInput.classList.remove("border-green-500");

@@ -44,9 +44,7 @@ if (APP_LIVE) {
     define('API_USERNAME_USD', 'merchant.TESTMALKEYRENUSD');
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
     define('REDIRECT_URL', "http://{$tenant}.paymentgateway.loc/cmb/status");
-
-
-
+    
     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);

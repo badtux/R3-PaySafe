@@ -4,8 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require 'vendor/autoload.php';
-require_once('config/config.sample.php');
-
+require_once('config/config.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -14,34 +13,13 @@ use MongoDB\BSON\UTCDateTime;
 
 session_start();
 
-// Try to get email from cookie first
+
 if (isset($_COOKIE['userEmail'])) {
     $email = filter_var($_COOKIE['userEmail'], FILTER_SANITIZE_EMAIL);
     $_SESSION['email'] = $email;
     error_log("Email retrieved from cookie: $email");
 } 
-elseif (isset($_SESSION['email'])) {
-    $email = $_SESSION['email'];
-    error_log("Email retrieved from session: $email");
-}
-elseif ($uuid = ($_SESSION['uuid'] ?? null)) {
-    try {
-        $client = new Client(DATABASE_URL);
-        $collection = $client->mulky->pyment;
-        $document = $collection->findOne(['uuid' => $uuid]);
-        if ($document && isset($document['email'])) {
-            $email = $document['email'];
-            $_SESSION['email'] = $email;
-            error_log("Email retrieved from MongoDB: $email");
-        } else {
-            $email = 'example@example.com';
-            error_log("No email found in MongoDB, using fallback: $email");
-        }
-    } catch (Exception $e) {
-        error_log("MongoDB Query Error: " . $e->getMessage());
-        $email = 'example@example.com';
-    }
-} else {
+ else {
     $email = 'example@example.com';
     error_log("No email in cookie, session, or MongoDB, using fallback: $email");
 }
