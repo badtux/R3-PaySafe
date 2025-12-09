@@ -291,19 +291,22 @@ function resetFilters() {
 function updateStats(stats) {
   $("#statsCards").html(`
         <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">${stats.totalTransactions}</div>
+          <div class="text-3xl font-bold">${stats.totalTransactions.toLocaleString('en-US')}</div>
           <div class="text-sm opacity-90 mt-1">Total Transactions</div>
         </div>
+
         <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">${stats.successfulTransactions}</div>
+          <div class="text-3xl font-bold">${stats.successfulTransactions.toLocaleString('en-US')}</div>
           <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
         </div>
+
         <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">LKR ${stats.totalAmountLKR}</div>
+          <div class="text-3xl font-bold">LKR ${Number(stats.totalAmountLKR).toLocaleString('en-US')}</div>
           <div class="text-sm opacity-90 mt-1">Total Amount (LKR)</div>
         </div>
+
         <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">USD ${stats.totalAmountUSD}</div>
+          <div class="text-3xl font-bold">USD ${Number(stats.totalAmountUSD).toLocaleString('en-US')}</div>
           <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
         </div>
       `);
