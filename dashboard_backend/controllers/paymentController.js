@@ -22,18 +22,6 @@ exports.getPayments = async (req, res) => {
     }
 };
 
-exports.exportPayments = async (req, res) => {
-    try {
-        const data = await paymentService.exportPayments(req.hostname, req.query);
-        res.status(200).json(data);
-    } catch (error) {
-        console.error('Error exporting payments:', error);
-        res.status(500).json({ status: 'error', message: 'Failed to export payments' });
-    }
-};
-
-
-
 // refund.controller.js
 
 
