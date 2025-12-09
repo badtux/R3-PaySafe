@@ -229,7 +229,6 @@ async function loadData() {
       "bg-orange-100 ring-2 ring-orange-500 font-medium",
       currentFilters.refundOnly === "true"
     );
-
   } catch (error) {
     console.error("Load failed:", error);
     $("#transactionTable").html(`
@@ -246,7 +245,12 @@ function applyFilters() {
   const selectedStatus = $("#transactionType").val();
   const searchQuery = $("#searchQuery").val().trim();
 
-  console.log("Applying filters:", { fromDate, toDate, selectedStatus, searchQuery });
+  console.log("Applying filters:", {
+    fromDate,
+    toDate,
+    selectedStatus,
+    searchQuery,
+  });
 
   currentFilters.page = 1;
   currentFilters.from = fromDate || "";
@@ -282,7 +286,7 @@ function resetFilters() {
     sort: "createdAt:-1",
   };
 
-  delete currentFilters.refundOnly;  // This is correct
+  delete currentFilters.refundOnly; // This is correct
 
   console.log("All filters reset");
   loadData();
@@ -291,22 +295,30 @@ function resetFilters() {
 function updateStats(stats) {
   $("#statsCards").html(`
         <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">${stats.totalTransactions.toLocaleString('en-US')}</div>
+          <div class="text-3xl font-bold">${stats.totalTransactions.toLocaleString(
+            "en-US"
+          )}</div>
           <div class="text-sm opacity-90 mt-1">Total Transactions</div>
         </div>
 
         <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">${stats.successfulTransactions.toLocaleString('en-US')}</div>
+          <div class="text-3xl font-bold">${stats.successfulTransactions.toLocaleString(
+            "en-US"
+          )}</div>
           <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
         </div>
 
         <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">LKR ${Number(stats.totalAmountLKR).toLocaleString('en-US')}</div>
+          <div class="text-3xl font-bold">LKR ${Number(
+            stats.totalAmountLKR
+          ).toLocaleString("en-US")}</div>
           <div class="text-sm opacity-90 mt-1">Total Amount (LKR)</div>
         </div>
 
         <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">USD ${Number(stats.totalAmountUSD).toLocaleString('en-US')}</div>
+          <div class="text-3xl font-bold">USD ${Number(
+            stats.totalAmountUSD
+          ).toLocaleString("en-US")}</div>
           <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
         </div>
       `);
@@ -323,7 +335,10 @@ $(document).ready(function () {
         ? transactions
             .map((t, index) => {
               const originalAmount = parseFloat(t.amount || 0);
-              const totalRefunded = t.latestTotalRefunded != null ? parseFloat(t.latestTotalRefunded) : 0;
+              const totalRefunded =
+                t.latestTotalRefunded != null
+                  ? parseFloat(t.latestTotalRefunded)
+                  : 0;
               const isFullyRefunded = totalRefunded >= originalAmount;
 
               // Refund Tag
@@ -343,14 +358,20 @@ $(document).ready(function () {
               const statusBadge = (() => {
                 const s = (t.paymentStatus || "UNKNOWN").toUpperCase();
                 switch (s) {
-                  case "SUCCESS": return `<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
-                  case "FAILED": case "ERROR": return `<span class="inline-flex items-center gap-1.5 bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
-                  case "PENDING": return `<span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full">PENDING</span>`;
-                  default: return `<span class="bg-gray-100 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-full">${s}</span>`;
+                  case "SUCCESS":
+                    return `<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
+                  case "FAILED":
+                  case "ERROR":
+                    return `<span class="inline-flex items-center gap-1.5 bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
+                  case "PENDING":
+                    return `<span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full">PENDING</span>`;
+                  default:
+                    return `<span class="bg-gray-100 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-full">${s}</span>`;
                 }
               })();
 
-              const showRefundBtn = t.paymentStatus === "SUCCESS" && !isFullyRefunded;
+              const showRefundBtn =
+                t.paymentStatus === "SUCCESS" && !isFullyRefunded;
 
               return `
 <tr class="expandable-row group bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200 shadow-sm" id="row-${index}">
@@ -374,7 +395,7 @@ $(document).ready(function () {
         ${t.currency || "LKR"}
       </div>
 
-      <div class="truncate max-w-[200px] text-sm" title="${t.email || ''}">
+      <div class="truncate max-w-[200px] text-sm" title="${t.email || ""}">
         <span class="text-sm font-medium">${t.email || "N/A"}</span>
       </div>
 
@@ -402,30 +423,39 @@ $(document).ready(function () {
 
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Name on Card</span>
-            <p class="font-semibold text-gray-900 dark:text-white">${t.nameOnCard || "N/A"}</p>
+            <p class="font-semibold text-gray-900 dark:text-white">${
+              t.nameOnCard || "N/A"
+            }</p>
           </div>
 
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Reference</span>
-            <p class="font-medium text-gray-900 dark:text-white">${t.description || "N/A"}</p>
+            <p class="font-medium text-gray-900 dark:text-white">${
+              t.description || "N/A"
+            }</p>
           </div>
 
-          <div>
-            <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Transaction ID</span>
-            <p class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded mt-1 break-all" title="${t.transactionId || ''}">
-              ${t.transactionId ? t.transactionId.slice(0, 10) + "..." + t.transactionId.slice(-8) : "N/A"}
-            </p>
-          </div>
+         <div>
+  <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Transaction ID</span>
+  
+  <p class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded mt-1 break-all" 
+     title="${t.transactionId || ""}">
+    ${t.transactionId || "N/A"}
+  </p>
+</div>
+
 
           ${refundTag ? `<div class="mt-1">${refundTag}</div>` : ""}
 
         </div>
 
         <!-- Right: Refund Button (aligned to end) -->
-        ${showRefundBtn ? `
+        ${
+          showRefundBtn
+            ? `
           <button
             onclick="openRefundModal(
-              '${(t.orderId || '').replace(/'/g, "\\'")}',
+              '${(t.orderId || "").replace(/'/g, "\\'")}',
               '${(t.nameOnCard || "N/A").replace(/'/g, "\\'")}',
               '${t.cardNumber || "N/A"}',
               '${t.amount}',
@@ -437,7 +467,9 @@ $(document).ready(function () {
           >
             Refund
           </button>
-        ` : ""}
+        `
+            : ""
+        }
 
       </div>
     </div>
@@ -459,7 +491,9 @@ $(document).ready(function () {
     // Pagination (clean & modern)
     const start = (currentFilters.page - 1) * currentFilters.limit + 1;
     const end = Math.min(start + currentFilters.limit - 1, total);
-    $("#tableInfo").html(`<span class="text-sm text-gray-600 dark:text-gray-400">Showing <strong>${start}</strong> to <strong>${end}</strong> of <strong>${total}</strong> entries</span>`);
+    $("#tableInfo").html(
+      `<span class="text-sm text-gray-600 dark:text-gray-400">Showing <strong>${start}</strong> to <strong>${end}</strong> of <strong>${total}</strong> entries</span>`
+    );
 
     const totalPages = Math.ceil(total / currentFilters.limit);
     $("#prevPage").prop("disabled", currentFilters.page === 1);
@@ -469,21 +503,26 @@ $(document).ready(function () {
     const half = Math.floor(maxButtons / 2);
     let startPage = Math.max(1, currentFilters.page - half);
     let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-    if (endPage - startPage + 1 < maxButtons) startPage = Math.max(1, endPage - maxButtons + 1);
+    if (endPage - startPage + 1 < maxButtons)
+      startPage = Math.max(1, endPage - maxButtons + 1);
 
     let buttons = [];
-    if (startPage > 1) buttons.push(`<span class="px-4 py-2 text-gray-500">...</span>`);
+    if (startPage > 1)
+      buttons.push(`<span class="px-4 py-2 text-gray-500">...</span>`);
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(`
         <button onclick="changePage(${i})"
-          class="w-10 h-10 rounded-full font-medium transition-all ${i === currentFilters.page
-            ? "bg-blue-600 text-white shadow-lg scale-110"
-            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"}">
+          class="w-10 h-10 rounded-full font-medium transition-all ${
+            i === currentFilters.page
+              ? "bg-blue-600 text-white shadow-lg scale-110"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
+          }">
           ${i}
         </button>
       `);
     }
-    if (endPage < totalPages) buttons.push(`<span class="px-4 py-2 text-gray-500">...</span>`);
+    if (endPage < totalPages)
+      buttons.push(`<span class="px-4 py-2 text-gray-500">...</span>`);
     $("#pageButtons").html(buttons.join(""));
 
     // Click to expand
@@ -784,7 +823,9 @@ async function submitRefund() {
     return;
   }
   if (amount > refundData.originalAmount) {
-    errorEl.textContent = `Cannot refund more than ${refundData.originalAmount.toFixed(2)} ${refundData.currency}`;
+    errorEl.textContent = `Cannot refund more than ${refundData.originalAmount.toFixed(
+      2
+    )} ${refundData.currency}`;
     errorEl.classList.remove("hidden");
     return;
   }
@@ -806,52 +847,56 @@ async function submitRefund() {
     .addClass("scale-100");
 
   // No → go back to refund modal
-  $("#confirmNoBtn").off("click").on("click", () => {
-    $("#confirmRefundPopup").addClass("hidden").removeClass("flex");
-    $("#refundModal").removeClass("hidden").addClass("flex"); // Show again
-  });
+  $("#confirmNoBtn")
+    .off("click")
+    .on("click", () => {
+      $("#confirmRefundPopup").addClass("hidden").removeClass("flex");
+      $("#refundModal").removeClass("hidden").addClass("flex"); // Show again
+    });
 
   // Yes → submit refund
-  $("#confirmYesBtn").off("click").on("click", async () => {
-    $("#confirmRefundPopup").addClass("hidden").removeClass("flex");
+  $("#confirmYesBtn")
+    .off("click")
+    .on("click", async () => {
+      $("#confirmRefundPopup").addClass("hidden").removeClass("flex");
 
-    // Show loading in refund modal
-    $("#refundFormContent, #refundActions").addClass("hidden");
-    $("#refundLoading").removeClass("hidden");
-    $("#refundModal").removeClass("hidden").addClass("flex"); // Keep modal open
+      // Show loading in refund modal
+      $("#refundFormContent, #refundActions").addClass("hidden");
+      $("#refundLoading").removeClass("hidden");
+      $("#refundModal").removeClass("hidden").addClass("flex"); // Keep modal open
 
-    try {
-      const response = await fetch(`${BASE_URL}/refund`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          uuid: refundData.uuid,
-          amount,
-          currency: refundData.currency,
-          email: refundData.email,
-        }),
-      });
+      try {
+        const response = await fetch(`${BASE_URL}/refund`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            uuid: refundData.uuid,
+            amount,
+            currency: refundData.currency,
+            email: refundData.email,
+          }),
+        });
 
-      const result = await response.json();
+        const result = await response.json();
 
-      if (response.ok && result.success) {
-        $("#refundLoading").addClass("hidden");
-        $("#refundSuccess").removeClass("hidden");
-        $("#refundDoneActions").removeClass("hidden");
-        $("#successRefundId").text(result.refundId || "N/A");
-      } else {
+        if (response.ok && result.success) {
+          $("#refundLoading").addClass("hidden");
+          $("#refundSuccess").removeClass("hidden");
+          $("#refundDoneActions").removeClass("hidden");
+          $("#successRefundId").text(result.refundId || "N/A");
+        } else {
+          $("#refundLoading").addClass("hidden");
+          $("#refundError").removeClass("hidden");
+          $("#refundDoneActions").removeClass("hidden");
+          $("#errorMessage").text(result.message || "Refund failed");
+        }
+      } catch (err) {
         $("#refundLoading").addClass("hidden");
         $("#refundError").removeClass("hidden");
         $("#refundDoneActions").removeClass("hidden");
-        $("#errorMessage").text(result.message || "Refund failed");
+        $("#errorMessage").text("Network error");
       }
-    } catch (err) {
-      $("#refundLoading").addClass("hidden");
-      $("#refundError").removeClass("hidden");
-      $("#refundDoneActions").removeClass("hidden");
-      $("#errorMessage").text("Network error");
-    }
-  });
+    });
 }
 
 $("#footerText").text("© 2025 Digitable.IO Plutos");
