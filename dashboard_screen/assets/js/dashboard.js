@@ -71,38 +71,83 @@ $(document).ready(() => {
 function applyTheme(theme) {
   if (theme === "dark") {
     $("#body").addClass("bg-gray-800 text-white");
+    
+    // Main table styles
     $(".bg-white").addClass("bg-gray-900").removeClass("bg-white");
     $(".text-gray-700").addClass("text-gray-200").removeClass("text-gray-700");
-    $(".bg-gray-50").addClass("bg-gray-700").removeClass("bg-gray-50");
-    $(".border-gray-200")
-      .addClass("border-gray-600")
-      .removeClass("border-gray-200");
-    $(".text-gray-500").addClass("text-gray-300").removeClass("text-gray-500");
-    $(".bg-gray-100").addClass("bg-gray-600").removeClass("bg-gray-100");
-    $(".hover\\:bg-gray-100")
-      .addClass("hover:bg-gray-500")
-      .removeClass("hover:bg-gray-100");
+    $(".text-gray-600").addClass("text-gray-300").removeClass("text-gray-600");
+    $(".text-gray-500").addClass("text-gray-400").removeClass("text-gray-500");
+    $(".text-gray-400").addClass("text-gray-500").removeClass("text-gray-400");
+    $(".bg-gray-50").addClass("bg-gray-800").removeClass("bg-gray-50");
+    $(".border-gray-100").addClass("border-gray-800").removeClass("border-gray-100");
+    $(".border-gray-200").addClass("border-gray-700").removeClass("border-gray-200");
+    $(".bg-gray-100").addClass("bg-gray-700").removeClass("bg-gray-100");
+    $(".hover\\:bg-gray-100").addClass("hover:bg-gray-700").removeClass("hover:bg-gray-100");
+    $(".hover\\:bg-gray-50").addClass("hover:bg-gray-800").removeClass("hover:bg-gray-50");
+    
+    // Blue colors for dark mode
+    $(".bg-blue-50").addClass("bg-gray-800").removeClass("bg-blue-50");
+    $(".border-blue-100").addClass("border-gray-700").removeClass("border-blue-100");
+    $(".border-blue-400").addClass("border-blue-600").removeClass("border-blue-400");
+    $(".text-blue-500").addClass("text-blue-400").removeClass("text-blue-500");
+    
+    // Status badges
+    $(".status-success").addClass("bg-emerald-900 text-emerald-200").removeClass("bg-emerald-50 text-emerald-600");
+    $(".status-failed").addClass("bg-red-900 text-red-200").removeClass("bg-red-50 text-red-600");
+    $(".status-pending").addClass("bg-amber-900 text-amber-200").removeClass("bg-amber-50 text-amber-600");
+    $(".status-default").addClass("bg-gray-800 text-gray-300").removeClass("bg-gray-50 text-gray-500");
+    
+    // Refund tags
+    $(".refund-tag-full").addClass("bg-red-900 text-red-200").removeClass("bg-red-50 text-red-600");
+    $(".refund-tag-partial").addClass("bg-orange-900 text-orange-200").removeClass("bg-orange-50 text-orange-600");
+    
+    // Pagination
+    $(".active-page").addClass("bg-blue-600").removeClass("bg-blue-500");
+    $(".page-button:not(.active-page)").addClass("bg-gray-800 text-gray-300 border-gray-700").removeClass("bg-white text-gray-600 border-gray-200");
+    
+    // Footer
     $("#footerText").addClass("text-gray-300").removeClass("text-gray-500");
-    $("#activeGatewaysDisplay span")
-      .addClass("bg-gray-700")
-      .removeClass("bg-gray-200");
+    $("#activeGatewaysDisplay span").addClass("bg-gray-700").removeClass("bg-gray-200");
+    
   } else {
     $("#body").removeClass("bg-gray-800 text-white");
+    
+    // Main table styles
     $(".bg-gray-900").addClass("bg-white").removeClass("bg-gray-900");
     $(".text-gray-200").addClass("text-gray-700").removeClass("text-gray-200");
-    $(".bg-gray-700").addClass("bg-gray-50").removeClass("bg-gray-700");
-    $(".border-gray-600")
-      .addClass("border-gray-200")
-      .removeClass("border-gray-600");
-    $(".text-gray-300").addClass("text-gray-500").removeClass("text-gray-300");
-    $(".bg-gray-600").addClass("bg-gray-100").removeClass("bg-gray-600");
-    $(".hover\\:bg-gray-500")
-      .addClass("hover:bg-gray-100")
-      .removeClass("hover:bg-gray-500");
+    $(".text-gray-300").addClass("text-gray-600").removeClass("text-gray-300");
+    $(".text-gray-400").addClass("text-gray-500").removeClass("text-gray-400");
+    $(".text-gray-500").addClass("text-gray-400").removeClass("text-gray-500");
+    $(".bg-gray-800").addClass("bg-gray-50").removeClass("bg-gray-800");
+    $(".border-gray-800").addClass("border-gray-100").removeClass("border-gray-800");
+    $(".border-gray-700").addClass("border-gray-200").removeClass("border-gray-700");
+    $(".bg-gray-700").addClass("bg-gray-100").removeClass("bg-gray-700");
+    $(".hover\\:bg-gray-700").addClass("hover:bg-gray-100").removeClass("hover:bg-gray-700");
+    $(".hover\\:bg-gray-800").addClass("hover:bg-gray-50").removeClass("hover:bg-gray-800");
+    
+    // Blue colors for light mode
+    $(".bg-gray-800").not(".page-button").addClass("bg-blue-50").removeClass("bg-gray-800");
+    $(".border-gray-700").addClass("border-blue-100").removeClass("border-gray-700");
+    $(".border-blue-600").addClass("border-blue-400").removeClass("border-blue-600");
+    $(".text-blue-400").addClass("text-blue-500").removeClass("text-blue-400");
+    
+    // Status badges
+    $(".bg-emerald-900").addClass("bg-emerald-50 text-emerald-600").removeClass("bg-emerald-900 text-emerald-200");
+    $(".bg-red-900").addClass("bg-red-50 text-red-600").removeClass("bg-red-900 text-red-200");
+    $(".bg-amber-900").addClass("bg-amber-50 text-amber-600").removeClass("bg-amber-900 text-amber-200");
+    $(".bg-gray-800.text-gray-300").addClass("bg-gray-50 text-gray-500").removeClass("bg-gray-800 text-gray-300");
+    
+    // Refund tags
+    $(".bg-red-900.text-red-200").addClass("bg-red-50 text-red-600").removeClass("bg-red-900 text-red-200");
+    $(".bg-orange-900.text-orange-200").addClass("bg-orange-50 text-orange-600").removeClass("bg-orange-900 text-orange-200");
+    
+    // Pagination
+    $(".active-page").addClass("bg-blue-500").removeClass("bg-blue-600");
+    $(".page-button:not(.active-page)").addClass("bg-white text-gray-600 border-gray-200").removeClass("bg-gray-800 text-gray-300 border-gray-700");
+    
+    // Footer
     $("#footerText").addClass("text-gray-500").removeClass("text-gray-300");
-    $("#activeGatewaysDisplay span")
-      .addClass("bg-gray-200")
-      .removeClass("bg-gray-700");
+    $("#activeGatewaysDisplay span").addClass("bg-gray-200").removeClass("bg-gray-700");
   }
 }
 
@@ -307,7 +352,6 @@ function updateStats(stats) {
           )}</div>
           <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
         </div>
-
         <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
           <div class="text-3xl font-bold">LKR ${Number(
             stats.totalAmountLKR
@@ -345,11 +389,11 @@ $(document).ready(function () {
               let refundTag = "";
               if (totalRefunded > 0) {
                 if (isFullyRefunded) {
-                  refundTag = `<span class="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+                  refundTag = `<span class="refund-tag-full inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">
                     FULL REFUND
                   </span>`;
                 } else {
-                  refundTag = `<span class="inline-flex items-center gap-1.5 bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+                  refundTag = `<span class="refund-tag-partial inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1.5 rounded-full">
                     PARTIAL – ${totalRefunded.toFixed(2)} ${t.currency}
                   </span>`;
                 }
@@ -359,14 +403,14 @@ $(document).ready(function () {
                 const s = (t.paymentStatus || "UNKNOWN").toUpperCase();
                 switch (s) {
                   case "SUCCESS":
-                    return `<span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
+                    return `<span class="status-success inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
                   case "FAILED":
                   case "ERROR":
-                    return `<span class="inline-flex items-center gap-1.5 bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
+                    return `<span class="status-failed inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
                   case "PENDING":
-                    return `<span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full">PENDING</span>`;
+                    return `<span class="status-pending inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-full">PENDING</span>`;
                   default:
-                    return `<span class="bg-gray-100 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-full">${s}</span>`;
+                    return `<span class="status-default bg-gray-50 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full">${s}</span>`;
                 }
               })();
 
@@ -374,36 +418,41 @@ $(document).ready(function () {
                 t.paymentStatus === "SUCCESS" && !isFullyRefunded;
 
               return `
-<tr class="expandable-row group bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-200 shadow-sm" id="row-${index}">
-  <td colspan="8" class="px-6 py-5">
+<tr class="table-row expandable-row group bg-white border-b border-gray-100 hover:bg-gray-50 transition-all duration-200" id="row-${index}">
+  <td colspan="8" class="px-6 py-4">
     <!-- Main Row -->
-    <div class="main-row grid grid-cols-8 gap-6 items-center text-gray-800 dark:text-gray-200">
+    <div class="main-row grid grid-cols-8 gap-6 items-center">
 
-      <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-        ${new Date(t.createdAt).toISOString().split("T")[0]}
-      </div>
+      <div class="date-cell text-sm font-medium text-gray-600">
+  ${new Date(t.createdAt).toISOString().split("T")[0]}
+</div>
 
-      <div class="font-bold text-lg text-blue-600 dark:text-blue-400">
+      <div class="order-id font-bold text-lg text-blue-500">
         ${t.orderId || "N/A"}
       </div>
 
-      <div class="text-lg font-semibold text-gray-900 dark:text-white">
+      <div class="amount text-lg font-semibold text-gray-700">
         ${originalAmount.toFixed(2)}
       </div>
 
-      <div class="text-sm font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
-        ${t.currency || "LKR"}
-      </div>
+     <div class="currency text-sm font-medium uppercase tracking-wider text-gray-600">
+  ${t.currency || "LKR"}
+</div>
 
-      <div class="truncate max-w-[200px] text-sm" title="${t.email || ""}">
-        <span class="text-sm font-medium">${t.email || "N/A"}</span>
-      </div>
+     <div class="truncate max-w-[200px] text-sm" title="${t.email || ""}">
+  <span class="email text-sm font-medium text-gray-600">
+    ${t.email || "N/A"}
+  </span>
+</div>
 
-      <div class="font-mono text-sm text-gray-600 dark:text-gray-400">
-        ${t.cardNumber ? "•••• " + t.cardNumber.slice(-4) : "N/A"}
-      </div>
+<div class="card-number text-sm font-medium text-gray-600 font-mono"
+     title="${t.cardNumber || 'N/A'}">
+  ${t.cardNumber ? "•••" + t.cardNumber.slice(-4) : "N/A"}
+</div>
 
-      <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
+
+
+      <div class="card-brand text-sm font-medium text-gray-600">
         ${t.cardBrand || "N/A"}
       </div>
 
@@ -412,38 +461,30 @@ $(document).ready(function () {
       </div>
 
     </div>
-
-    <!-- ONE ROW: Name, Description, Transaction ID + Refund Button on Right -->
-    <div class="expand-content mt-4 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-blue-200 dark:border-gray-700 shadow-inner hidden">
-      
+    <div class="expand-content mt-4 p-5 bg-blue-50 rounded-xl border border-blue-100 hidden">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm">
-
         <!-- Left: Details -->
-        <div class="flex flex-wrap items-center gap-x-8 gap-y-3 text-gray-700 dark:text-gray-300">
-
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
           <div>
-            <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Name on Card</span>
-            <p class="font-semibold text-gray-900 dark:text-white">${
+            <span class="text-xs uppercase tracking-wider text-gray-400">Name on Card</span>
+            <p class="font-semibold text-gray-700">${
               t.nameOnCard || "N/A"
             }</p>
           </div>
-
           <div>
-            <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Reference</span>
-            <p class="font-medium text-gray-900 dark:text-white">${
+            <span class="text-xs uppercase tracking-wider text-gray-400">Reference</span>
+            <p class="font-medium text-gray-700">${
               t.description || "N/A"
             }</p>
           </div>
 
-         <div>
-  <span class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Transaction ID</span>
-  
-  <p class="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded mt-1 break-all" 
-     title="${t.transactionId || ""}">
-    ${t.transactionId || "N/A"}
-  </p>
-</div>
-
+          <div>
+            <span class="text-xs uppercase tracking-wider text-gray-400">Transaction ID</span>
+            <p class="font-mono text-xs bg-white text-gray-600 border border-gray-200 px-3 py-1.5 rounded mt-1 break-all" 
+               title="${t.transactionId || ""}">
+              ${t.transactionId || "N/A"}
+            </p>
+          </div>
 
           ${refundTag ? `<div class="mt-1">${refundTag}</div>` : ""}
 
@@ -463,7 +504,7 @@ $(document).ready(function () {
               '${(t.email || "").replace(/'/g, "\\'")}',
               '${t.uuid || ""}'
             )"
-            class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-sm flex items-center gap-2 whitespace-nowrap"
+            class="refund-button bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-2.5 px-6 rounded-lg shadow transform hover:scale-105 transition-all duration-200 text-sm flex items-center gap-2 whitespace-nowrap"
           >
             Refund
           </button>
@@ -478,12 +519,12 @@ $(document).ready(function () {
 `;
             })
             .join("")
-        : `<tr><td colspan="8" class="px-6 py-16 text-center text-gray-500 dark:text-gray-400 text-lg">
+        : `<tr><td colspan="8" class="px-6 py-16 text-center text-gray-400 text-lg">
               <div class="flex flex-col items-center gap-3">
                 <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-2m3 2v-2m-9 7h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <p>No successful transactions found</p>
+                <p class="text-gray-500">No successful transactions found</p>
               </div>
             </td></tr>`
     );
@@ -492,7 +533,7 @@ $(document).ready(function () {
     const start = (currentFilters.page - 1) * currentFilters.limit + 1;
     const end = Math.min(start + currentFilters.limit - 1, total);
     $("#tableInfo").html(
-      `<span class="text-sm text-gray-600 dark:text-gray-400">Showing <strong>${start}</strong> to <strong>${end}</strong> of <strong>${total}</strong> entries</span>`
+      `<span class="text-sm text-gray-500">Showing <strong class="text-gray-600">${start}</strong> to <strong class="text-gray-600">${end}</strong> of <strong class="text-gray-600">${total}</strong> entries</span>`
     );
 
     const totalPages = Math.ceil(total / currentFilters.limit);
@@ -508,21 +549,21 @@ $(document).ready(function () {
 
     let buttons = [];
     if (startPage > 1)
-      buttons.push(`<span class="px-4 py-2 text-gray-500">...</span>`);
+      buttons.push(`<span class="px-4 py-2 text-gray-400">...</span>`);
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(`
         <button onclick="changePage(${i})"
-          class="w-10 h-10 rounded-full font-medium transition-all ${
+          class="page-button w-10 h-10 rounded-full font-medium transition-all ${
             i === currentFilters.page
-              ? "bg-blue-600 text-white shadow-lg scale-110"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
+              ? "active-page bg-blue-500 text-white shadow"
+              : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
           }">
           ${i}
         </button>
       `);
     }
     if (endPage < totalPages)
-      buttons.push(`<span class="px-4 py-2 text-gray-500">...</span>`);
+      buttons.push(`<span class="px-4 py-2 text-gray-400">...</span>`);
     $("#pageButtons").html(buttons.join(""));
 
     // Click to expand
@@ -542,10 +583,10 @@ $(document).ready(function () {
 
     if ($content.hasClass("hidden")) {
       $content.removeClass("hidden").slideDown(350);
-      $row.addClass("ring-2 ring-blue-400 dark:ring-blue-600");
+      $row.addClass("border-l-4 border-blue-400");
     } else {
       $content.slideUp(300, () => $content.addClass("hidden"));
-      $row.removeClass("ring-2 ring-blue-400 dark:ring-blue-600");
+      $row.removeClass("border-l-4 border-blue-400");
     }
   }
 
@@ -556,6 +597,7 @@ $(document).ready(function () {
     loadData();
   };
 });
+
 async function exportToCSV() {
   try {
     // Use the same endpoint as your table — it has correct latestTotalRefunded!
