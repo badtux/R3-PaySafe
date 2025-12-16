@@ -9,6 +9,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const pdfRoutes = require("./routes/receiptRoutes");
 const gatewayRoutes = require("./routes/settingRouters");
 const { saveHardcodedGateways } = require("./services/setting.service");
+const CERTS_BASE_DIR = path.join(__dirname, '../certs');
 
 require("dotenv").config();
 
@@ -25,24 +26,32 @@ app.use(express.static("public"));
 
 
 const allowedOrigins = [
-  /^https:\/\/([a-zA-Z0-9-]+)\.go\.digitable\.io(:3008)?$/,
-  /^http:\/\/([a-zA-Z0-9-]+)\.localhost:3008$/,
-  /^http:\/\/127\.0\.0\.1:5501\/?$/
+  'https://malkey.go.digitable.io',
+  'https://helpage.go.digitable.io',
+  'http://localhost:3000',
+  'http://localhost:5501',
+  
 ];
+let CertPath = null;
 
 const corsOptions = {
   origin: function (origin, callback) {
     console.log("CORS Origin:", origin);
-    if (
-      !origin ||
-      allowedOrigins.some((pattern) =>
-        pattern instanceof RegExp ? pattern.test(origin) : pattern === origin
-      )
-    ) {
-      callback(null, true);
+       if (allowedOrigins.includes(origin)) {
+      try {
+        CertPath = new URL(origin).hostname;
+        process.env.CERT_PATH = CertPath;
+        global.CERT_PATH_DIR = path.join(CERTS_BASE_DIR, CertPath);
+
+        console.log(`[CORS] Origin matched → CERT_PATH set to: ${CertPath}`);
+        return callback(null, true);
+      } catch (e) {
+        console.error('[CORS] Invalid origin URL:', e.message);
+        return callback(new Error('Invalid origin URL'));
+      }
     } else {
-      console.log("❌ Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -74,24 +83,52 @@ async function startServer() {
     try {
         await connectToMongo();
         await saveHardcodedGateways();
+if (LIVE) {
+  const getCertForDomain = (hostname) => {
+    const certDir = path.join(CERTS_BASE_DIR, hostname);
+    const keyPath = path.join(certDir, 'privkey.pem');
+    const certPath = path.join(certDir, 'fullchain.pem');
 
-        if (LIVE) {
-            const key = fs.readFileSync(__dirname + '/../../certs/privkey.pem');
-            const cert = fs.readFileSync(__dirname + '/../../certs/fullchain.pem');
-            const options = {
-                key: key,
-                cert: cert,
-            };
+    if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+      console.log(`[HTTPS] Loaded certificate for ${hostname}`);
+      return tls.createSecureContext({
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath),
+      });
+    }
 
-            https.createServer(options, app).listen(PORT, () => {
-                console.log(`Server running at https://${APP_FQDN}:${PORT}`);
-            });
-        } else {
-            app.listen(PORT, () => {
-                console.log(`Node.js backend listening at http://${APP_FQDN}:${PORT}`);
-                console.log('Ensure your .env file is configured correctly.');
-            });
-        }
+    console.warn(`[HTTPS] No certificate found for ${hostname}, using default.`);
+    return null;
+  };
+
+  const defaultDomain = process.env.CERT_PATH ;
+  const defaultKey = path.join(CERTS_BASE_DIR, defaultDomain, 'privkey.pem');
+  const defaultCert = path.join(CERTS_BASE_DIR, defaultDomain, 'fullchain.pem');
+
+  if (!fs.existsSync(defaultKey) || !fs.existsSync(defaultCert)) {
+    console.error(`  Default certificate not found for ${defaultDomain}`);
+    process.exit(1);
+  }
+
+  const defaultContext = getCertForDomain(defaultDomain);
+
+  const options = {
+    SNICallback: (domain, cb) => {
+      const context = getCertForDomain(domain);
+      cb(null, context || defaultContext);
+    },
+    key: fs.readFileSync(defaultKey),
+    cert: fs.readFileSync(defaultCert),
+  };
+
+  https.createServer(options, app).listen(PORT, () => {
+    console.log(`  HTTPS Server (SNI mode) running on port ${PORT}`);
+  });
+} else {
+  app.listen(PORT, () => {
+    console.log(`  Development server running at http://localhost:${PORT}`);
+  });
+}
     } catch (err) {
         console.error("Failed to start server:", err);
     }
