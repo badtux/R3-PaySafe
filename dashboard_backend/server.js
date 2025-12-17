@@ -9,20 +9,16 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const pdfRoutes = require("./routes/receiptRoutes");
 const gatewayRoutes = require("./routes/settingRouters");
 const { saveHardcodedGateways } = require("./services/setting.service");
-const CERTS_BASE_DIR = path.join(__dirname, '../certs');
+
 
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
 const LIVE = process.env.LIVE || false;
-
+const CERTS_BASE_DIR = path.join(__dirname, '../certs');
 
 const app = express();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
 
 
 const allowedOrigins = [
@@ -58,6 +54,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 
 app.use((req, res, next) => {
