@@ -26,6 +26,7 @@ const allowedOrigins = [
   'https://helpage.go.digitable.io',
   'http://localhost:3000',
   'http://localhost:5501',
+
   
 ];
 let CertPath = null;
@@ -103,6 +104,9 @@ if (LIVE) {
   const defaultDomain = process.env.CERT_PATH ;
   const defaultKey = path.join(CERTS_BASE_DIR, defaultDomain, 'privkey.pem');
   const defaultCert = path.join(CERTS_BASE_DIR, defaultDomain, 'fullchain.pem');
+
+  console.log(`  Default path for HTTPS: ${defaultKey}`);
+  console.log(`  Default path for HTTPS: ${defaultCert}`);
 
   if (!fs.existsSync(defaultKey) || !fs.existsSync(defaultCert)) {
     console.error(`  Default certificate not found for ${defaultDomain}`);
