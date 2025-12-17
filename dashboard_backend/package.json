@@ -27,7 +27,8 @@
     "nodemailer": "^7.0.10",
     "path": "^0.12.7",
     "pdfkit": "^0.17.2",
-    "puppeteer": "^24.23.0"
+    "puppeteer": "^24.23.0",
+    "tls": "^0.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

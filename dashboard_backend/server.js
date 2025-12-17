@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require('fs');
+const tls = require('tls');
 const https = require('https');
 const { connectToMongo } = require("./config/db");
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -105,7 +106,7 @@ if (LIVE) {
   const defaultKey = path.join(CERTS_BASE_DIR, defaultDomain, 'privkey.pem');
   const defaultCert = path.join(CERTS_BASE_DIR, defaultDomain, 'fullchain.pem');
 
-  console.log(`  Default path for HTTPS: ${defaultKey}`);
+    console.log(`  Default path for HTTPS: ${defaultKey}`);
   console.log(`  Default path for HTTPS: ${defaultCert}`);
 
   if (!fs.existsSync(defaultKey) || !fs.existsSync(defaultCert)) {
