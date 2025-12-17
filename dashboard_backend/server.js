@@ -13,7 +13,7 @@ require("dotenv").config();
 const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
 const LIVE = process.env.LIVE === 'true';
-const CERTS_BASE_DIR = path.join(__dirname, '../certs');
+const CERTS_BASE_DIR = path.join(__dirname, '../../certs');
 const app = express();
 const allowedOrigins = [
   'https://malkey.go.digitable.io',
@@ -44,10 +44,13 @@ const corsOptions = {
   },
   credentials: true,
 };
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+
 app.use((req, res, next) => {
   const origin = req.headers.origin || 'undefined';
   const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
@@ -58,9 +61,13 @@ app.use((req, res, next) => {
   console.log(`-------------------------\n`);
   next();
 });
+
+
 app.use("/api/pdf", pdfRoutes);
 app.use("/api", paymentRoutes);
 app.use('/api/settings', gatewayRoutes);
+
+
 async function startServer() {
     try {
         await connectToMongo();
@@ -87,12 +94,16 @@ if (LIVE) {
   // ONLY ADDED THESE TWO LINES — NOTHING ELSE CHANGED
   console.log(`Default Key Path: ${defaultKey}`);
   console.log(`Default Cert Path: ${defaultCert}`);
+  console.log(`Default domain Path: ${defaultDomain}`);
+
 
   if (!fs.existsSync(defaultKey) || !fs.existsSync(defaultCert)) {
     console.error(` Default certificate not found for ${defaultDomain}`);
     process.exit(1);
   }
   const defaultContext = getCertForDomain(defaultDomain);
+
+
   const options = {
     SNICallback: (domain, cb) => {
       const context = getCertForDomain(domain);
