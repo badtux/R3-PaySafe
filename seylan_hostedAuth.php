@@ -42,10 +42,17 @@ if (!$txnId) {
 
     if ($amount === false || $amount <= 0) {
         $errorMessage = "Error: Amount is required and must be a valid number greater than 0.";
+         error_log("amount: " . $amount);
     } elseif (empty($orderId)) {
+        error_log("order id: " . $orderId);
         $errorMessage = "Error: Order ID is required and cannot be empty.";
     } elseif (empty($merchantId) || empty($apiPassWord) || empty($database_url) || empty($collection_name) || empty($database_name)) {
         $errorMessage = "Error: Configuration values are missing.";
+        error_log("merchantId: " . $merchantId);
+        error_log("apiPassWord: " . $apiPassWord);
+        error_log("database_url: " . $database_url);
+        error_log("collection_name: " . $collection_name);
+        error_log("database_name: " . $database_name);
     } else {
 
         $txnId = bin2hex(random_bytes(8));
@@ -85,7 +92,7 @@ if (!$txnId) {
 
         $jsonData = json_encode($data);
          error_log("Request Data: " . $jsonData);
-         error_log("Database: $database, Collection: $collection");
+         error_log("Database: $database_url, Collection: $collection_name, DB: $database_name");
 
  
         $ch = curl_init();

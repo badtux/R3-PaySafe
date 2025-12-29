@@ -52,11 +52,11 @@ merchanrtsales@combank.com
 
 
 
-http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=123&orderId=test112yu7&description=test
+http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=12&orderId=test11209u0&description=test
 
 
 
-https://helpage.go.digitable.io/paysafe/sey?currency=LKR&amount=30&orderId=livetest6&description=testtransactions
+https://helpage.go.digitable.io/paysafe/sey?currency=LKR&amount=30&orderId=livetest7&description=testtransactions
 
 
 change server name in deb 
@@ -75,3 +75,18 @@ docker start {
 error log {
     tail -f /var/log/apache2/error.log
 }
+
+ <script src="https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
+  $url = "https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/$merchantId/session";
+
+ if (!$errorMessage) {
+            header("Location: $basePath?txnId=$txnId");
+            exit;
+        } else {
+            $encodedError = urlencode($errorMessage);
+            header("Location: $basePath?errorMessage=$encodedError");
+            exit;
+        }
+
+        
+ 
