@@ -93,8 +93,6 @@ if (!$txnId) {
         $jsonData = json_encode($data);
          error_log("Request Data: " . $jsonData);
          error_log("Database: $database_url, Collection: $collection_name, DB: $database_name");
-
- 
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
