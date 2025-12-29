@@ -150,6 +150,7 @@ if (!$txnId) {
 
         echo 'ASASA';
         exit;
+        
         if (!$errorMessage) {
             header("Location: $basePath?txnId=$txnId");
             exit;
