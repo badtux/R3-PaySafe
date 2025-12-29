@@ -148,9 +148,12 @@ if (!$txnId) {
             }
         }
 
-
         if (!$errorMessage) {
             header("Location: $basePath?txnId=$txnId");
+            exit;
+        } else {
+            $encodedError = urlencode($errorMessage);
+            header("Location: $basePath?errorMessage=$encodedError");
             exit;
         }
     }
