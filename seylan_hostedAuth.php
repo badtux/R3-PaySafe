@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 error_log("Session ID: " . session_id());
 error_log("Session data at start: " . print_r($_SESSION, true)); 
 
-require_once('config/config.sample.php');
+require_once('config/config.php');
 require_once "seylan_hostedAuth.php";
 require "vendor/autoload.php";
 
@@ -32,7 +32,7 @@ $basePath = defined('BASE_PATH') ? BASE_PATH : '';
 error_log("Config values - merchantId: $merchantId, database_url: $database_url, collection: $collection_name, db: $database_name, basePath: $basePath"); // DEBUG: Check config loading
 
 if (!$txnId) {
-    
+
     error_log("No txnId provided - starting new payment flow"); 
 
      
