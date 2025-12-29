@@ -8,6 +8,23 @@ require_once('config/config.php');
 require 'vendor/autoload.php';
 require 'seylan_hostedAuth.php';
 
+use Monolog\Logger;
+use Monolog\Handler\SyslogHandler;
+
+$logger = new Logger('paysafe_logger');
+$logger->pushHandler(new SyslogHandler(
+    ident: 'paysafe_logger',          // Appears as the program name in syslog
+    facility: LOG_USER,       // Syslog facility
+    level: Logger::DEBUG      // Minimum log level
+));
+
+// Write some logs
+$logger->info('Application started');
+$logger->warning('Low disk space');
+$logger->error('Something went wrong', [
+    'exception' => 'ExampleException'
+]);
+
 $errorMessage = null;
 $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
 
