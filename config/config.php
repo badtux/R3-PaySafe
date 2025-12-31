@@ -22,14 +22,13 @@ if (APP_LIVE) {
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
 
 
-    define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
-    define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
+     define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
+     define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
      define('COLLECTION', 'payments');
      define('DB', $databaseName);
 
     define('ROBOT_SITE_KEY', '6LfFD_QrAAAAAFN9rh4-zClDQ3jhdDsR7CKtiFNG');
     define('ROBOT_SECRET_KEY', '6LfFD_QrAAAAAO6IB7_gw_oDuRteZ-M3A7gYWkHr');
-
 } else {
 
     define('MERCHANT_ID', 'TESTSEYLAN124');

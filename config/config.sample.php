@@ -23,7 +23,7 @@ if (APP_LIVE) {
 
 
     define('REDIRECT_URL', 'https://malkey.go.digitable.io/paysafe/sey/status');
-    define('DATABASE_URL', 'mongodb://127.0.0.1:27017');
+    define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
     

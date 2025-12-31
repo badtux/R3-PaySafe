@@ -8,7 +8,7 @@ error_log("Session ID: " . session_id());
 error_log("Session data at start: " . print_r($_SESSION, true)); 
 
 require_once('config/config.php');
-require_once "seylan_hostedAuth.php";
+// require_once "seylan_hostedAuth.php";
 require "vendor/autoload.php";
 
 use MongoDB\Client;
@@ -16,7 +16,7 @@ use MongoDB\BSON\UTCDateTime;
 use Ramsey\Uuid\Uuid;
 
 $errorMessage = null;
-$txnId = filter_input(INPUT_GET, 'txnId', FILTER_SANITIZE_STRING);
+$txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
 $uuid = Uuid::uuid4()->toString();
 
 error_log("Generated UUID: $uuid"); 
