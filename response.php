@@ -13,21 +13,17 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
+ 
+session_start();
 
-
-if (isset($_POST['email'])) {
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    error_log("Email received: " . $email);
+if (isset($_COOKIE['userEmail'])) {
+    $email = filter_var($_COOKIE['userEmail'], FILTER_SANITIZE_EMAIL);
     $_SESSION['email'] = $email;
-} else {
-    error_log("No email in POST");
-    if (isset($_SESSION['email'])) {
-        $email = $_SESSION['email'];
-        error_log("Email retrieved from session: $email");
-    } else {
-        $email = 'example@example.com';
-        error_log("No email in POST or session, using fallback: $email");
-    }
+    error_log("Email retrieved from cookie: $email");
+} 
+ else {
+    $email = 'example@example.com';
+    error_log("No email in cookie, session, or MongoDB, using fallback: $email");
 }
 
  error_log("UUID in session: " . ($_SESSION['uuid'] ?? 'not set'));
@@ -50,7 +46,8 @@ $apiPassword = API_PASSWORD;
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = "https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/$merchantId/order/$orderId";
+$gatewayUrl = rtrim(API_URL, '/') . '/' . rawurlencode($merchantId) . '/order/' . rawurlencode($orderId);
+
 error_log('-------------' . $gatewayUrl);
 
 $ch = curl_init();

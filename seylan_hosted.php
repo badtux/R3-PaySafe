@@ -88,7 +88,15 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <?php if (!isset($errorMessage)): ?>
 
 
-        <script src="https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
+        <script>
+            <?php
+            $checkoutJsUrl = APP_LIVE
+                ? 'https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js'
+                : 'https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js';
+            ?>
+        </script>
+
+        <script src="<?php echo $checkoutJsUrl; ?>"></script>
 
         <script>
             const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
@@ -225,7 +233,20 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     document.getElementById('error-message').classList.remove('hidden');
                 }
             }
+                     function storePaymentDetails() {
+                const email = document.getElementById('email').value;
+                const amount = "<?php echo htmlspecialchars($amount); ?>";
+                const currency = "<?php echo htmlspecialchars($currency); ?>";
 
+                if (email && validateEmail(email)) {
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('amount', amount);
+                    localStorage.setItem('currency', currency);
+                    document.getElementById('error-message').classList.add('hidden');
+                } else {
+                    document.getElementById('error-message').classList.remove('hidden');
+                }
+            }
             document.getElementById('email').addEventListener('blur', storePaymentDetails);
 
             function validateAndProceed() {
@@ -255,31 +276,10 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     emailInput.classList.add("border-green-500");
                     errorMessage.classList.add("hidden");
 
-
-                    fetch('response.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: 'email=' + encodeURIComponent(email)
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(data => {
-                            console.log('Success:', data);
-                            Checkout.showPaymentPage();
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            emailInput.classList.remove("border-green-500");
-                            emailInput.classList.add("border-red-500");
-                            errorMessage.textContent = 'Failed to process email. Please try again.';
-                            errorMessage.classList.remove("hidden");
-                        });
+                    document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
+                    Checkout.showPaymentPage();
+                    console.log('Email stored in browser storage:', email);
+                   
                 } else {
                     emailInput.classList.remove("border-green-500");
                     emailInput.classList.add("border-red-500");

@@ -17,9 +17,10 @@ $databaseName = "{$tenant}_paysafe";
 
 if (APP_LIVE) {
  
-    define('MERCHANT_ID', ' MPGS00000278'); //live 
+    define('MERCHANT_ID', 'MPGS00000278'); //live 
     define('API_USERNAME', 'merchant.MPGS00000278');
     define('API_PASSWORD', 'fcf75a9be2b1eb66ca2ff5935693afcc');
+    define('API_URL', 'https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/');
 
     define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
     define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
@@ -34,8 +35,9 @@ if (APP_LIVE) {
     define('MERCHANT_ID', 'TESTSEYLAN124');
     define('API_USERNAME', 'merchant.TESTSEYLAN124');
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
+    DEfine('API_URL', 'https://test-seylan.mtf.gateway.mastercard.com/api/rest/version/67/merchant/');
 
-    define('REDIRECT_URL', 'http://paymentgateway.loc/seylan/status');
+    define('REDIRECT_URL', 'http://helpage.paymentgateway.loc/seylan/status');
     define('ROBOT_SITE_KEY', '6LfFD_QrAAAAAFN9rh4-zClDQ3jhdDsR7CKtiFNG');
     define('ROBOT_SECRET_KEY', '6LfFD_QrAAAAAO6IB7_gw_oDuRteZ-M3A7gYWkHr');
 
