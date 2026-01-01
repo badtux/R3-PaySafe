@@ -3,7 +3,11 @@
 define('APP_LIVE', true);
 define('BASE_PATH', '/paysafe/sey');
 
-define('LOGO', 'https://www.helpagesl.org/assets/images/logo-sri-lanka.webp');
+define('MERCHANT_NAME', 'HelpAge Sri Lanka');
+define('MERCHANT_PHONE', '+94117418977');
+define('MERCHANT_EMAIL', 'helpage@sltnet.lk');
+define('MERCHANT_LOGO', 'https://www.helpagesl.org/assets/images/logo-sri-lanka.webp');
+define('MERCHANT_URL', 'https://www.helpagesl.org/');
 
 $host = $_SERVER['HTTP_HOST'];
 $tenant = explode('.', $host)[0];
@@ -18,6 +22,8 @@ if (APP_LIVE) {
     define('MERCHANT_ID', 'TESTSEYLAN124');
     define('API_USERNAME', 'merchant.TESTSEYLAN124');
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
+
+    define('IPG_API_URL', 'https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/');
 
     define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
     define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
@@ -42,7 +48,7 @@ if (APP_LIVE) {
     define('ASSET_PATH_URL', 'http://paymentgateway.loc/seylan/');
 }
 
-define('NAME', 'HelpAge');
+define('NAME', MERCHANT_NAME);
 define('CC_LIST', ['piumal0713@gmail.com','viraj.abauarathna@gmail.com']);
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');

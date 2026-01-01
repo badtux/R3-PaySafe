@@ -26,9 +26,61 @@ function resetPaymentSession($amount, $currency, $orderId, $description){
     return $txnId;
 }
 
+function initiateCheckout($txnId){
+    $authString = 'merchant.'.MERCHANT_ID.':'.API_PASSWORD;
+    $authHeader = "Authorization: Basic " . base64_encode($authString);
+    $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'/session';
+
+    $data = [
+        "apiOperation" => "INITIATE_CHECKOUT",
+        "checkoutMode" => "WEBSITE",
+        "interaction" => [
+            "operation" => "AUTHORIZE",
+            "merchant" => [
+                "name" => MERCHANT_NAME,
+                "logo" => MERCHANT_LOGO,
+                "url" => MERCHANT_URL,
+                "phone" => MERCHANT_PHONE,
+                "email" => MERCHANT_EMAIL
+            ],
+            "returnUrl" => REDIRECT_URL,
+        ],
+        "order" => [
+            "currency" => $_SESSION['payments'][$txnId]['currency'],
+            "amount" => $_SESSION['payments'][$txnId]['amount'],
+            "id" => $_SESSION['payments'][$txnId]['orderId'],
+            "description" => $_SESSION['payments'][$txnId]['description']
+        ]
+    ];
+
+    $jsonData = json_encode($data);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $endPointUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $jsonData,
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/json",
+            "Cache-Control: no-cache",
+            $authHeader
+        ],
+        CURLOPT_SSL_VERIFYPEER => true, 
+    ]);
+
+    $response = curl_exec($ch);
+
+    print_r($response); // Debugging line to see the response
+}
+
 if($willAttemptInit){
     $txnId = resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']);
     $logger->info("Initialized payment session with txnId: $txnId");
+
+    if($txnId){
+        $sessionId = initiateCheckout($txnId);
+    }
 }
 
 $errorMessage = null;
