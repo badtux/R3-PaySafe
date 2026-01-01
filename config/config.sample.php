@@ -17,12 +17,11 @@ $databaseName = "{$tenant}_paysafe";
 
 if (APP_LIVE) {
  
-    define('MERCHANT_ID', 'SEYLAN124'); //live 
-    define('API_USERNAME', 'merchant.SEYLAN124op');
-    define('API_PASSWORD', '4692ad4aa61548f504e79cd5535d03af');
+    define('MERCHANT_ID', ' MPGS00000278'); //live 
+    define('API_USERNAME', 'merchant.MPGS00000278');
+    define('API_PASSWORD', 'fcf75a9be2b1eb66ca2ff5935693afcc');
 
-
-    define('REDIRECT_URL', 'https://malkey.go.digitable.io/paysafe/sey/status');
+    define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
     define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
