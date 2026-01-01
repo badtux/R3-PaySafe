@@ -30,7 +30,7 @@ function initiateCheckout($txnId){
     $authString = 'merchant.'.MERCHANT_ID.':'.API_PASSWORD;
 
     $authHeader = "Authorization: Basic " . base64_encode($authString);
-    $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'56/session';
+    $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'/session';
 
     $data = [
         "apiOperation" => "INITIATE_CHECKOUT",
@@ -71,6 +71,8 @@ function initiateCheckout($txnId){
     ]);
 
     $response = curl_exec($ch);
+
+    //{"error":{"cause":"INVALID_REQUEST","explanation":"Authenticated entity not authorised to perform operation for target entity"},"result":"ERROR"}
 
     print_r($response); // Debugging line to see the response
 }
