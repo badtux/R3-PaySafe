@@ -17,7 +17,7 @@ $logger->pushHandler(new SyslogHandler(
 
 $router = new Router();
 
-echo BASE_PATH; exit;
+$logger->info('Base path: ' . BASE_PATH);
 
 $router->addRoute('GET', BASE_PATH, function () {
     require_once('seylan_hosted.php');
