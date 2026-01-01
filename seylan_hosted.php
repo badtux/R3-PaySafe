@@ -1,10 +1,35 @@
 <?php
 // Write some logs
-$logger->info('Application started');
-$logger->warning('Low disk space');
-$logger->error('Something went wrong', [
-    'exception' => 'ExampleException'
-]);
+$logger->info('in seylan_hosted.php file');
+// $logger->warning('Low disk space');
+// $logger->error('Something went wrong', [
+//     'exception' => 'ExampleException'
+// ]);
+
+use MongoDB\Client;
+use MongoDB\BSON\UTCDateTime;
+use Ramsey\Uuid\Uuid;
+
+$isURLQueryRequest = ($_SERVER['REQUEST_METHOD'] === 'GET')?true:false;
+$willAttemptInit = ($isURLQueryRequest && isset($_GET['currency']) && isset($_GET['amount']) && isset($_GET['orderId']) && isset($_GET['description']))?true:false;
+
+function resetPaymentSession($amount, $currency, $orderId, $description){
+    $txnId = bin2hex(random_bytes(8));
+    $_SESSION['payments'][$txnId] = [
+        'amount' => $amount,
+        'currency' => $currency,
+        'description' => $description,
+        'orderId' => $orderId,
+        'uuid' => Uuid::uuid4()->toString()
+    ];
+
+    return $txnId;
+}
+
+if($willAttemptInit){
+    $txnId = resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']);
+    $logger->info("Initialized payment session with txnId: $txnId");
+}
 
 $errorMessage = null;
 $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
@@ -67,7 +92,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
         }
     </style>
     <?php if (!isset($errorMessage)) { ?>
-        <script>
+        <script type="text/javascript">
             <?php
             $checkoutJsUrl = APP_LIVE
                 ? 'https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js'
@@ -75,7 +100,22 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             ?>
         </script>
 
-        <script src="<?php echo $checkoutJsUrl; ?>"></script>
+        <script src="<?php echo $checkoutJsUrl; ?>" data-error="errorCallback" data-cancel="cancelCallback"></script>
+
+        <script type="text/javascript">
+            function errorCallback(error) {
+                  console.log(JSON.stringify(error));
+            }
+            function cancelCallback() {
+                  console.log('Payment cancelled');
+            }
+        
+            Checkout.configure({
+                session: {
+                    id:  '<your_initiate_checkout_session_ID>'
+                }
+            });
+        </script>
 
         <script>
             const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
