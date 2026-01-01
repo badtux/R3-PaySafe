@@ -1,7 +1,7 @@
 <?php
-require_once('route.php');
-require_once('vendor/autoload.php');
-require_once('config/config.php');
+require_once __DIR__.'/vendor/autoload.php';
+require_once __DIR__.'/route.php';
+require_once __DIR__.'/config/config.php';
 
 session_start();
 
