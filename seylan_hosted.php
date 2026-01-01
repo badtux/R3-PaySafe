@@ -38,7 +38,7 @@ function initiateCheckout($txnId, $logger) {
         "apiOperation" => "INITIATE_CHECKOUT",
         // "checkoutMode" => "WEBSITE",
         "interaction" => [
-            "operation" => "PAY",
+            "operation" => "AUTHORIZE",
             "merchant" => [
                 "name" => MERCHANT_NAME,
                 "logo" => MERCHANT_LOGO,
@@ -74,6 +74,9 @@ function initiateCheckout($txnId, $logger) {
 
     $response = curl_exec($ch);
     $data = json_decode($response, true);
+
+
+    $logger->info("cUrl Response: " . $response);
 
     if (json_last_error() === JSON_ERROR_NONE) {
         if (isset($data['result']) && $data['result'] === 'SUCCESS' && isset($data['session']['id'])) {
