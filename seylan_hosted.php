@@ -26,7 +26,7 @@ function resetPaymentSession($amount, $currency, $orderId, $description){
     return $txnId;
 }
 
-function initiateCheckout($txnId){
+function initiateCheckout($txnId, $logger) {
     $authString = 'merchant.'.MERCHANT_ID.':'.API_PASSWORD;
 
     $authHeader = "Authorization: Basic " . base64_encode($authString);
@@ -71,10 +71,23 @@ function initiateCheckout($txnId){
     ]);
 
     $response = curl_exec($ch);
+    $data = json_decode($response, true);
 
+    if (json_last_error() === JSON_ERROR_NONE) {
+        if (isset($data['result']) && $data['result'] === 'SUCCESS' && isset($data['session']['id'])) {
+            $sessionId = $data['session']['id'];
+            $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
+            $logger->info("Checkout initiated successfully. Session ID: " . $sessionId);
+            return $sessionId;
+        } else {
+            $logger->error("Error initiating checkout: " . $response);
+            return null;
+        }
+    }
     //{"error":{"cause":"INVALID_REQUEST","explanation":"Authenticated entity not authorised to perform operation for target entity"},"result":"ERROR"}
 
-    print_r($response); // Debugging line to see the response
+   //{"checkoutMode":"WEBSITE","merchant":"MPGS00000278","result":"SUCCESS","session":{"id":"SESSION0002845421116G5879485H19","updateStatus":"SUCCESS","version":"5e26913b01"},"successIndicator":"73b1868af8af41f8"}  
+    // print_r($response); // Debugging line to see the response
 }
 
 if($willAttemptInit){
@@ -82,7 +95,8 @@ if($willAttemptInit){
     $logger->info("Initialized payment session with txnId: $txnId");
 
     if($txnId){
-        $sessionId = initiateCheckout($txnId);
+        $sessionId = initiateCheckout($txnId, $logger);
+        print_r($_SESSION);
     }
 }
 
