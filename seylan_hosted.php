@@ -146,7 +146,6 @@ catch (Exception $e) {
 //     }
 // }
 
-print_r($_SESSION);
 ?>
 
 <!DOCTYPE html>
