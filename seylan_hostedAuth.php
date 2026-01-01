@@ -81,7 +81,7 @@ if (!$txnId) {
         $data = [
             "apiOperation" => "INITIATE_CHECKOUT",
             "interaction" => [
-                "operation" => "PURCHASE",
+                "operation" => "AUTHORIZE",
                 "merchant" => [
                     "name" => NAME,
                     "logo" => LOGO,
