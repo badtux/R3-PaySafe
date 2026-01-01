@@ -145,6 +145,8 @@ catch (Exception $e) {
 //         $errorMessage = "Error: Invalid amount.";
 //     }
 // }
+
+print_r($_SESSION);
 ?>
 
 <!DOCTYPE html>
