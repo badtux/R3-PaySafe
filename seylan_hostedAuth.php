@@ -29,7 +29,7 @@ $apiUserName = defined('API_USERNAME') ? API_USERNAME : '';
 $apiPassWord = defined('API_PASSWORD') ? API_PASSWORD : '';
 $basePath = defined('BASE_PATH') ? BASE_PATH : '';
 
-error_log("Config values - merchantId: $merchantId, database_url: $database_url, collection: $collection_name, db: $database_name, basePath: $basePath"); // DEBUG: Check config loading
+error_log("Config values - merchantId: $merchantId, database_url: $database_url, collection: $collection_name, db: $database_name, basePath: $basePath"); 
 
 if (!$txnId) {
 
@@ -76,8 +76,8 @@ if (!$txnId) {
 
         $authString = "merchant.$merchantId:$apiPassWord";
         $authHeader = "Authorization: Basic " . base64_encode($authString);
-        $url = "https://test-seylan.mtf.gateway.mastercard.com/api/rest/version/67/merchant/$merchantId/session";
-
+        $url = "https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/$merchantId/session";
+                 
         $data = [
             "apiOperation" => "INITIATE_CHECKOUT",
             "interaction" => [

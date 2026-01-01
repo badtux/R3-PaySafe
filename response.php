@@ -50,7 +50,7 @@ $apiPassword = API_PASSWORD;
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = "https://test-seylan.mtf.gateway.mastercard.com/api/rest/version/67/merchant/$merchantId/order/$orderId";
+$gatewayUrl = "https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/$merchantId/order/$orderId";
 error_log('-------------' . $gatewayUrl);
 
 $ch = curl_init();

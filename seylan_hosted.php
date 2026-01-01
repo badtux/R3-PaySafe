@@ -88,7 +88,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <?php if (!isset($errorMessage)): ?>
 
 
-        <script src="https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
+        <script src="https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
 
         <script>
             const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
