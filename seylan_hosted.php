@@ -102,9 +102,14 @@ try {
 
         if($txnId){
             $sessionId = initiateCheckout($txnId, $logger);
-            header("Location: $BASE_PATH"."?txnId=$txnId");
+            header("Location: " . BASE_PATH . "?txnId=$txnId");
             exit;
         }
+    }
+    else {
+        print_R($_SERVER);
+        print_R($_GET);
+        
     }
 
     if($hasInitiated){
