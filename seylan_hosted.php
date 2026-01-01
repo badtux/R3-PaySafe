@@ -201,7 +201,7 @@ catch (Exception $e) {
 
         <script src="<?php echo $checkoutJsUrl; ?>" data-error="errorCallback" data-cancel="cancelCallback"></script>
 
-        <script type="text/javascript">
+        <!-- <script type="text/javascript">
             function errorCallback(error) {
                   console.log(JSON.stringify(error));
             }
@@ -214,7 +214,7 @@ catch (Exception $e) {
                     id:  '<your_initiate_checkout_session_ID>'
                 }
             });
-        </script>
+        </script> -->
 
         <script>
             const sessionId = "<?php echo htmlspecialchars($_SESSION['sessionId'] ?? ''); ?>";
@@ -222,11 +222,6 @@ catch (Exception $e) {
             Checkout.configure({
                 session: {
                     id: sessionId
-                },
-                interaction: {
-                    displayControl: {
-                        billingAddress: 'HIDE'
-                    }
                 }
             });
             console.log("Loaded sessionId: " + sessionId);
