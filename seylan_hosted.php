@@ -1,22 +1,4 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-error_log("Session ID: " . session_id());
-
-require_once('config/config.php');
-require 'vendor/autoload.php';
-require 'seylan_hostedAuth.php';
-
-use Monolog\Logger;
-use Monolog\Handler\SyslogHandler;
-
-$logger = new Logger('paysafe_logger');
-$logger->pushHandler(new SyslogHandler(
-    ident: 'paysafe_logger',          // Appears as the program name in syslog
-    facility: LOG_USER,       // Syslog facility
-    level: Logger::DEBUG      // Minimum log level
-));
 
 // Write some logs
 $logger->info('Application started');
@@ -85,9 +67,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.1), 0 10px 10px -5px rgba(220, 38, 38, 0.04);
         }
     </style>
-    <?php if (!isset($errorMessage)): ?>
-
-
+    <?php if (!isset($errorMessage)) { ?>
         <script>
             <?php
             $checkoutJsUrl = APP_LIVE
@@ -109,7 +89,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             console.log("Loaded sessionId: " + sessionId);
         </script>
 
-    <?php endif; ?>
+    <?php } ?>
 </head>
 
 <body class="bg-gradient-red-orange-light min-h-screen flex items-center justify-center p-4">
@@ -206,13 +186,11 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             <div class="flex items-center space-x-3">
                 <img src="assets/card_logo.png" alt="another logo" class="h-10">
                 <img src="assets/bank_logo.png" alt="bank logo" class="h-10">
-
             </div>
         </div>
-
     </div>
 
-    <?php if (!isset($errorMessage)): ?>
+    <?php if (!isset($errorMessage)){ ?>
         <script>
             function validateEmail(email) {
                 const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -233,7 +211,8 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     document.getElementById('error-message').classList.remove('hidden');
                 }
             }
-                     function storePaymentDetails() {
+
+            function storePaymentDetails() {
                 const email = document.getElementById('email').value;
                 const amount = "<?php echo htmlspecialchars($amount); ?>";
                 const currency = "<?php echo htmlspecialchars($currency); ?>";
@@ -270,7 +249,6 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     return false;
                 }
 
-
                 if (emailPattern.test(email)) {
                     emailInput.classList.remove("border-red-500");
                     emailInput.classList.add("border-green-500");
@@ -279,7 +257,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                     document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
                     Checkout.showPaymentPage();
                     console.log('Email stored in browser storage:', email);
-                   
+
                 } else {
                     emailInput.classList.remove("border-green-500");
                     emailInput.classList.add("border-red-500");
@@ -307,11 +285,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
             }
         }
         ?>
-
-
-
-
-    <?php endif; ?>
+    <?php } ?>
 </body>
 
 </html>
