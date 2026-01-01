@@ -250,7 +250,11 @@ print_r($_SESSION);
                                 <i class='bx bx-receipt text-lg text-red-600'></i>
                                 <div class="text-left">
                                     <p class="text-sm text-gray-500">Order Reference</p>
-                                    <p class="font-bold text-red-600 text-sm pl-4"><?php echo htmlspecialchars($orderId); ?></p>
+                                    <p class="font-bold text-red-600 text-sm pl-4"><?php 
+                                        $orderId = $_SESSION['payments'][$_SESSION['txnId']]['orderId'];
+                                        echo htmlspecialchars($orderId); 
+                                        ?>
+                                    </p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3 bg-orange-50 p-4 rounded-lg flex-1">
@@ -259,6 +263,9 @@ print_r($_SESSION);
                                     <p class="text-sm text-gray-500">Total Amount</p>
                                     <p class="font-bold text-orange-600 text-sm pl-4">
                                         <?php
+                                        $amount = $_SESSION['payments'][$_SESSION['txnId']]['amount'];
+                                        $currency = $_SESSION['payments'][$_SESSION['txnId']]['currency'];
+
                                         $formattedAmount = (fmod($amount, 1) == 0)
                                             ? number_format($amount, 0, '.', ',')
                                             : number_format($amount, 2, '.', ',');
@@ -272,7 +279,11 @@ print_r($_SESSION);
                             <i class='bx bx-detail text-2xl text-red-600'></i>
                             <div class="text-left">
                                 <p class="text-sm text-gray-500">Description</p>
-                                <p class="font-bold text-red-600 text-sm pl-4"><?php echo htmlspecialchars($description); ?></p>
+                                <p class="font-bold text-red-600 text-sm pl-4">
+                                    <?php 
+                                    $description = $_SESSION['payments'][$_SESSION['txnId']]['description'];
+                                    echo htmlspecialchars($description); ?>
+                                </p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4 bg-orange-50 p-4 rounded-xl">
