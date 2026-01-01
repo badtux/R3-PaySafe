@@ -128,7 +128,7 @@ if (!$txnId) {
             $errorMessage = "Error: Failed to connect to payment gateway. Please try again.";
         } else {
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            error_log("cURL Success - HTTP Code: $http_code | Raw Response: $response"); // DEBUG: Full response
+            error_log("cURL Success - HTTP Code: $http_code | Raw Response: $response"); 
             curl_close($ch);
 
             $result = json_decode($response, true);
@@ -138,8 +138,7 @@ if (!$txnId) {
                 error_log("JSON Decode Error: " . json_last_error_msg() . " | Full Response: $response");
             } else {
                 $sessionId = $result['session']['id'];
-                error_log("Session ID received from gateway: $sessionId"); // DEBUG: Success!
-
+                error_log("Session ID received from gateway: $sessionId"); 
                 try {
                     $client = new Client($database_url);
                     error_log("MongoDB Client connected to: $database_url");
@@ -191,5 +190,5 @@ if (!$txnId) {
         }
     }
 } else {
-    error_log("txnId provided: $txnId - likely returning from gateway or loading existing session"); // DEBUG: When txnId exists
+    error_log("txnId provided: $txnId - likely returning from gateway or loading existing session"); 
 }
