@@ -28,8 +28,9 @@ function resetPaymentSession($amount, $currency, $orderId, $description){
 
 function initiateCheckout($txnId){
     $authString = 'merchant.'.MERCHANT_ID.':'.API_PASSWORD;
+
     $authHeader = "Authorization: Basic " . base64_encode($authString);
-    $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'/session';
+    $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'56/session';
 
     $data = [
         "apiOperation" => "INITIATE_CHECKOUT",
