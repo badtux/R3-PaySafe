@@ -36,9 +36,9 @@ function initiateCheckout($txnId, $logger) {
 
     $data = [
         "apiOperation" => "INITIATE_CHECKOUT",
-        "checkoutMode" => "WEBSITE",
+        // "checkoutMode" => "WEBSITE",
         "interaction" => [
-            "operation" => "AUTHORIZE",
+            "operation" => "PAY",
             "merchant" => [
                 "name" => MERCHANT_NAME,
                 "logo" => MERCHANT_LOGO,
@@ -220,6 +220,11 @@ catch (Exception $e) {
                 session: {
                     id: sessionId
                 },
+                interaction: {
+                    displayControl: {
+                        billingAddress: 'HIDE'
+                    }
+                }
             });
             console.log("Loaded sessionId: " + sessionId);
         </script>
