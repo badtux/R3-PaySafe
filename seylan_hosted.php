@@ -100,13 +100,12 @@ try {
         $txnId = resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']);
         $logger->info("Initialized payment session with txnId: $txnId");
 
-        if($txnId){
-            $sessionId = initiateCheckout($txnId, $logger);
-            $_SESSION['sessionId'] = $sessionId;
-            $_SESSION['txnId'] = $txnId;
-            header("Location: " . BASE_PATH);
-            exit;
-        }
+        $sessionId = initiateCheckout($txnId, $logger);
+        $_SESSION['sessionId'] = $sessionId;
+        $_SESSION['txnId'] = $txnId;
+
+        header("Location: " . BASE_PATH);
+        exit;
     }
 
     if($hasInitiated){
@@ -127,25 +126,25 @@ catch (Exception $e) {
     exit;
 }
 
-$errorMessage = null;
-$txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
+// $errorMessage = null;
+// $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
 
-if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
-    $errorMessage = "Error: order Id or amount is missing. ";
-} else {
-    $payment = $_SESSION['payments'][$txnId];
-    $amount = $payment['amount'];
-    $currency = $payment['currency'];
-    $description = $payment['description'];
-    $orderId = $payment['orderId'];
-    $sessionId = isset($payment['sessionId']) ? $payment['sessionId'] : null;
+// if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
+//     $errorMessage = "Error: order Id or amount is missing. ";
+// } else {
+//     $payment = $_SESSION['payments'][$txnId];
+//     $amount = $payment['amount'];
+//     $currency = $payment['currency'];
+//     $description = $payment['description'];
+//     $orderId = $payment['orderId'];
+//     $sessionId = isset($payment['sessionId']) ? $payment['sessionId'] : null;
 
-    if (!$sessionId) {
-        $errorMessage = "Error: Session could not be created. Please try again.";
-    } elseif (!is_numeric($amount) || $amount <= 0) {
-        $errorMessage = "Error: Invalid amount.";
-    }
-}
+//     if (!$sessionId) {
+//         $errorMessage = "Error: Session could not be created. Please try again.";
+//     } elseif (!is_numeric($amount) || $amount <= 0) {
+//         $errorMessage = "Error: Invalid amount.";
+//     }
+// }
 ?>
 
 <!DOCTYPE html>
@@ -154,7 +153,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($errorMessage) ? 'Payment Error | Seylan Bank' : 'Secure Payment | Seylan Bank'; ?></title>
+    <title><?php echo isset($_SESSION['errorMessage']) ? 'Payment Error | Seylan Bank' : 'Secure Payment | Seylan Bank'; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
@@ -214,7 +213,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
         </script>
 
         <script>
-            const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
+            const sessionId = "<?php echo htmlspecialchars($_SESSION['sessionId'] ?? ''); ?>";
 
             Checkout.configure({
                 session: {
@@ -231,14 +230,14 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <div id="main-container" class="bg-white rounded-2xl shadow-red-orange transition-all duration-300 hover:shadow-red-orange w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-red-orange p-6 text-center">
             <!-- <img src="assets/helpAge_logo.jpg" alt="Logo" class="w-20 h-10 mx-auto mb-2 shadow-2"> -->
-            <h1 class="text-2xl font-bold text-white"><?php echo isset($errorMessage) ? 'Payment Error' : 'Secure Payment'; ?></h1>
+            <h1 class="text-2xl font-bold text-white"><?php echo isset($_SESSION['errorMessage']) ? 'Payment Error' : 'Secure Payment'; ?></h1>
             <p class="text-white text-sm">Protected by Seylan Bank</p>
         </div>
 
-        <?php if (isset($errorMessage)): ?>
+        <?php if (isset($_SESSION['errorMessage'])): ?>
             <div class="p-6 text-center">
                 <h2 class="text-xl font-bold text-red-600">Error</h2>
-                <p class="text-red-500 mt-2"><?php echo htmlspecialchars($errorMessage); ?></p>
+                <p class="text-red-500 mt-2"><?php echo htmlspecialchars($_SESSION['errorMessage']); ?></p>
             </div>
         <?php else: ?>
             <div id="main_2">
@@ -325,7 +324,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
         </div>
     </div>
 
-    <?php if (!isset($errorMessage)){ ?>
+    <?php if (!isset($_SESSION['errorMessage'])){ ?>
         <script>
             function validateEmail(email) {
                 const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
