@@ -7,19 +7,19 @@ $router = new Router();
 
 $logger->info('Base path: ' . BASE_PATH);
 
-$router->addRoute('GET', BASE_PATH, function () {
+$router->addRoute('GET', BASE_PATH, function() use ($logger) {
     require_once('seylan_hosted.php');
 });
 
-$router->addRoute('GET', BASE_PATH . '/auth', function () {
+$router->addRoute('GET', BASE_PATH . '/auth', function() use ($logger) {
     require_once('seylan_hostedAuth.php');
 });
 
-$router->addRoute('GET', BASE_PATH . '/status', function () {
+$router->addRoute('GET', BASE_PATH . '/status', function() use ($logger){
     require_once('response.php');
 });
 
-$router->setNotFound(function () {
+$router->setNotFound(function() use ($logger) {
     require_once('404.php');
 });
 

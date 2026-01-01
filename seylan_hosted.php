@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__.'/vendor/autoload.php';
-
 // Write some logs
 $logger->info('Application started');
 $logger->warning('Low disk space');
