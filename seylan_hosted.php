@@ -12,10 +12,10 @@ use Ramsey\Uuid\Uuid;
 
 $isURLQueryRequest = ($_SERVER['REQUEST_METHOD'] === 'GET')?true:false;
 $willAttemptInit = ($isURLQueryRequest && isset($_GET['currency']) && isset($_GET['amount']) && isset($_GET['orderId']) && isset($_GET['description']) && !isset($_GET['txnId']))?true:false;
-$hasInitiated = ($isURLQueryRequest && !$willAttemptInit && isset($_GET['txnId']))?true:false;
+$hasInitiated = ($isURLQueryRequest && !$willAttemptInit && isset($_SESSION['txnId']) && isset($_SESSION['sessionId']))?true:false;
 
 function resetPaymentSession($amount, $currency, $orderId, $description){
-    $_SESSION['payments'] = [];
+    $_SESSION['payments'] = []; unset($_SESSION['errorMessage']);
     $txnId = bin2hex(random_bytes(8));
     $_SESSION['payments'][$txnId] = [
         'amount' => $amount,
@@ -102,19 +102,16 @@ try {
 
         if($txnId){
             $sessionId = initiateCheckout($txnId, $logger);
-            header("Location: " . BASE_PATH . "?txnId=$txnId");
+            $_SESSION['sessionId'] = $sessionId;
+            $_SESSION['txnId'] = $txnId;
+            header("Location: " . BASE_PATH);
             exit;
         }
     }
-    else {
-        print_R($_SERVER);
-        print_R($_GET);
-        
-    }
 
     if($hasInitiated){
-        $txnId = $_GET['txnId'];
-        if(isset($_SESSION['payments'][$txnId])){
+        if(isset($_SESSION['payments'][$_SESSION['txnId']]) && 
+            ($_SESSION['payments'][$_SESSION['txnId']]['sessionId'] == $_SESSION['sessionId'])){
             $logger->info("Payment session found for txnId: $txnId");
         } else {
             throw new Exception("Invalid transaction ID. Please try again.");
@@ -124,6 +121,10 @@ try {
 catch (Exception $e) {
     $logger->error("Exception during checkout initiation: " . $e->getMessage());
     $_SESSION['errorMessage'] = "Error: " . $e->getMessage();
+    unset($_SESSION['payments']);
+
+    header("Location: " . BASE_PATH);
+    exit;
 }
 
 $errorMessage = null;
