@@ -11,9 +11,11 @@ use MongoDB\BSON\UTCDateTime;
 use Ramsey\Uuid\Uuid;
 
 $isURLQueryRequest = ($_SERVER['REQUEST_METHOD'] === 'GET')?true:false;
-$willAttemptInit = ($isURLQueryRequest && isset($_GET['currency']) && isset($_GET['amount']) && isset($_GET['orderId']) && isset($_GET['description']))?true:false;
+$willAttemptInit = ($isURLQueryRequest && isset($_GET['currency']) && isset($_GET['amount']) && isset($_GET['orderId']) && isset($_GET['description']) && !isset($_GET['txnId']))?true:false;
+$hasInitiated = ($isURLQueryRequest && !$willAttemptInit && isset($_GET['txnId']))?true:false;
 
 function resetPaymentSession($amount, $currency, $orderId, $description){
+    $_SESSION['payments'] = [];
     $txnId = bin2hex(random_bytes(8));
     $_SESSION['payments'][$txnId] = [
         'amount' => $amount,
@@ -81,23 +83,42 @@ function initiateCheckout($txnId, $logger) {
             return $sessionId;
         } else {
             $logger->error("Error initiating checkout: " . $response);
-            return null;
+            throw new Exception("Error initiating checkout. Please try again.");
         }
     }
+
+    $logger->error("Error while cUrl: " . curl_error($ch));
+    throw new Exception("Error in checkout. Please try again or contact ".MERCHANT_NAME.".");
     //{"error":{"cause":"INVALID_REQUEST","explanation":"Authenticated entity not authorised to perform operation for target entity"},"result":"ERROR"}
 
    //{"checkoutMode":"WEBSITE","merchant":"MPGS00000278","result":"SUCCESS","session":{"id":"SESSION0002845421116G5879485H19","updateStatus":"SUCCESS","version":"5e26913b01"},"successIndicator":"73b1868af8af41f8"}  
     // print_r($response); // Debugging line to see the response
 }
 
-if($willAttemptInit){
-    $txnId = resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']);
-    $logger->info("Initialized payment session with txnId: $txnId");
+try {
+    if($willAttemptInit){
+        $txnId = resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']);
+        $logger->info("Initialized payment session with txnId: $txnId");
 
-    if($txnId){
-        $sessionId = initiateCheckout($txnId, $logger);
-        print_r($_SESSION);
+        if($txnId){
+            $sessionId = initiateCheckout($txnId, $logger);
+            header("Location: $BASE_PATH"."?txnId=$txnId");
+            exit;
+        }
     }
+
+    if($hasInitiated){
+        $txnId = $_GET['txnId'];
+        if(isset($_SESSION['payments'][$txnId])){
+            $logger->info("Payment session found for txnId: $txnId");
+        } else {
+            throw new Exception("Invalid transaction ID. Please try again.");
+        }
+    }
+}
+catch (Exception $e) {
+    $logger->error("Exception during checkout initiation: " . $e->getMessage());
+    $_SESSION['errorMessage'] = "Error: " . $e->getMessage();
 }
 
 $errorMessage = null;
