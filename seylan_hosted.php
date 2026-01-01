@@ -38,7 +38,7 @@ function initiateCheckout($txnId, $logger) {
         "apiOperation" => "INITIATE_CHECKOUT",
         // "checkoutMode" => "WEBSITE",
         "interaction" => [
-            "operation" => "AUTHORIZE",
+            "operation" => "PURCHASE",
             "merchant" => [
                 "name" => MERCHANT_NAME,
                 "logo" => MERCHANT_LOGO,
