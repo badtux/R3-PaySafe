@@ -35,7 +35,7 @@ function initiateCheckout($txnId, $logger) {
     $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'/session';
 
     $data = [
-        "apiOperation" => "INITIATE_CHECKOUT",
+        "apiOperation" => "CREATE_CHECKOUT_SESSION",
         "checkoutMode" => "WEBSITE",
         "interaction" => [
             "operation" => "AUTHORIZE",
