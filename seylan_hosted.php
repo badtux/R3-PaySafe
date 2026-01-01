@@ -112,7 +112,7 @@ try {
     if($hasInitiated){
         if(isset($_SESSION['payments'][$_SESSION['txnId']]) && 
             ($_SESSION['payments'][$_SESSION['txnId']]['sessionId'] == $_SESSION['sessionId'])){
-            $logger->info("Payment session found for txnId: $txnId");
+            $logger->info("Payment session found for txnId: $_SESSION['txnId']");
         } else {
             throw new Exception("Invalid transaction ID. Please try again.");
         }
