@@ -1,19 +1,7 @@
 <?php
-require_once __DIR__.'/vendor/autoload.php';
+require_once __DIR__.'/bootstrap.php';
 require_once __DIR__.'/route.php';
 require_once __DIR__.'/config/config.php';
-
-session_start();
-
-use Monolog\Logger;
-use Monolog\Handler\SyslogHandler;
-
-$logger = new Logger('paysafe_logger');
-$logger->pushHandler(new SyslogHandler(
-    ident: 'paysafe_logger',          // Appears as the program name in syslog
-    facility: LOG_USER,       // Syslog facility
-    level: Logger::DEBUG      // Minimum log level
-));
 
 $router = new Router();
 
