@@ -8,6 +8,7 @@ define('MERCHANT_PHONE', '+94117418977');
 define('MERCHANT_EMAIL', 'helpage@sltnet.lk');
 define('MERCHANT_LOGO', 'https://www.helpagesl.org/assets/images/logo-sri-lanka.webp');
 define('MERCHANT_URL', 'https://www.helpagesl.org/');
+define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
 
 $host = $_SERVER['HTTP_HOST'];
 $tenant = explode('.', $host)[0];
@@ -24,8 +25,7 @@ if (APP_LIVE) {
     define('MERCHANT_ID', 'MPGS00000278'); //live 
     define('API_USERNAME', 'merchant.MPGS00000278');
     define('API_PASSWORD', '0edadbb22e68e59d047c18f12a43230e');
-    define('IPG_API_URL', 'https://seylan.gateway.mastercard.com/api/rest/version/80/merchant/');
-
+   
     define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
     define('DATABASE_URL', 'mongodb://192.168.167.75:27017');
     define('COLLECTION', 'payments');
@@ -40,7 +40,6 @@ if (APP_LIVE) {
     define('API_PASSWORD', '5426b5fd696461dc7f6a68d0cc4a78f9');
     DEfine('IPG_API_URL', 'https://test-seylan.mtf.gateway.mastercard.com/api/rest/version/67/merchant/');
 
-    define('REDIRECT_URL', 'http://helpage.paymentgateway.loc/seylan/status');
     define('ROBOT_SITE_KEY', '6LfFD_QrAAAAAFN9rh4-zClDQ3jhdDsR7CKtiFNG');
     define('ROBOT_SECRET_KEY', '6LfFD_QrAAAAAO6IB7_gw_oDuRteZ-M3A7gYWkHr');
 
