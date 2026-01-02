@@ -38,7 +38,8 @@ function initiateCheckout($txnId, $logger) {
         "apiOperation" => "INITIATE_CHECKOUT",
         // "checkoutMode" => "WEBSITE",
         "interaction" => [
-            "operation" => "PAY",
+            "operation" => "PAY"
+            //,
             // "merchant" => [
             //     "name" => MERCHANT_NAME,
                 // "logo" => MERCHANT_LOGO,
@@ -46,7 +47,7 @@ function initiateCheckout($txnId, $logger) {
                 // "phone" => MERCHANT_PHONE,
                 // "email" => MERCHANT_EMAIL
             ],
-            "returnUrl" => REDIRECT_URL,
+            "returnUrl" => REDIRECT_URL
         ],
         "order" => [
             "currency" => $_SESSION['payments'][$txnId]['currency'],
