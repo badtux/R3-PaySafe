@@ -38,9 +38,9 @@ function initiateCheckout($txnId, $logger) {
         "apiOperation" => "INITIATE_CHECKOUT",
         // "checkoutMode" => "WEBSITE",
         "interaction" => [
-            "operation" => "PURCHASE",
-            "merchant" => [
-                "name" => MERCHANT_NAME,
+            "operation" => "PAY",
+            // "merchant" => [
+            //     "name" => MERCHANT_NAME,
                 // "logo" => MERCHANT_LOGO,
                 // "url" => MERCHANT_URL,
                 // "phone" => MERCHANT_PHONE,
@@ -52,7 +52,7 @@ function initiateCheckout($txnId, $logger) {
             "currency" => $_SESSION['payments'][$txnId]['currency'],
             "amount" => $_SESSION['payments'][$txnId]['amount'],
             "id" => $_SESSION['payments'][$txnId]['orderId'],
-            "description" => $_SESSION['payments'][$txnId]['description']
+            // "description" => $_SESSION['payments'][$txnId]['description']
         ]
     ];
 
@@ -403,6 +403,7 @@ catch (Exception $e) {
                     emailInput.classList.add("border-green-500");
                     errorMessage.classList.add("hidden");
 
+                    console.log('Email stored in browser BEFORE');
                     document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
                     Checkout.showPaymentPage();
                     console.log('Email stored in browser storage:', email);
