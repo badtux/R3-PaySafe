@@ -1,7 +1,7 @@
 <?php
 
 define('APP_LIVE', true);
-define('BASE_PATH', '/paysafe/sey');
+define('BASE_PATH', '/seylan');
 
 define('MERCHANT_NAME', 'HelpAge Sri Lanka');
 define('MERCHANT_PHONE', '+94117418977');

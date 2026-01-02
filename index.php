@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__.'/bootstrap.php';
 require_once __DIR__.'/route.php';
-require_once __DIR__.'/config/config.php';
+require_once __DIR__.'/config/config.sample.php';
 
 $router = new Router();
 
@@ -23,4 +23,4 @@ $router->setNotFound(function() use ($logger) {
     require_once('404.php');
 });
 
-$router->handleRequest();
+$router->handleRequest();         

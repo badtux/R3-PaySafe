@@ -52,11 +52,11 @@ merchanrtsales@combank.com
 
 
 
-http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=12&orderId=test11209u0&description=test
+http://helpage.paymentgateway.loc/seylan?currency=LKR&amount=12&orderId=test112098po&description=test
 
 
 
-https://helpage.go.digitable.io/paysafe/sey?currency=LKR&amount=30&orderId=livetest7&description=testtransactions
+https://helpage.go.digitable.io/paysafe/sey?currency=LKR&amount=30&orderId=livetest10&description=testtransactions
 
 
 change server name in deb 

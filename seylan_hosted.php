@@ -26,7 +26,9 @@ function resetPaymentSession($amount, $currency, $orderId, $description){
     ];
 
     return $txnId;
+    
 }
+//error_log("Payment session reset with txnId: " . resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']));
 
 function initiateCheckout($txnId, $logger) {
     $authString = 'merchant.'.MERCHANT_ID.':'.API_PASSWORD;
@@ -36,20 +38,21 @@ function initiateCheckout($txnId, $logger) {
 
     $data = [
         "apiOperation" => "INITIATE_CHECKOUT",
-        // "checkoutMode" => "WEBSITE",
+         "checkoutMode" => "WEBSITE",
         "interaction" => [
-            "operation" => "PAY",
+            "operation" => "AUTHORIZE",
             "returnUrl" => REDIRECT_URL
         ],
         "order" => [
             "currency" => $_SESSION['payments'][$txnId]['currency'],
             "amount" => $_SESSION['payments'][$txnId]['amount'],
             "id" => $_SESSION['payments'][$txnId]['orderId'],
-            // "description" => $_SESSION['payments'][$txnId]['description']
+             "description" => $_SESSION['payments'][$txnId]['description']
         ]
     ];
 
     $jsonData = json_encode($data);
+    error_log($jsonData);
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -82,6 +85,7 @@ function initiateCheckout($txnId, $logger) {
             throw new Exception("Error initiating checkout. Please try again.");
         }
     }
+      error_log("cUrl Response: " . $response);
 
     $logger->error("Error while cUrl: " . curl_error($ch));
     throw new Exception("Error in checkout. Please try again or contact ".MERCHANT_NAME.".");
@@ -104,14 +108,21 @@ try {
         exit;
     }
 
-    if($hasInitiated){
-        if(isset($_SESSION['payments'][$_SESSION['txnId']]) && 
-            ($_SESSION['payments'][$_SESSION['txnId']]['sessionId'] == $_SESSION['sessionId'])){
-            $logger->info('Payment session found for txnId: ' . $_SESSION['txnId']);
+  if ($hasInitiated) {
+    if (isset($_SESSION['txnId'], $_SESSION['sessionId'], $_SESSION['payments'][$_SESSION['txnId']])) {
+        $txnId = $_SESSION['txnId'];
+        $sessionId = $_SESSION['sessionId'];
+
+        if ($_SESSION['payments'][$txnId]['sessionId'] === $sessionId) {
+            $logger->info("Payment session found for txnId: $txnId");
         } else {
             throw new Exception("Invalid transaction ID. Please try again.");
         }
+    } else {
+        throw new Exception("No active payment session found.");
     }
+}
+
 }
 catch (Exception $e) {
     $logger->error("Exception during checkout initiation: " . $e->getMessage());

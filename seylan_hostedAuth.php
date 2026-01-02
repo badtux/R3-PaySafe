@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 error_log("Session ID: " . session_id());
 error_log("Session data at start: " . print_r($_SESSION, true)); 
 
-require_once('config/config.php');
+require_once('config/config.sample.php');
 require "vendor/autoload.php";
 
 use MongoDB\Client;
@@ -75,7 +75,7 @@ if (!$txnId) {
 
         $authString = "merchant.$merchantId:$apiPassWord";
         $authHeader = "Authorization: Basic " . base64_encode($authString);
-        $url = rtrim(API_URL, '/') . '/' . rawurlencode($merchantId) . '/session';
+        $url = rtrim(IPG_API_URL, '/') . '/' . rawurlencode($merchantId) . '/session';
           error_log("MPGS SESSION URL => " . $url);       
         $data = [
             "apiOperation" => "INITIATE_CHECKOUT",
