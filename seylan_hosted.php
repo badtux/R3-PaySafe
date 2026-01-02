@@ -41,10 +41,10 @@ function initiateCheckout($txnId, $logger) {
             "operation" => "PURCHASE",
             "merchant" => [
                 "name" => MERCHANT_NAME,
-                "logo" => MERCHANT_LOGO,
-                "url" => MERCHANT_URL,
-                "phone" => MERCHANT_PHONE,
-                "email" => MERCHANT_EMAIL
+                // "logo" => MERCHANT_LOGO,
+                // "url" => MERCHANT_URL,
+                // "phone" => MERCHANT_PHONE,
+                // "email" => MERCHANT_EMAIL
             ],
             "returnUrl" => REDIRECT_URL,
         ],
