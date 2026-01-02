@@ -33,23 +33,32 @@ function initiateCheckout($txnId, $logger) {
 
     $authHeader = "Authorization: Basic " . base64_encode($authString);
     $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'/session';
-
-    $data = [
-        "apiOperation" => "INITIATE_CHECKOUT",
-        // "checkoutMode" => "WEBSITE",
-        "interaction" => [
-            "operation" => "PAY",
-            "returnUrl" => REDIRECT_URL
-        ],
-        "order" => [
+error_log($endPointUrl);
+error_log($authHeader);
+error_log("Txn ID in initiateCheckout: $txnId");
+error_log("Session data: " . print_r($_SESSION, true));
+      $data = [
+            "apiOperation" => "INITIATE_CHECKOUT",
+            "interaction" => [
+                "operation" => "AUTHORIZE",
+                "merchant" => [
+                    "name" => MERCHANT_NAME,
+                    "logo" => MERCHANT_LOGO,
+                    "url" => "https://www.helpagesl.org/",
+                    "phone" => "+94 11 7418977",
+                    "email" => "helpage@sltnet.lk"
+                ],
+                "returnUrl" => REDIRECT_URL,
+            ],
+             "order" => [
             "currency" => $_SESSION['payments'][$txnId]['currency'],
             "amount" => $_SESSION['payments'][$txnId]['amount'],
             "id" => $_SESSION['payments'][$txnId]['orderId'],
-            // "description" => $_SESSION['payments'][$txnId]['description']
+             "description" => $_SESSION['payments'][$txnId]['description']
         ]
-    ];
-
+        ];
     $jsonData = json_encode($data);
+    error_log("cURL JSON Data: " . $jsonData);
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -58,7 +67,7 @@ function initiateCheckout($txnId, $logger) {
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $jsonData,
         CURLOPT_HTTPHEADER => [
-            "Content-Type: application/json",
+            "Content-Type: text/plain",
             "Cache-Control: no-cache",
             $authHeader
         ],
@@ -192,7 +201,7 @@ catch (Exception $e) {
             ?>
         </script>
 
-        <script src="<?php echo $checkoutJsUrl; ?>" data-error="errorCallback" data-cancel="cancelCallback"></script>
+        <script src="<?php echo $checkoutJsUrl; ?>"></script>
 
         <!-- <script type="text/javascript">
             function errorCallback(error) {
@@ -209,6 +218,8 @@ catch (Exception $e) {
             });
         </script> -->
 
+
+        
         <script>
             const sessionId = "<?php echo htmlspecialchars($_SESSION['sessionId'] ?? ''); ?>";
 
