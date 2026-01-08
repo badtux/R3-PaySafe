@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 error_log("Session ID: " . session_id());
 
 require 'vendor/autoload.php';
-require_once('config/config.php');
+
 
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -46,7 +46,7 @@ $apiPassword = API_PASSWORD;
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = rtrim(API_URL, '/') . '/' . rawurlencode($merchantId) . '/order/' . rawurlencode($orderId);
+$gatewayUrl = rtrim(IPG_API_URL, '/') . '/' . rawurlencode($merchantId) . '/order/' . rawurlencode($orderId);
 
 error_log('-------------' . $gatewayUrl);
 
@@ -89,36 +89,50 @@ if ($httpCode == 200) {
         };
         error_log("Response: $response");
         error_log("uuid:$uuid");
-        try {
-            $client = new Client($database_url);
-            $collection = $client->$database->$collection;
+      try {
+    $client = new Client($database_url);
 
-            $updateData = [
-                'paymentStatus' => $paymentStatus,
-                'transactionId' => $transactionId,
-                'nameOnCard' => $nameOnCard,
-                'merchantId' => $merchant,
-                'device' => $device,
-                'cardBrand' => $cardBrand,
-                'orderId' => $orderId,
-                'fundingMethord' => $fundingMethord,
-                'email' => $email,
-                'updatedAt' => $lastUpdated,
-                'cardNumber' => $cardNumber,
-            ];
-            if (!$uuid) {
-                error_log("UUID not set in session! Cannot update MongoDB.");
-            } else {
-                $collection->updateOne(
-                    ['uuid' => $uuid],
-                    ['$set' => $updateData]
-                );
-                error_log("set: " . json_encode($updateData));
-            }
-        } catch (Exception $e) {
-            error_log("MongoDB Update Error: " . $e->getMessage());
+    // FIXED: Proper selection
+    $collection = $client->selectDatabase($database)->selectCollection($collection);
+
+    if (!$uuid) {
+        error_log("UUID not set in session! Cannot update MongoDB. OrderID: $orderId");
+    } else {
+        error_log("Attempting MongoDB update for UUID: $uuid | OrderID: $orderId");
+
+        $updateData = [
+            'paymentStatus'    => $paymentStatus,
+            'transactionId'    => $transactionId ?? 'not-set',
+            'nameOnCard'       => $nameOnCard ?? 'not-set',
+            'merchantId'       => $merchant ?? MERCHANT_ID,
+            'device'           => $device ?? [],
+            'cardBrand'        => $cardBrand ?? 'N/A',
+            'fundingMethod'    => $fundingMethord ?? 'N/A', 
+            'email'            => $email,
+            'amount'           => $amount,
+            'currency'         => $currency,
+            'updatedAt'        => $lastUpdated,
+            'gatewayResponse'  => $data, 
+            'cardNumber'    => $cardNumber,
+            //'cardLast4'        => !empty($cardNumber) ? substr($cardNumber, -4) : 'N/A',
+        ];
+
+        $result = $collection->updateOne(
+            ['uuid' => $uuid],
+            ['$set' => $updateData]
+        );
+
+        error_log("MongoDB Update Result - Matched: " . $result->getMatchedCount() .
+                  " | Modified: " . $result->getModifiedCount() .
+                  " | Upserted: " . ($result->getUpsertedCount() ? $result->getUpsertedId() : 'none'));
+
+        if ($result->getMatchedCount() === 0) {
+            error_log("WARNING: No document found with UUID $uuid in database!");
         }
-
+    }
+} catch (Exception $e) {
+    error_log("MongoDB Fatal Error: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
+}
         $subject = "Payment Status Update for - OID:$orderId ";
         if ($mailStatus == 'payment error') {
             $body = '

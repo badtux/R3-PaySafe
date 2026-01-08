@@ -10,55 +10,68 @@ use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 use Ramsey\Uuid\Uuid;
 
-$isURLQueryRequest = ($_SERVER['REQUEST_METHOD'] === 'GET')?true:false;
-$willAttemptInit = ($isURLQueryRequest && isset($_GET['currency']) && isset($_GET['amount']) && isset($_GET['orderId']) && isset($_GET['description']) && !isset($_GET['txnId']))?true:false;
-$hasInitiated = ($isURLQueryRequest && !$willAttemptInit && isset($_SESSION['txnId']) && isset($_SESSION['sessionId']))?true:false;
+
+
+$isURLQueryRequest = ($_SERVER['REQUEST_METHOD'] === 'GET') ? true : false;
+$willAttemptInit = ($isURLQueryRequest 
+    && isset($_GET['currency']) 
+    && isset($_GET['amount']) 
+    && isset($_GET['orderId']) 
+    && isset($_GET['description']) 
+    && !isset($_GET['txnId'])) ? true : false;
+
+$hasInitiated = ($isURLQueryRequest 
+    && !$willAttemptInit 
+    && isset($_SESSION['txnId']) 
+    && isset($_SESSION['sessionId'])) ? true : false;
 
 function resetPaymentSession($amount, $currency, $orderId, $description){
-    $_SESSION['payments'] = []; unset($_SESSION['errorMessage']);
-    $txnId = bin2hex(random_bytes(8));
+    $_SESSION['payments'] = []; 
+    unset($_SESSION['errorMessage']);
+    $txnId = bin2hex(random_bytes(16)); 
+
+    $uuid = Uuid::uuid4()->toString();
+    $_SESSION['uuid'] = $uuid;
+
     $_SESSION['payments'][$txnId] = [
         'amount' => $amount,
         'currency' => $currency,
         'description' => $description,
         'orderId' => $orderId,
-        'uuid' => Uuid::uuid4()->toString()
+        'uuid' => $uuid
     ];
-
+            
     return $txnId;
 }
 
 function initiateCheckout($txnId, $logger) {
     $authString = 'merchant.'.MERCHANT_ID.':'.API_PASSWORD;
-
     $authHeader = "Authorization: Basic " . base64_encode($authString);
     $endPointUrl = IPG_API_URL.'/'.MERCHANT_ID.'/session';
-error_log($endPointUrl);
-error_log($authHeader);
-error_log("Txn ID in initiateCheckout: $txnId");
-error_log("Session data: " . print_r($_SESSION, true));
-      $data = [
-            "apiOperation" => "INITIATE_CHECKOUT",
-            "interaction" => [
-                "operation" => "AUTHORIZE",
-                "merchant" => [
-                    "name" => MERCHANT_NAME,
-                    "logo" => MERCHANT_LOGO,
-                    "url" => "https://www.helpagesl.org/",
-                    "phone" => "+94 11 7418977",
-                    "email" => "helpage@sltnet.lk"
-                ],
-                "returnUrl" => REDIRECT_URL,
+
+    $data = [
+        "apiOperation" => "INITIATE_CHECKOUT",
+        "interaction" => [
+            "operation" => "AUTHORIZE",
+            "merchant" => [
+                "name" => "HelpAge Sri Lanka",
+                "logo" => MERCHANT_LOGO,
+                "url" => "https://www.helpagesl.org/",
+                "phone" => "+94 11 7418977",
+                "email" => "helpage@sltnet.lk"
             ],
-             "order" => [
+            "returnUrl" => REDIRECT_URL,
+        ],
+        "order" => [
             "currency" => $_SESSION['payments'][$txnId]['currency'],
             "amount" => $_SESSION['payments'][$txnId]['amount'],
             "id" => $_SESSION['payments'][$txnId]['orderId'],
-             "description" => $_SESSION['payments'][$txnId]['description']
+            "description" => $_SESSION['payments'][$txnId]['description']
         ]
-        ];
+    ];
+
     $jsonData = json_encode($data);
-    error_log("cURL JSON Data: " . $jsonData);
+    $logger->info("cURL JSON Data: " . $jsonData);
 
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -67,45 +80,110 @@ error_log("Session data: " . print_r($_SESSION, true));
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $jsonData,
         CURLOPT_HTTPHEADER => [
-            "Content-Type: text/plain",
+            "Content-Type: application/json",  
             "Cache-Control: no-cache",
             $authHeader
         ],
-        CURLOPT_SSL_VERIFYPEER => true, 
+        CURLOPT_SSL_VERIFYPEER => true,
     ]);
 
     $response = curl_exec($ch);
-    $data = json_decode($response, true);
-
-
     $logger->info("cUrl Response: " . $response);
 
-    if (json_last_error() === JSON_ERROR_NONE) {
-        if (isset($data['result']) && $data['result'] === 'SUCCESS' && isset($data['session']['id'])) {
-            $sessionId = $data['session']['id'];
-            $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
-            $logger->info("Checkout initiated successfully. Session ID: " . $sessionId);
-            return $sessionId;
-        } else {
-            $logger->error("Error initiating checkout: " . $response);
-            throw new Exception("Error initiating checkout. Please try again.");
-        }
+    if ($response === false) {
+        $logger->error("Error while cUrl: " . curl_error($ch));
+        throw new Exception("Error in checkout. Please try again or contact ".MERCHANT_NAME.".");
     }
 
-    $logger->error("Error while cUrl: " . curl_error($ch));
-    throw new Exception("Error in checkout. Please try again or contact ".MERCHANT_NAME.".");
-    //{"error":{"cause":"INVALID_REQUEST","explanation":"Authenticated entity not authorised to perform operation for target entity"},"result":"ERROR"}
+    $result = json_decode($response, true);
 
-   //{"checkoutMode":"WEBSITE","merchant":"MPGS00000278","result":"SUCCESS","session":{"id":"SESSION0002845421116G5879485H19","updateStatus":"SUCCESS","version":"5e26913b01"},"successIndicator":"73b1868af8af41f8"}  
-    // print_r($response); // Debugging line to see the response
+    if (json_last_error() === JSON_ERROR_NONE 
+        && isset($result['result']) 
+        && $result['result'] === 'SUCCESS' 
+        && isset($result['session']['id'])) {
+
+        $sessionId = $result['session']['id'];
+        $_SESSION['payments'][$txnId]['sessionId'] = $sessionId;
+        $logger->info("Checkout initiated successfully. Session ID: " . $sessionId);
+        return $sessionId;
+    }
+
+    $logger->error("Error initiating checkout: " . $response);
+    throw new Exception("Error initiating checkout. Please try again.");
+}
+
+function saveTransactionToDatabase($txnId, $sessionId, $logger) {
+    $payment = $_SESSION['payments'][$txnId] ?? null;
+    if (!$payment) {
+        $logger->error("Cannot save to DB: payment session missing for txnId $txnId");
+        return false;
+    }
+
+    try {
+        $client = new Client(DATABASE_URL);
+        $collection = $client->selectDatabase(DB)->selectCollection(COLLECTION);
+
+        $document = [
+            'orderId'     => $payment['orderId'],
+            'uuid'        => $payment['uuid'],
+            'txnId'       => $txnId,
+            'amount'      => (float)$payment['amount'],
+            'currency'    => $payment['currency'],
+            'description' => $payment['description'],
+            'merchantId'  => MERCHANT_ID,
+            'sessionId'   => $sessionId,
+            'bank'        => "Seylan Bank",
+            'createdAt'   => new UTCDateTime()
+        ];
+
+        $result = $collection->insertOne($document);
+
+        $insertedId = $result->getInsertedId();
+
+        if ($result->getInsertedCount() === 1) {
+            $logger->info("Transaction saved to MongoDB successfully", [
+                'insertedId' => (string)$insertedId,
+                'txnId'      => $txnId,
+                'orderId'    => $payment['orderId']
+            ]);
+            return true;
+        } else {
+            $logger->error("Failed to insert transaction into MongoDB for txnId: $txnId");
+            return false;
+        }
+    } catch (Exception $e) {
+        $logger->error("MongoDB Error: " . $e->getMessage());
+        return false;
+    }
 }
 
 try {
-    if($willAttemptInit){
-        $txnId = resetPaymentSession($_GET['amount'], $_GET['currency'], $_GET['orderId'], $_GET['description']);
+    if ($willAttemptInit) {
+        $amount = filter_var($_GET['amount'], FILTER_VALIDATE_FLOAT);
+        if (!$amount || $amount <= 0) {
+            throw new Exception("Invalid or missing amount.");
+        }
+
+        if (empty($_GET['orderId'])) {
+            throw new Exception("Order ID is required.");
+        }
+
+        $txnId = resetPaymentSession(
+            $amount,
+            $_GET['currency'] ?? 'LKR',
+            $_GET['orderId'],
+            $_GET['description'] ?? 'No description'
+        );
+        error_log("UUID: " . $_SESSION['uuid']);
+
         $logger->info("Initialized payment session with txnId: $txnId");
 
         $sessionId = initiateCheckout($txnId, $logger);
+
+        if (!saveTransactionToDatabase($txnId, $sessionId, $logger)) {
+            throw new Exception("Failed to record transaction. Please try again.");
+        }
+
         $_SESSION['sessionId'] = $sessionId;
         $_SESSION['txnId'] = $txnId;
 
@@ -113,10 +191,11 @@ try {
         exit;
     }
 
-    if($hasInitiated){
-        if(isset($_SESSION['payments'][$_SESSION['txnId']]) && 
-            ($_SESSION['payments'][$_SESSION['txnId']]['sessionId'] == $_SESSION['sessionId'])){
+    if ($hasInitiated) {
+        if (isset($_SESSION['payments'][$_SESSION['txnId']]) && 
+            ($_SESSION['payments'][$_SESSION['txnId']]['sessionId'] == $_SESSION['sessionId'])) {
             $logger->info('Payment session found for txnId: ' . $_SESSION['txnId']);
+    
         } else {
             throw new Exception("Invalid transaction ID. Please try again.");
         }
@@ -125,32 +204,11 @@ try {
 catch (Exception $e) {
     $logger->error("Exception during checkout initiation: " . $e->getMessage());
     $_SESSION['errorMessage'] = "Error: " . $e->getMessage();
-    unset($_SESSION['payments']);
+    unset($_SESSION['payments'], $_SESSION['sessionId'], $_SESSION['txnId']);
 
     header("Location: " . BASE_PATH);
     exit;
 }
-
-// $errorMessage = null;
-// $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
-
-// if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
-//     $errorMessage = "Error: order Id or amount is missing. ";
-// } else {
-//     $payment = $_SESSION['payments'][$txnId];
-//     $amount = $payment['amount'];
-//     $currency = $payment['currency'];
-//     $description = $payment['description'];
-//     $orderId = $payment['orderId'];
-//     $sessionId = isset($payment['sessionId']) ? $payment['sessionId'] : null;
-
-//     if (!$sessionId) {
-//         $errorMessage = "Error: Session could not be created. Please try again.";
-//     } elseif (!is_numeric($amount) || $amount <= 0) {
-//         $errorMessage = "Error: Invalid amount.";
-//     }
-// }
-
 ?>
 
 <!DOCTYPE html>
@@ -193,7 +251,7 @@ catch (Exception $e) {
         }
     </style>
     <?php if (!isset($errorMessage)) { ?>
-        <script type="text/javascript">
+        <script>
             <?php
             $checkoutJsUrl = APP_LIVE
                 ? 'https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js'
