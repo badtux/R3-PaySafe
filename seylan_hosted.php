@@ -174,6 +174,7 @@ try {
             $_GET['orderId'],
             $_GET['description'] ?? 'No description'
         );
+        $_SESSION['orderId']  = $_GET['orderId'];
         error_log("UUID: " . $_SESSION['uuid']);
 
         $logger->info("Initialized payment session with txnId: $txnId");
@@ -261,23 +262,6 @@ catch (Exception $e) {
 
         <script src="<?php echo $checkoutJsUrl; ?>"></script>
 
-        <!-- <script type="text/javascript">
-            function errorCallback(error) {
-                  console.log(JSON.stringify(error));
-            }
-            function cancelCallback() {
-                  console.log('Payment cancelled');
-            }
-        
-            Checkout.configure({
-                session: {
-                    id:  '<your_initiate_checkout_session_ID>'
-                }
-            });
-        </script> -->
-
-
-        
         <script>
             const sessionId = "<?php echo htmlspecialchars($_SESSION['sessionId'] ?? ''); ?>";
 
