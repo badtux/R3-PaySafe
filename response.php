@@ -191,6 +191,10 @@ if ($httpCode == 200) {
             foreach (CC_LIST as $cc) {
                 $mail->addCC($cc);
             }
+               foreach (BCC_LIST as $bcc) {
+             $mail->addBCC($bcc);
+            }
+            
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = $body;
