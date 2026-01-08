@@ -1,7 +1,7 @@
 <?php
 
-define('APP_LIVE', false);
-define('BASE_PATH', '/seylan');
+define('APP_LIVE',true);
+define('BASE_PATH','/paysafe/sey');
 
 define('LOGO', 'https://www.helpagesl.org/assets/images/logo-sri-lanka.webp');
 
@@ -19,7 +19,7 @@ if (APP_LIVE) {
  
     define('MERCHANT_ID', 'MPGS00000278'); //live 
     define('API_USERNAME', 'merchant.MPGS00000278');
-    define('API_PASSWORD', 'fcf75a9be2b1eb66ca2ff5935693afcc');
+    define('API_PASSWORD', '0edadbb22e68e59d047c18f12a43230e');
     define('API_URL', 'https://seylan.gateway.mastercard.com/api/rest/version/100/merchant/');
 
     define('REDIRECT_URL', 'https://helpage.go.digitable.io/paysafe/sey/status');
