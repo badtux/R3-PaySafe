@@ -52,7 +52,7 @@ function initiateCheckout($txnId, $logger) {
     $data = [
         "apiOperation" => "INITIATE_CHECKOUT",
         "interaction" => [
-            "operation" => "AUTHORIZE",
+            "operation" => "PURCHASE",
             "merchant" => [
                 "name" => "HelpAge Sri Lanka",
                 "logo" => MERCHANT_LOGO,

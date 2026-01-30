@@ -68,7 +68,8 @@ if ($httpCode == 200) {
     $data = json_decode($response, true);
 
     if (!empty($data)) {
-        $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
+    // original gateway result
+    $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
         $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
         $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard'] ?? 'not-set';
         $cardNumber     = $data['sourceOfFunds']['provided']['card']['number'] ?? 'N/A';
@@ -81,18 +82,63 @@ if ($httpCode == 200) {
         $amount = isset($data['amount']) ? number_format((float)$data['amount'], 2, '.', '') : '0.00';
         $currency = htmlspecialchars($data['currency'] ?? 'N/A');
         $status = strtolower($data['result'] ?? '');
+        // Determine mail status from result by default
         $mailStatus = match ($status) {
             'success' => 'success',
             'error' => 'payment error',
             'canceled' => 'payment canceled',
             default => 'unknown',
         };
+
+        // --- New: Inspect captured amounts ---
+        // Prefer top-level totalCapturedAmount when provided (gateway aggregate).
+        // Otherwise sum per-transaction amounts but avoid double-counting by transaction id.
+        $capturedAmount = 0.0;
+        if (isset($data['totalCapturedAmount']) && floatval($data['totalCapturedAmount']) > 0.0) {
+            $capturedAmount = floatval($data['totalCapturedAmount']);
+        } else {
+            $seenTx = [];
+            if (!empty($data['transaction']) && is_array($data['transaction'])) {
+                foreach ($data['transaction'] as $t) {
+                    $txId = $t['transaction']['id'] ?? null;
+                    if ($txId && isset($seenTx[$txId])) {
+                        continue; // already counted
+                    }
+
+                    // Prefer the canonical amount in the nested transaction object, fallback to order.totalCapturedAmount or transaction-level totalCapturedAmount
+                    $amt = 0.0;
+                    if (isset($t['transaction']) && isset($t['transaction']['amount'])) {
+                        $amt = floatval($t['transaction']['amount']);
+                    } elseif (isset($t['totalCapturedAmount'])) {
+                        $amt = floatval($t['totalCapturedAmount']);
+                    } elseif (isset($t['order']) && isset($t['order']['totalCapturedAmount'])) {
+                        $amt = floatval($t['order']['totalCapturedAmount']);
+                    }
+
+                    if ($txId) {
+                        $seenTx[$txId] = true;
+                    }
+                    $capturedAmount += $amt;
+                }
+            }
+
+            // Fallback: if still zero, consider order-level totalCapturedAmount
+            if ($capturedAmount == 0.0 && isset($data['order']) && isset($data['order']['totalCapturedAmount'])) {
+                $capturedAmount = floatval($data['order']['totalCapturedAmount']);
+            }
+        }
+        $isCaptured = ($capturedAmount > 0.0);
+        if ($isCaptured) {
+            $paymentStatus = 'SUCCESS';
+            $mailStatus = 'success';
+        } else {
+            $paymentStatus = 'ERROR';
+            $mailStatus = 'payment error';
+        }
         error_log("Response: $response");
         error_log("uuid:$uuid");
       try {
     $client = new Client($database_url);
-
-    // FIXED: Proper selection
     $collection = $client->selectDatabase($database)->selectCollection($collection);
 
     if (!$uuid) {
@@ -112,14 +158,29 @@ if ($httpCode == 200) {
             'amount'           => $amount,
             'currency'         => $currency,
             'updatedAt'        => $lastUpdated,
+            'captureChecked'   => true,
+            'capturedAmount'   => $capturedAmount,
+            'captureStatus'    => ($isCaptured ? 'SUCCESS' : 'ERROR'),
             'gatewayResponse'  => $data, 
             'cardNumber'    => $cardNumber,
             //'cardLast4'        => !empty($cardNumber) ? substr($cardNumber, -4) : 'N/A',
         ];
+        $attemptEntry = [
+            'time' => new UTCDateTime(),
+            'orderId' => $orderId,
+            'capturedAmount' => $capturedAmount,
+            'captureStatus' => ($isCaptured ? 'SUCCESS' : 'ERROR'),
+            'gatewayResponse' => $data,
+        ];
+
+        $updateOps = [
+            '$set' => $updateData,
+            '$push' => ['paymentAttempts' => $attemptEntry],
+        ];
 
         $result = $collection->updateOne(
             ['uuid' => $uuid],
-            ['$set' => $updateData]
+            $updateOps
         );
 
         error_log("MongoDB Update Result - Matched: " . $result->getMatchedCount() .
