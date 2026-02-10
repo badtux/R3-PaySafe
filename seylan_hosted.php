@@ -25,7 +25,7 @@ $hasInitiated = ($isURLQueryRequest
     && isset($_SESSION['txnId']) 
     && isset($_SESSION['sessionId'])) ? true : false;
 
-function resetPaymentSession($amount, $currency, $orderId, $description){
+function resetPaymentSession($amount, $currency, $orderId, $description, $address = null){
     $_SESSION['payments'] = []; 
     unset($_SESSION['errorMessage']);
     $txnId = bin2hex(random_bytes(16)); 
@@ -38,7 +38,8 @@ function resetPaymentSession($amount, $currency, $orderId, $description){
         'currency' => $currency,
         'description' => $description,
         'orderId' => $orderId,
-        'uuid' => $uuid
+    'uuid' => $uuid,
+    'address' => $address
     ];
             
     return $txnId;
@@ -130,6 +131,7 @@ function saveTransactionToDatabase($txnId, $sessionId, $logger) {
             'amount'      => (float)$payment['amount'],
             'currency'    => $payment['currency'],
             'description' => $payment['description'],
+            'address'     => $payment['address'] ?? null,
             'merchantId'  => MERCHANT_ID,
             'sessionId'   => $sessionId,
             'bank'        => "Seylan Bank",
@@ -172,7 +174,8 @@ try {
             $amount,
             $_GET['currency'] ?? 'LKR',
             $_GET['orderId'],
-            $_GET['description'] ?? 'No description'
+            $_GET['description'] ?? 'No description',
+            $_GET['address'] ?? null
         );
         $_SESSION['orderId']  = $_GET['orderId'];
         error_log("UUID: " . $_SESSION['uuid']);
