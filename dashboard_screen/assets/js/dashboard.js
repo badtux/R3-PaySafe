@@ -1,4 +1,6 @@
 let BASE_URL;
+// Store tenant globally for conditional rendering
+let CURRENT_TENANT = null;
 const today = new Date().toISOString().split("T")[0]; // e.g., "2025-10-24"
 const UNIVERSAL_PASSWORD = "admin@123";
 const IS_LOCAL = window.location.hostname.includes("127.0.0.1");
@@ -7,6 +9,7 @@ $(document).ready(() => {
   const hostname = window.location.hostname;
   const tenantFromUrl = window.location.tenent;
   const tenant = localStorage.getItem("tenant") || tenantFromUrl;
+  CURRENT_TENANT = tenant;
   const savedTheme = localStorage.getItem("theme") || "light";
   const savedItemsPerPage = localStorage.getItem("itemsPerPage") || "10";
 
@@ -417,6 +420,16 @@ $(document).ready(function () {
               const showRefundBtn =
                 t.paymentStatus === "SUCCESS" && !isFullyRefunded;
 
+              const addressBlock =
+                (String(CURRENT_TENANT || '').toLowerCase() === 'helpage' && t.address)
+                  ? `
+          <div>
+            <span class="text-xs uppercase tracking-wider text-gray-400">Address</span>
+            <p class="font-medium text-gray-700">${t.address}</p>
+          </div>
+        `
+                  : '';
+
               return `
 <tr class="table-row expandable-row group bg-white border-b border-gray-100 hover:bg-gray-50 transition-all duration-200" id="row-${index}">
   <td colspan="8" class="px-6 py-4">
@@ -427,13 +440,16 @@ $(document).ready(function () {
   ${new Date(t.createdAt).toISOString().split("T")[0]}
 </div>
 
-      <div class="order-id font-bold text-lg text-blue-500">
+      <div class="order-id font-bold text-lg text-blue-500 truncate max-w-[220px]" title="${t.orderId || ''}">
         ${t.orderId || "N/A"}
       </div>
 
-      <div class="amount text-lg font-semibold text-gray-700">
-        ${originalAmount.toFixed(2)}
-      </div>
+     <div class="amount text-lg font-semibold text-gray-700">
+  ${Number(originalAmount).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+  })}
+</div>
 
      <div class="currency text-sm font-medium uppercase tracking-wider text-gray-600">
   ${t.currency || "LKR"}
@@ -449,8 +465,6 @@ $(document).ready(function () {
      title="${t.cardNumber || 'N/A'}">
   ${t.cardNumber ? "•••" + t.cardNumber.slice(-4) : "N/A"}
 </div>
-
-
 
       <div class="card-brand text-sm font-medium text-gray-600">
         ${t.cardBrand || "N/A"}
@@ -485,6 +499,8 @@ $(document).ready(function () {
               ${t.transactionId || "N/A"}
             </p>
           </div>
+
+          ${addressBlock}
 
           ${refundTag ? `<div class="mt-1">${refundTag}</div>` : ""}
 

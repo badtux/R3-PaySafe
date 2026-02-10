@@ -74,6 +74,13 @@ async function fetchPayments(hostname, query) {
     ];
   }
 
+  // Make a dedicated stats filter.
+  // If caller provided status, respect it; otherwise default stats to SUCCESS (matches UI behavior).
+  const statsFilter = {
+    ...baseFilter,
+    paymentStatus: status || 'SUCCESS'
+  };
+
   // FIXED: Correct syntax for dynamic sort
   let sortOption = { createdAt: -1 };
   if (sort && sort.includes(":")) {
@@ -162,31 +169,43 @@ async function fetchPayments(hostname, query) {
     };
   });
 
-  // Stats
-  const totalLKR = (await collection
-    .aggregate([
-      { $match: { ...baseFilter, currency: "LKR" } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ])
-    .toArray())[0]?.total || 0;
+  // Stats: sum amounts correctly even if stored as strings
+  const sumAmountPipeline = (currency) => ([
+    { $match: { ...statsFilter, currency } },
+    {
+      $group: {
+        _id: null,
+        total: {
+          $sum: {
+            $convert: {
+              input: "$amount",
+              to: "double",
+              onError: 0,
+              onNull: 0
+            }
+          }
+        }
+      }
+    }
+  ]);
 
-  const totalUSD = (await collection
-    .aggregate([
-      { $match: { ...baseFilter, currency: "USD" } },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ])
-    .toArray())[0]?.total || 0;
+  const totalLKR = (await collection.aggregate(sumAmountPipeline("LKR")).toArray())[0]?.total || 0;
+  const totalUSD = (await collection.aggregate(sumAmountPipeline("USD")).toArray())[0]?.total || 0;
 
   const successful = await collection.countDocuments({
     ...baseFilter,
     paymentStatus: "SUCCESS",
   });
 
+  console.log(
+    `Totals for tenant ${tenant}: totalLKR=${Number(totalLKR).toFixed(2)}, totalUSD=${Number(totalUSD).toFixed(2)}, transactions=${total}, successful=${successful}`
+  );
+
   const stats = {
     totalTransactions: total,
     successfulTransactions: successful,
-    totalAmountLKR: totalLKR.toFixed(2),
-    totalAmountUSD: totalUSD.toFixed(2),
+    totalAmountLKR: Number(totalLKR).toFixed(2),
+    totalAmountUSD: Number(totalUSD).toFixed(2),
   };
 
   return { transactions: enriched, total, stats };
