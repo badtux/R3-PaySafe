@@ -11,9 +11,6 @@ use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 
-session_start();
-
-
 if (isset($_COOKIE['userEmail'])) {
     $email = filter_var($_COOKIE['userEmail'], FILTER_SANITIZE_EMAIL);
     $_SESSION['email'] = $email;
@@ -61,37 +58,135 @@ curl_close($ch);
 $paymentStatus = "";
 $emailMessage = "";
 
+// Used for UI output (avoid showing SUCCESS when capture/payment failed)
+$isPaidSuccess = false;
+$uiStatusText = 'N/A';
+
 if ($httpCode == 200) {
     $data = json_decode($response, true);
 
     if (!empty($data)) {
         $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
-        $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
-        $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard'] ?? 'not-set';
-        $cardNumber     = $data['sourceOfFunds']['provided']['card']['number'] ?? 'N/A';
+
+        // Prefer values from the PAYMENT transaction (more reliable than top-level fields).
+        $paymentTxn = null;
+        if (!empty($data['transaction']) && is_array($data['transaction'])) {
+            foreach ($data['transaction'] as $txn) {
+                $type = strtoupper($txn['transaction']['type'] ?? '');
+                if ($type === 'PAYMENT') {
+                    $paymentTxn = $txn;
+                    break;
+                }
+            }
+        }
+
+        // Determine payment method/type early (CARD vs UNION_PAY)
+        $sourceType = strtoupper((string)($data['sourceOfFunds']['type'] ?? ''));
+
+        // Transaction ID rules:
+        // - CARD (Visa/Mastercard/Amex): use top-level 3DS transactionId when available
+        // - UNION_PAY: use acquirer transactionId (e.g., TESTMALKEYRENLKRxxxx1)
+        $top3dsTxnId = $data['authentication']['3ds']['transactionId'] ?? null;
+        $acquirerTxnId = $paymentTxn['transaction']['acquirer']['transactionId'] ?? null;
+        $receiptTxnId = $paymentTxn['transaction']['receipt'] ?? null;
+        $mpgsTxnId = $paymentTxn['transaction']['id'] ?? null;
+
+        if ($sourceType === 'CARD' && !empty($top3dsTxnId)) {
+            $transactionId = $top3dsTxnId;
+        } elseif ($sourceType === 'UNION_PAY' && !empty($acquirerTxnId)) {
+            $transactionId = $acquirerTxnId;
+        } else {
+            // Fallback (keeps older behavior)
+            $transactionId = $acquirerTxnId
+                ?? $receiptTxnId
+                ?? $mpgsTxnId
+                ?? ($data['transaction'][0]['transaction']['id'] ?? null)
+                ?? ($top3dsTxnId ?? 'not-set');
+        }
+
+        // Name on card may be missing (e.g., UnionPay). Fallback to customer name if present.
+        $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard']
+            ?? $paymentTxn['sourceOfFunds']['provided']['card']['nameOnCard']
+            ?? trim((string)(($data['customer']['firstName'] ?? '') . ' ' . ($data['customer']['lastName'] ?? '')));
+
+        // Last-resort fallback: derive something readable from the email local-part.
+        if (!is_string($nameOnCard) || trim($nameOnCard) === '') {
+            $fallbackName = '';
+            if (!empty($email) && is_string($email) && str_contains($email, '@')) {
+                $local = explode('@', $email, 2)[0];
+                $local = str_replace(['.', '_', '-'], ' ', $local);
+                $fallbackName = trim($local);
+            }
+            $nameOnCard = $fallbackName !== '' ? $fallbackName : 'not-set';
+        }
+
+        $cardNumber = $data['sourceOfFunds']['provided']['card']['number']
+            ?? $paymentTxn['sourceOfFunds']['provided']['card']['number']
+            ?? 'N/A';
+
         $merchant = $data['merchant'] ?? 'not-set';
         $device = $data['device'] ?? [];
-        $cardBrand = $data['sourceOfFunds']['provided']['card']['brand'] ?? 'N/A';
+        $cardBrand = $data['sourceOfFunds']['provided']['card']['brand']
+            ?? $paymentTxn['sourceOfFunds']['provided']['card']['brand']
+            ?? 'N/A';
+
         $orderId = $data['id'] ?? $orderId;
-        $fundingMethord = $data['sourceOfFunds']['provided']['card']['fundingMethod'] ?? 'N/A';
-        $lastUpdated = $data['lastUpdatedTime'] ? new UTCDateTime(strtotime($data['lastUpdatedTime']) * 1000) : new UTCDateTime();
+        $fundingMethord = $data['sourceOfFunds']['provided']['card']['fundingMethod']
+            ?? $paymentTxn['sourceOfFunds']['provided']['card']['fundingMethod']
+            ?? 'N/A';
+
+        $lastUpdated = !empty($data['lastUpdatedTime'])
+            ? new UTCDateTime(strtotime($data['lastUpdatedTime']) * 1000)
+            : new UTCDateTime();
         $amount = isset($data['amount']) ? number_format((float)$data['amount'], 2, '.', '') : '0.00';
         $currency = htmlspecialchars($data['currency'] ?? 'N/A');
-        $status = strtolower($data['result'] ?? '');
-        $mailStatus = match ($status) {
-            'success' => 'success',
-            'error' => 'payment error',
-            'canceled' => 'payment canceled',
-            default => 'unknown',
+
+        // Decide success/error based on CAPTURE + payment approval (not only top-level result).
+        $orderStatus = strtoupper((string)($data['status'] ?? ''));
+        $topResult = strtoupper((string)($data['result'] ?? ''));
+        $capturedAmount = (float)($data['totalCapturedAmount'] ?? 0);
+        $authorizedAmount = (float)($data['totalAuthorizedAmount'] ?? 0);
+
+        // Expose capture info for DB
+        $captureAmountForDb = $capturedAmount;
+        $isCaptured = ($orderStatus === 'CAPTURED') && ($capturedAmount > 0);
+
+        $paymentGatewayCode = strtoupper((string)($paymentTxn['response']['gatewayCode'] ?? ''));
+        $paymentResult = strtoupper((string)($paymentTxn['result'] ?? ''));
+
+        $isApprovedPayment = ($paymentResult === 'SUCCESS') && ($paymentGatewayCode === 'APPROVED');
+
+        // Some flows may be AUTHORIZED without capture; keep this as non-success unless you want to treat as success.
+        $isAuthorizedOnly = ($orderStatus === 'AUTHORIZED') && ($authorizedAmount > 0) && !$isCaptured;
+
+        $isPaidSuccess = ($topResult === 'SUCCESS') && ($isCaptured || $isApprovedPayment);
+
+        $mailStatus = $isPaidSuccess ? 'success' : 'payment error';
+        if (in_array($topResult, ['CANCELLED', 'CANCELED'], true)) {
+            $mailStatus = 'payment canceled';
+            $isPaidSuccess = false;
+        }
+
+        // UI message should reflect actual final state.
+        $uiStatusText = match ($mailStatus) {
+            'success' => 'SUCCESS',
+            'payment canceled' => 'CANCELED',
+            default => 'ERROR',
         };
-        error_log("Response: $data");
+
+        // Persist a final status based on actual payment outcome (capture/approval), not only gateway top-level result.
+        $finalPaymentStatus = $uiStatusText;
+        $gatewayResult = $paymentStatus;
+
+        error_log('Response: ' . json_encode($data));
         error_log("uuid:$uuid");
         try {
             $client = new Client($database_url);
             $collection = $client->$database->$collection;
 
             $updateData = [
-                'paymentStatus' => $paymentStatus,
+                'paymentStatus' => $finalPaymentStatus,
+                'gatewayResult' => $gatewayResult,
                 'transactionId' => $transactionId,
                 'nameOnCard' => $nameOnCard,
                 'merchantId' => $merchant,
@@ -102,7 +197,10 @@ if ($httpCode == 200) {
                 'email' => $email,
                 'updatedAt' => $lastUpdated,
                 'cardNumber' => $cardNumber,
+                'captured' => $isCaptured,
+                'capturedAmount' => $captureAmountForDb,
             ];
+
             if (!$uuid) {
                 error_log("UUID not set in session! Cannot update MongoDB.");
             } else {
@@ -120,7 +218,7 @@ if ($httpCode == 200) {
         if ($mailStatus == 'payment error') {
             $body = '
             <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error </h2>
+                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Unsuccessful </h2>
                 <div style="background-color: white; padding: 15px; border-radius: 4px;">
                     <h3 style="margin: 0 0 10px 0;">Order Details</h3>
                     <table>
@@ -206,9 +304,11 @@ if ($httpCode == 200) {
         }
     } else {
         $paymentStatus = "Unable to decode response";
+        $uiStatusText = 'ERROR';
     }
 } else {
     $paymentStatus = "Error retrieving order details (HTTP Code: $httpCode)";
+    $uiStatusText = 'ERROR';
 }
 ?>
 
@@ -232,8 +332,8 @@ if ($httpCode == 200) {
             <h1 class="text-2xl font-bold text-blue-100">Secure Payment</h1>
             <p class="text-blue-100 text-sm">Protected by Commercial Bank</p>
         </div>
-        <div id="payment-status" class="mt-6 text-center text-lg font-semibold <?php echo ($paymentStatus === 'SUCCESS' ? 'success' : 'error'); ?>">
-            Payment Status: <?php echo $paymentStatus; ?><br>
+        <div id="payment-status" class="mt-6 text-center text-lg font-semibold <?php echo ($isPaidSuccess ? 'success' : 'error'); ?>">
+            Payment Status: <?php echo htmlspecialchars($uiStatusText); ?><br>
             <?php echo $emailMessage; ?>
         </div>
         <div class="flex justify-center">
