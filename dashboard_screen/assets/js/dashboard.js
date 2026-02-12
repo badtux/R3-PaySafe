@@ -167,7 +167,7 @@ function logout() {
 let currentFilters = {
   from: "",
   to: "",
-  status: "SUCCESS",
+  status: "ALL", // allow showing SUCCESS + FAILED + PENDING + etc
   search: "",
   page: 1,
   limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
@@ -290,7 +290,7 @@ async function loadData() {
 function applyFilters() {
   const fromDate = $("#fromDate").val();
   const toDate = $("#toDate").val();
-  const selectedStatus = $("#transactionType").val();
+  const selectedStatus = ($("#transactionType").val() || "ALL").toUpperCase();
   const searchQuery = $("#searchQuery").val().trim();
 
   console.log("Applying filters:", {
@@ -306,10 +306,11 @@ function applyFilters() {
   currentFilters.search = searchQuery || "";
 
   if (selectedStatus === "REFUNDED") {
+    // refunded is implemented as success + refundOnly
     currentFilters.status = "SUCCESS";
     currentFilters.refundOnly = "true";
   } else {
-    currentFilters.status = selectedStatus || "SUCCESS";
+    currentFilters.status = selectedStatus || "ALL";
     delete currentFilters.refundOnly;
   }
 
@@ -320,53 +321,85 @@ function applyFilters() {
 function resetFilters() {
   $("#fromDate").val("");
   $("#toDate").val("");
-  $("#transactionType").val("SUCCESS");
+  $("#transactionType").val("ALL");
   $("#searchQuery").val("");
   $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
 
   currentFilters = {
     from: "",
     to: "",
-    status: "SUCCESS",
+    status: "ALL",
     search: "",
     page: 1,
     limit: parseInt(localStorage.getItem("itemsPerPage") || "10"),
     sort: "createdAt:-1",
   };
 
-  delete currentFilters.refundOnly; // This is correct
+  delete currentFilters.refundOnly;
 
   console.log("All filters reset");
   loadData();
 }
 
 function updateStats(stats) {
+  const thisMonthCount = Number(stats?.thisMonthCount || 0);
+  const thisMonthLKR = Number(stats?.thisMonthAmountLKR || 0);
+  const thisMonthUSD = Number(stats?.thisMonthAmountUSD || 0);
+
+  // Ensure the cards container uses a responsive grid so cards can sit on one row on large screens
+  $("#statsCards")
+    .removeClass()
+    .addClass("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4");
+
   $("#statsCards").html(`
-        <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">${stats.totalTransactions.toLocaleString(
-            "en-US"
-          )}</div>
-          <div class="text-sm opacity-90 mt-1">Total Transactions</div>
+        <div class="bg-red-400  rounded-lg shadow  text-white p-4">
+          <div class=" flex items-end justify-between">
+            <div>
+              <div class="text-2xl font-bold">${thisMonthCount.toLocaleString(
+                "en-US"
+              )}</div>
+               <div class="text-xs opacity-90 mt-1">This Month Transactions</div>
+
+            </div>
+            <div class="text-right">
+              <div class="text-sm font-semibold ">LKR ${thisMonthLKR.toLocaleString(
+                "en-US",
+                { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+              )}</div>
+              <div class="text-xs font-medium ">USD ${thisMonthUSD.toLocaleString(
+                "en-US",
+                { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+              )}</div>
+            </div>
+          </div>
         </div>
 
-        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">${stats.successfulTransactions.toLocaleString(
+        <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-4">
+          <div class="text-2xl font-bold">${stats.totalTransactions.toLocaleString(
             "en-US"
           )}</div>
-          <div class="text-sm opacity-90 mt-1">Successful Transactions</div>
+          <div class="text-xs opacity-90 mt-1">Total Transactions</div>
         </div>
-        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">LKR ${Number(
+
+        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4">
+          <div class="text-2xl font-bold">${stats.successfulTransactions.toLocaleString(
+            "en-US"
+          )}</div>
+          <div class="text-xs opacity-90 mt-1">Successful Transactions </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4">
+          <div class="text-2xl font-bold">LKR ${Number(
             stats.totalAmountLKR
           ).toLocaleString("en-US")}</div>
-          <div class="text-sm opacity-90 mt-1">Total Amount (LKR)</div>
+          <div class="text-xs opacity-90 mt-1">Total Amount (LKR)</div>
         </div>
 
-        <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-5">
-          <div class="text-3xl font-bold">USD ${Number(
+        <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-4">
+          <div class="text-2xl font-bold">USD ${Number(
             stats.totalAmountUSD
           ).toLocaleString("en-US")}</div>
-          <div class="text-sm opacity-90 mt-1">Total Amount (USD)</div>
+          <div class="text-xs opacity-90 mt-1">Total Amount (USD)</div>
         </div>
       `);
 }
@@ -621,7 +654,8 @@ async function exportToCSV() {
     for (const [key, value] of Object.entries(currentFilters)) {
       if (value) params.append(key, value);
     }
-    params.set("status", "SUCCESS");
+
+    // Respect selected status (do not force SUCCESS)
     params.set("sort", "createdAt:-1");
     params.set("limit", "10000"); // Get all records
 
@@ -636,7 +670,7 @@ async function exportToCSV() {
       "Date,Merchant ID,Order ID,Original Amount,Refunded Amount,Currency,Email,Description,Card Brand,Name on Card,Card Number,Status",
     ];
 
-    // Rows — now 100% accurate
+    // Rows
     const rows = transactions.map((t) => {
       const date = t.createdAt
         ? new Date(t.createdAt).toISOString().split("T")[0]
@@ -647,6 +681,7 @@ async function exportToCSV() {
           ? parseFloat(t.latestTotalRefunded).toFixed(2)
           : "0.00";
       const maskedCard = t.cardNumber ? "****" + t.cardNumber.slice(-4) : "N/A";
+      const status = (t.paymentStatus || "UNKNOWN").toUpperCase();
 
       return `"${date}","${t.merchantId || "N/A"}","${
         t.orderId || "N/A"
@@ -654,7 +689,7 @@ async function exportToCSV() {
         t.email || "N/A"
       }","${t.description || "N/A"}","${t.cardBrand || "N/A"}","${
         t.nameOnCard || "N/A"
-      }","${maskedCard}","SUCCESS"`;
+      }","${maskedCard}","${status}"`;
     });
 
     const csv = [...headers, ...rows].join("\n");
@@ -668,10 +703,7 @@ async function exportToCSV() {
     link.click();
     document.body.removeChild(link);
 
-    showToast(
-      "CSV exported successfully with correct refund amounts!",
-      "success"
-    );
+    showToast("CSV exported successfully!", "success");
   } catch (error) {
     console.error("Export failed:", error);
     showToast("Failed to export CSV", "error");

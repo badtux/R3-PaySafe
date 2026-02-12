@@ -54,8 +54,13 @@ async function fetchPayments(hostname, query) {
     (Array.isArray(refundOnly) && refundOnly.includes("true"))
   );
 
+  const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : undefined;
+
   // Base filter
-  let baseFilter = {};
+  let baseFilter = {
+    // Only include docs that actually have a paymentStatus
+    paymentStatus: { $exists: true, $ne: null }
+  };
   if (from || to) {
     baseFilter.createdAt = {};
     if (from) baseFilter.createdAt.$gte = new Date(from);
@@ -65,7 +70,12 @@ async function fetchPayments(hostname, query) {
       baseFilter.createdAt.$lte = toDate;
     }
   }
-  if (status) baseFilter.paymentStatus = status;
+
+  // If status=ALL (or empty), don't filter by paymentStatus value (but still require it exists)
+  if (normalizedStatus && normalizedStatus !== 'ALL') {
+    baseFilter.paymentStatus = normalizedStatus;
+  }
+
   if (search) {
     baseFilter.$or = [
       { orderId: { $regex: search, $options: "i" } },
@@ -75,18 +85,17 @@ async function fetchPayments(hostname, query) {
   }
 
   // Make a dedicated stats filter.
-  // If caller provided status, respect it; otherwise default stats to SUCCESS (matches UI behavior).
-  const statsFilter = {
-    ...baseFilter,
-    paymentStatus: status || 'SUCCESS'
-  };
+  const statsFilter = { ...baseFilter };
+
+  // Amount stats should be computed only for SUCCESS payments
+  const amountStatsFilter = { ...statsFilter, paymentStatus: "SUCCESS" };
 
   // FIXED: Correct syntax for dynamic sort
   let sortOption = { createdAt: -1 };
   if (sort && sort.includes(":")) {
     const [field, dir] = sort.split(":");
     if (field && ["1", "-1"].includes(dir)) {
-      sortOption = { [field]: parseInt(dir) };  // ← Fixed: one bracket only
+      sortOption = { [field]: parseInt(dir) };
     }
   }
 
@@ -170,8 +179,8 @@ async function fetchPayments(hostname, query) {
   });
 
   // Stats: sum amounts correctly even if stored as strings
-  const sumAmountPipeline = (currency) => ([
-    { $match: { ...statsFilter, currency } },
+  const sumAmountPipeline = (filter, currency) => ([
+    { $match: { ...filter, currency } },
     {
       $group: {
         _id: null,
@@ -189,16 +198,41 @@ async function fetchPayments(hostname, query) {
     }
   ]);
 
-  const totalLKR = (await collection.aggregate(sumAmountPipeline("LKR")).toArray())[0]?.total || 0;
-  const totalUSD = (await collection.aggregate(sumAmountPipeline("USD")).toArray())[0]?.total || 0;
+  const totalLKR = (await collection.aggregate(sumAmountPipeline(amountStatsFilter, "LKR")).toArray())[0]?.total || 0;
+  const totalUSD = (await collection.aggregate(sumAmountPipeline(amountStatsFilter, "USD")).toArray())[0]?.total || 0;
+
+  // This-month stats (same filters + createdAt in current month)
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const now = new Date();
+
+  const thisMonthFilter = {
+    ...statsFilter,
+    createdAt: {
+      ...(statsFilter.createdAt || {}),
+      $gte: monthStart,
+      $lte: now,
+    },
+  };
+
+  // This-month amount stats should be computed only for SUCCESS payments
+  const thisMonthAmountFilter = {
+    ...thisMonthFilter,
+    paymentStatus: "SUCCESS",
+  };
+
+  const thisMonthCount = await collection.countDocuments(thisMonthFilter);
+  const thisMonthAmountLKR = (await collection.aggregate(sumAmountPipeline(thisMonthAmountFilter, "LKR")).toArray())[0]?.total || 0;
+  const thisMonthAmountUSD = (await collection.aggregate(sumAmountPipeline(thisMonthAmountFilter, "USD")).toArray())[0]?.total || 0;
 
   const successful = await collection.countDocuments({
-    ...baseFilter,
+    ...statsFilter,
     paymentStatus: "SUCCESS",
   });
 
   console.log(
-    `Totals for tenant ${tenant}: totalLKR=${Number(totalLKR).toFixed(2)}, totalUSD=${Number(totalUSD).toFixed(2)}, transactions=${total}, successful=${successful}`
+    `Totals for tenant ${tenant}: totalLKR=${Number(totalLKR).toFixed(2)}, totalUSD=${Number(totalUSD).toFixed(2)}, thisMonthCount=${thisMonthCount}, thisMonthLKR=${Number(thisMonthAmountLKR).toFixed(2)}, thisMonthUSD=${Number(thisMonthAmountUSD).toFixed(2)}, transactions=${total}, successful=${successful}`
   );
 
   const stats = {
@@ -206,6 +240,9 @@ async function fetchPayments(hostname, query) {
     successfulTransactions: successful,
     totalAmountLKR: Number(totalLKR).toFixed(2),
     totalAmountUSD: Number(totalUSD).toFixed(2),
+    thisMonthCount,
+    thisMonthAmountLKR: Number(thisMonthAmountLKR).toFixed(2),
+    thisMonthAmountUSD: Number(thisMonthAmountUSD).toFixed(2),
   };
 
   return { transactions: enriched, total, stats };

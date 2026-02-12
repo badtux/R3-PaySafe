@@ -19,8 +19,8 @@ const allowedOrigins = [
   'https://malkey.go.digitable.io',
   'https://helpage.go.digitable.io',
   'http://localhost:3000',
-  'http://localhost:5501',
- 
+  'http://localhost:5502',
+  'http://127.0.0.1:5502',
 ];
 let CertPath = null;
 const corsOptions = {
