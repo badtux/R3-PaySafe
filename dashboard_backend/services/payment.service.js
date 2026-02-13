@@ -73,7 +73,12 @@ async function fetchPayments(hostname, query) {
 
   // If status=ALL (or empty), don't filter by paymentStatus value (but still require it exists)
   if (normalizedStatus && normalizedStatus !== 'ALL') {
-    baseFilter.paymentStatus = normalizedStatus;
+    if (normalizedStatus === 'FAILED') {
+      // Group FAILED to include gateway/processor error states (and legacy FAIL)
+      baseFilter.paymentStatus = { $in: ['FAILED', 'FAIL', 'ERROR'] };
+    } else {
+      baseFilter.paymentStatus = normalizedStatus;
+    }
   }
 
   if (search) {
@@ -231,6 +236,11 @@ async function fetchPayments(hostname, query) {
     paymentStatus: "SUCCESS",
   });
 
+  const failed = await collection.countDocuments({
+    ...statsFilter,
+    paymentStatus: { $in: ["FAILED", "FAIL", "ERROR"] },
+  });
+
   console.log(
     `Totals for tenant ${tenant}: totalLKR=${Number(totalLKR).toFixed(2)}, totalUSD=${Number(totalUSD).toFixed(2)}, thisMonthCount=${thisMonthCount}, thisMonthLKR=${Number(thisMonthAmountLKR).toFixed(2)}, thisMonthUSD=${Number(thisMonthAmountUSD).toFixed(2)}, transactions=${total}, successful=${successful}`
   );
@@ -238,6 +248,7 @@ async function fetchPayments(hostname, query) {
   const stats = {
     totalTransactions: total,
     successfulTransactions: successful,
+    failedTransactions: failed,
     totalAmountLKR: Number(totalLKR).toFixed(2),
     totalAmountUSD: Number(totalUSD).toFixed(2),
     thisMonthCount,

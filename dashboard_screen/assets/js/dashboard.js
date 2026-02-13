@@ -240,7 +240,8 @@ async function checkHealth() {
   }
 }
 
-async function loadData() {
+async function loadData(options = {}) {
+  const { updateStats: shouldUpdateStats = true } = options;
   try {
     const params = new URLSearchParams();
 
@@ -269,7 +270,7 @@ async function loadData() {
       method: "GET",
     });
 
-    updateStats(response.stats);
+    if (shouldUpdateStats) updateStats(response.stats);
     updateTable(response.transactions, response.total);
 
     // Visual feedback
@@ -345,28 +346,28 @@ function updateStats(stats) {
   const thisMonthCount = Number(stats?.thisMonthCount || 0);
   const thisMonthLKR = Number(stats?.thisMonthAmountLKR || 0);
   const thisMonthUSD = Number(stats?.thisMonthAmountUSD || 0);
+  const failedCount = Number(stats?.failedTransactions || 0);
 
   // Ensure the cards container uses a responsive grid so cards can sit on one row on large screens
   $("#statsCards")
     .removeClass()
-    .addClass("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4");
+    .addClass("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4");
 
   $("#statsCards").html(`
-        <div class="bg-red-400  rounded-lg shadow  text-white p-4">
-          <div class=" flex items-end justify-between">
+        <div class="bg-red-400 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="thisMonth">
+          <div class="flex items-end justify-between">
             <div>
               <div class="text-2xl font-bold">${thisMonthCount.toLocaleString(
                 "en-US"
               )}</div>
-               <div class="text-xs opacity-90 mt-1">This Month Transactions</div>
-
+              <div class="text-xs opacity-90 mt-1">This Month Transactions</div>
             </div>
             <div class="text-right">
-              <div class="text-sm font-semibold ">LKR ${thisMonthLKR.toLocaleString(
+              <div class="text-sm font-semibold">LKR ${thisMonthLKR.toLocaleString(
                 "en-US",
                 { minimumFractionDigits: 2, maximumFractionDigits: 2 }
               )}</div>
-              <div class="text-xs font-medium ">USD ${thisMonthUSD.toLocaleString(
+              <div class="text-xs font-medium">USD ${thisMonthUSD.toLocaleString(
                 "en-US",
                 { minimumFractionDigits: 2, maximumFractionDigits: 2 }
               )}</div>
@@ -374,18 +375,25 @@ function updateStats(stats) {
           </div>
         </div>
 
-        <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-4">
+        <div class="bg-gradient-to-r from-primary to-blue-800 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="all">
           <div class="text-2xl font-bold">${stats.totalTransactions.toLocaleString(
             "en-US"
           )}</div>
           <div class="text-xs opacity-90 mt-1">Total Transactions</div>
         </div>
 
-        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4">
+        <div class="bg-gradient-to-r from-rose-600 to-red-700 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="failed">
+          <div class="text-2xl font-bold">${failedCount.toLocaleString(
+            "en-US"
+          )}</div>
+          <div class="text-xs opacity-90 mt-1">Failed Transactions</div>
+        </div>
+
+        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="success">
           <div class="text-2xl font-bold">${stats.successfulTransactions.toLocaleString(
             "en-US"
           )}</div>
-          <div class="text-xs opacity-90 mt-1">Successful Transactions </div>
+          <div class="text-xs opacity-90 mt-1">Successful Transactions</div>
         </div>
 
         <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4">
@@ -402,6 +410,59 @@ function updateStats(stats) {
           <div class="text-xs opacity-90 mt-1">Total Amount (USD)</div>
         </div>
       `);
+
+  // Click handlers
+  $('#statsCards [data-card-filter]')
+    .off('click')
+    .on('click', function () {
+      const filter = $(this).data('card-filter');
+
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthStartStr = monthStart.toISOString().split('T')[0];
+      const todayStr = now.toISOString().split('T')[0];
+
+      // Reset paging
+      currentFilters.page = 1;
+
+      if (filter === 'all') {
+        currentFilters.status = 'ALL';
+        delete currentFilters.refundOnly;
+        currentFilters.from = '';
+        currentFilters.to = '';
+        $('#transactionType').val('ALL');
+        $('#fromDate').val('');
+        $('#toDate').val('');
+
+        // Reset should refresh everything
+        loadData({ updateStats: true });
+        return;
+      }
+
+      if (filter === 'success') {
+        currentFilters.status = 'SUCCESS';
+        delete currentFilters.refundOnly;
+        $('#transactionType').val('SUCCESS');
+      }
+
+      if (filter === 'failed') {
+        currentFilters.status = 'FAILED';
+        delete currentFilters.refundOnly;
+        $('#transactionType').val('FAILED');
+      }
+
+      if (filter === 'thisMonth') {
+        currentFilters.from = monthStartStr;
+        currentFilters.to = todayStr;
+        $('#fromDate').val(monthStartStr);
+        $('#toDate').val(todayStr);
+      }
+
+      currentFilters.sort = 'createdAt:-1';
+
+      // Only refresh table; keep top stats cards unchanged
+      loadData({ updateStats: false });
+    });
 }
 
 $(document).ready(function () {
@@ -441,6 +502,7 @@ $(document).ready(function () {
                   case "SUCCESS":
                     return `<span class="status-success inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
                   case "FAILED":
+                  case "FAIL":
                   case "ERROR":
                     return `<span class="status-failed inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
                   case "PENDING":
