@@ -171,7 +171,7 @@ if ($httpCode == 200) {
         $uiStatusText = match ($mailStatus) {
             'success' => 'SUCCESS',
             'payment canceled' => 'CANCELED',
-            default => 'ERROR',
+            default => 'FAIL',
         };
 
         // Persist a final status based on actual payment outcome (capture/approval), not only gateway top-level result.
