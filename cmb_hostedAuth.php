@@ -141,6 +141,7 @@ if (!$txnId) {
                     $insertResult = $collection->insertOne([
                         'orderId' => $orderId,
                         'uuid' => $uuid,
+                        'cron' => false,
                         'amount' => (float) $amount,
                         'currency' => $currency,
                         'description' => $description,

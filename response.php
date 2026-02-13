@@ -184,6 +184,67 @@ if ($httpCode == 200) {
             $client = new Client($database_url);
             $collection = $client->$database->$collection;
 
+            // Build attempts array from gateway transaction[] (store only PAYMENT records)
+            $attempts = [];
+            if (!empty($data['transaction']) && is_array($data['transaction'])) {
+                foreach ($data['transaction'] as $txn) {
+                    $txnType = strtoupper((string)($txn['transaction']['type'] ?? ''));
+                    if ($txnType !== 'PAYMENT') {
+                        continue;
+                    }
+
+                    $attemptOrderStatus = strtoupper((string)($txn['order']['status'] ?? ''));
+                    $attemptCapturedAmount = (float)($txn['order']['totalCapturedAmount'] ?? 0);
+                    $attemptResultRaw = strtoupper((string)($txn['result'] ?? ''));
+                    $attemptIsCaptured = ($attemptOrderStatus === 'CAPTURED') && ($attemptCapturedAmount > 0);
+
+                    // Derive final result for this PAYMENT attempt.
+                    // If capturedAmount is 0, treat as FAIL even if gateway says SUCCESS.
+                    $attemptFinalResult = $attemptIsCaptured ? 'SUCCESS' : 'FAIL';
+                    if ($attemptResultRaw === 'FAILURE') {
+                        $attemptFinalResult = 'FAIL';
+                    }
+
+                    $attempts[] = [
+                        'type' => 'PAYMENT',
+                        'finalResult' => $attemptFinalResult,
+                        'resultRaw' => $attemptResultRaw !== '' ? $attemptResultRaw : 'UNKNOWN',
+                        'gatewayCode' => (string)($txn['response']['gatewayCode'] ?? ''),
+                        'acquirerCode' => (string)($txn['response']['acquirerCode'] ?? ''),
+                        'acquirerMessage' => (string)($txn['response']['acquirerMessage'] ?? ''),
+                        'amount' => (float)($txn['transaction']['amount'] ?? ($txn['order']['amount'] ?? 0)),
+                        'currency' => (string)($txn['transaction']['currency'] ?? ($txn['order']['currency'] ?? '')),
+                        'timeOfRecord' => (string)($txn['timeOfRecord'] ?? ''),
+                        'timeOfLastUpdate' => (string)($txn['timeOfLastUpdate'] ?? ''),
+
+                        // Attempt order summary (never null)
+                        'order' => [
+                            'status' => (string)($txn['order']['status'] ?? ''),
+                            'totalAuthorizedAmount' => (float)($txn['order']['totalAuthorizedAmount'] ?? 0),
+                            'totalCapturedAmount' => (float)($txn['order']['totalCapturedAmount'] ?? 0),
+                            'totalRefundedAmount' => (float)($txn['order']['totalRefundedAmount'] ?? 0),
+                        ],
+
+                        // Transaction ids (never null)
+                        'mpgsTransactionId' => (string)($txn['transaction']['id'] ?? ''),
+                        'receipt' => (string)($txn['transaction']['receipt'] ?? ''),
+                        'acquirerTransactionId' => (string)($txn['transaction']['acquirer']['transactionId'] ?? ''),
+                        'acquirerId' => (string)($txn['transaction']['acquirer']['id'] ?? ''),
+                        'stan' => (string)($txn['transaction']['stan'] ?? ''),
+                        'authorizationCode' => (string)($txn['transaction']['authorizationCode'] ?? ''),
+
+                        // Card snapshot (never null)
+                        'card' => [
+                            'brand' => (string)($txn['sourceOfFunds']['provided']['card']['brand'] ?? ($data['sourceOfFunds']['provided']['card']['brand'] ?? '')),
+                            'scheme' => (string)($txn['sourceOfFunds']['provided']['card']['scheme'] ?? ($data['sourceOfFunds']['provided']['card']['scheme'] ?? '')),
+                            'fundingMethod' => (string)($txn['sourceOfFunds']['provided']['card']['fundingMethod'] ?? ($data['sourceOfFunds']['provided']['card']['fundingMethod'] ?? '')),
+                            'number' => (string)($txn['sourceOfFunds']['provided']['card']['number'] ?? ($data['sourceOfFunds']['provided']['card']['number'] ?? '')),
+                            'nameOnCard' => (string)($txn['sourceOfFunds']['provided']['card']['nameOnCard'] ?? ''),
+                        ],
+                    ];
+                }
+            }
+
             $updateData = [
                 'paymentStatus' => $finalPaymentStatus,
                 'gatewayResult' => $gatewayResult,
@@ -199,15 +260,31 @@ if ($httpCode == 200) {
                 'cardNumber' => $cardNumber,
                 'captured' => $isCaptured,
                 'capturedAmount' => $captureAmountForDb,
+
+                // Flag that cron/return processing happened
+                'cron' => true,
+
+                // Keep payment attempts history (PAYMENT txns only)
+                'attempts' => $attempts,
             ];
 
             if (!$uuid) {
                 error_log("UUID not set in session! Cannot update MongoDB.");
             } else {
+                // Update the record for this UUID (full update including attempts)
                 $collection->updateOne(
                     ['uuid' => $uuid],
                     ['$set' => $updateData]
                 );
+
+                // Update all records that share this orderId too (cron flag only)
+                if (!empty($orderId) && $orderId !== 'no-order-id') {
+                    $collection->updateMany(
+                        ['orderId' => $orderId, 'uuid' => ['$ne' => $uuid]],
+                        ['$set' => ['cron' => true, 'updatedAt' => $lastUpdated]]
+                    );
+                }
+
                 error_log("set: " . json_encode($updateData));
             }
         } catch (Exception $e) {
