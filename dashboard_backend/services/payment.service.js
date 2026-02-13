@@ -104,6 +104,38 @@ async function fetchPayments(hostname, query) {
     }
   }
 
+  // Always de-duplicate by orderId: pick latest doc per orderId.
+  // We sort by createdAt desc and _id desc so "latest" is stable even if createdAt ties.
+  const latestPerOrderPipelineBase = [
+    { $match: baseFilter },
+    { $sort: { createdAt: -1, _id: -1 } },
+  ];
+
+  // Helper: computes refundCount from dynamic refund-N fields
+  const addRefundCountStage = {
+    $addFields: {
+      refundCount: {
+        $size: {
+          $filter: {
+            input: { $objectToArray: "$$ROOT" },
+            as: "field",
+            cond: { $regexMatch: { input: "$$field.k", regex: /^refund-\d+$/ } },
+          },
+        },
+      },
+    },
+  };
+
+  // NOTE: we group after sorting so the first doc is the latest.
+  const groupLatestPerOrderStage = {
+    $group: {
+      _id: "$orderId",
+      doc: { $first: "$$ROOT" },
+    },
+  };
+
+  const replaceRootStage = { $replaceRoot: { newRoot: "$doc" } };
+
   let transactions = [];
   let total = 0;
 
@@ -111,20 +143,10 @@ async function fetchPayments(hostname, query) {
     console.log('REFUND-ONLY MODE ON');
 
     const pipeline = [
-      { $match: baseFilter },
-      {
-        $addFields: {
-          refundCount: {
-            $size: {
-              $filter: {
-                input: { $objectToArray: "$$ROOT" },
-                as: "field",
-                cond: { $regexMatch: { input: "$$field.k", regex: /^refund-\d+$/ } },
-              },
-            },
-          },
-        },
-      },
+      ...latestPerOrderPipelineBase,
+      groupLatestPerOrderStage,
+      replaceRootStage,
+      addRefundCountStage,
       { $match: { refundCount: { $gt: 0 } } },
       { $sort: sortOption },
       { $skip: skip },
@@ -135,33 +157,33 @@ async function fetchPayments(hostname, query) {
 
     total = (await collection
       .aggregate([
-        { $match: baseFilter },
-        {
-          $addFields: {
-            refundCount: {
-              $size: {
-                $filter: {
-                  input: { $objectToArray: "$$ROOT" },
-                  as: "field",
-                  cond: { $regexMatch: { input: "$$field.k", regex: /^refund-\d+$/ } },
-                },
-              },
-            },
-          },
-        },
+        ...latestPerOrderPipelineBase,
+        groupLatestPerOrderStage,
+        replaceRootStage,
+        addRefundCountStage,
         { $match: { refundCount: { $gt: 0 } } },
         { $count: "total" },
       ])
       .toArray())[0]?.total || 0;
   } else {
-    transactions = await collection
-      .find(baseFilter)
-      .sort(sortOption)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .toArray();
+    const pipeline = [
+      ...latestPerOrderPipelineBase,
+      groupLatestPerOrderStage,
+      replaceRootStage,
+      { $sort: sortOption },
+      { $skip: skip },
+      { $limit: parseInt(limit) },
+    ];
 
-    total = await collection.countDocuments(baseFilter);
+    transactions = await collection.aggregate(pipeline).toArray();
+
+    total = (await collection
+      .aggregate([
+        ...latestPerOrderPipelineBase,
+        groupLatestPerOrderStage,
+        { $count: "total" },
+      ])
+      .toArray())[0]?.total || 0;
   }
 
   // Enrich with latest refund
@@ -178,6 +200,8 @@ async function fetchPayments(hostname, query) {
 
     return {
       ...doc,
+      // ensure attempts is always returned as an array
+      attempts: Array.isArray(doc.attempts) ? doc.attempts : [],
       latestTotalRefunded: latestRefund?.totalRefundedAmount ?? 0,
       latestRefundId: latestRefund?.refundTransactionId ?? null,
     };

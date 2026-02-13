@@ -468,8 +468,140 @@ function updateStats(stats) {
 $(document).ready(function () {
   console.log("jQuery initialized for transaction table");
 
+  // Side panel for attempts (created once)
+  (function ensureAttemptsPanel() {
+    if (document.getElementById('attemptsPanelOverlay')) return;
+
+    const panelHtml = `
+      <div id="attemptsPanelOverlay" class="fixed inset-0 bg-black/40 hidden z-50">
+        <div id="attemptsPanel" class="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+          <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-gray-400">Attempts</div>
+              <div id="attemptsPanelTitle" class="text-sm font-semibold text-gray-700">Order</div>
+            </div>
+            <button type="button" id="closeAttemptsPanel" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm">Close</button>
+          </div>
+          <div id="attemptsPanelBody" class="p-5 overflow-auto flex-1"></div>
+        </div>
+      </div>
+    `;
+
+    $('body').append(panelHtml);
+
+    function closePanel() {
+      $('#attemptsPanel').addClass('translate-x-full');
+      $('#attemptsPanelOverlay').addClass('hidden');
+      $('body').removeClass('overflow-hidden');
+    }
+
+    $('#closeAttemptsPanel').on('click', closePanel);
+    $('#attemptsPanelOverlay').on('click', function (e) {
+      if (e.target && e.target.id === 'attemptsPanelOverlay') closePanel();
+    });
+
+    // Expose close for ESC key
+    window.__closeAttemptsPanel = closePanel;
+  })();
+
+  function escapeHtml(v) {
+    return String(v ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function pretty(obj) {
+    try {
+      return escapeHtml(JSON.stringify(obj, null, 2));
+    } catch {
+      return escapeHtml(String(obj));
+    }
+  }
+
+  function openAttemptsPanel(t) {
+    const attempts = Array.isArray(t?.attempts) ? t.attempts : [];
+
+    const title = `Order ${t?.orderId || 'N/A'} • ${attempts.length} attempt${attempts.length === 1 ? '' : 's'}`;
+    $('#attemptsPanelTitle').text(title);
+
+    if (!attempts.length) {
+      $('#attemptsPanelBody').html('<div class="text-sm text-gray-500">No attempts available.</div>');
+    } else {
+      const cards = attempts.map((a, idx) => {
+        const time = a?.timeOfRecord || a?.timeOfLastUpdate || a?.timestamp || '';
+        const headerRight = time ? `<span class="text-xs text-gray-400">${escapeHtml(time)}</span>` : '';
+
+        return `
+          <div class="border border-gray-200 rounded-lg mb-4 bg-white">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+              <div class="text-sm font-semibold text-gray-700">Attempt #${idx + 1}</div>
+              ${headerRight}
+            </div>
+            <div class="p-4 grid grid-cols-1 gap-3 text-sm">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <div class="text-xs uppercase tracking-wider text-gray-400">Type</div>
+                  <div class="font-medium text-gray-700">${escapeHtml(a?.type || 'N/A')}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wider text-gray-400">Final Result</div>
+                  <div class="font-medium text-gray-700">${escapeHtml(a?.finalResult || a?.resultRaw || 'N/A')}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wider text-gray-400">Gateway Code</div>
+                  <div class="font-medium text-gray-700">${escapeHtml(a?.gatewayCode || 'N/A')}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wider text-gray-400">Acquirer</div>
+                  <div class="font-medium text-gray-700">${escapeHtml(a?.acquirerMessage || a?.acquirerCode || 'N/A')}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wider text-gray-400">Amount</div>
+                  <div class="font-medium text-gray-700">${escapeHtml(a?.amount ?? 'N/A')} ${escapeHtml(a?.currency || '')}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wider text-gray-400">MPGS Transaction</div>
+                  <div class="font-medium text-gray-700">${escapeHtml(a?.mpgsTransactionId || 'N/A')}</div>
+                </div>
+              </div>
+
+              <details class="rounded bg-gray-50 border border-gray-100">
+                <summary class="cursor-pointer px-3 py-2 text-sm font-medium text-gray-700">Raw attempt payload</summary>
+                <pre class="px-3 pb-3 pt-2 text-xs overflow-auto text-gray-700">${pretty(a)}</pre>
+              </details>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      $('#attemptsPanelBody').html(cards);
+    }
+
+    $('#attemptsPanelOverlay').removeClass('hidden');
+    $('body').addClass('overflow-hidden');
+    // animate in
+    requestAnimationFrame(() => {
+      $('#attemptsPanel').removeClass('translate-x-full');
+    });
+  }
+
+  // ESC closes panel
+  $(document)
+    .off('keydown.attemptsPanel')
+    .on('keydown.attemptsPanel', function (e) {
+      if (e.key === 'Escape' && typeof window.__closeAttemptsPanel === 'function') {
+        window.__closeAttemptsPanel();
+      }
+    });
+
   function updateTable(transactions, total) {
     console.log("Updating table with", transactions.length, "transactions");
+
+    // store current rows transactions for attempts panel access
+    window.__currentTransactions = Array.isArray(transactions) ? transactions : [];
 
     $("#transactionTable").html(
       transactions.length > 0
@@ -514,6 +646,13 @@ $(document).ready(function () {
 
               const showRefundBtn =
                 t.paymentStatus === "SUCCESS" && !isFullyRefunded;
+
+              const attemptsCount = Array.isArray(t.attempts) ? t.attempts.length : 0;
+              const attemptsBtn = attemptsCount
+                ? `<button type="button" class="attempts-button bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg shadow-sm transition-all duration-200 text-sm whitespace-nowrap" data-index="${index}">
+                     Attempts (${attemptsCount})
+                   </button>`
+                : '';
 
               const addressBlock =
                 (String(CURRENT_TENANT || '').toLowerCase() === 'helpage' && t.address)
@@ -601,10 +740,12 @@ $(document).ready(function () {
 
         </div>
 
-        <!-- Right: Refund Button (aligned to end) -->
-        ${
-          showRefundBtn
-            ? `
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-3 sm:justify-end">
+          ${attemptsBtn}
+          ${
+            showRefundBtn
+              ? `
           <button
             onclick="openRefundModal(
               '${(t.orderId || "").replace(/'/g, "\\'")}',
@@ -620,8 +761,9 @@ $(document).ready(function () {
             Refund
           </button>
         `
-            : ""
-        }
+              : ""
+          }
+        </div>
 
       </div>
     </div>
@@ -640,47 +782,22 @@ $(document).ready(function () {
             </td></tr>`
     );
 
-    // Pagination (clean & modern)
-    const start = (currentFilters.page - 1) * currentFilters.limit + 1;
-    const end = Math.min(start + currentFilters.limit - 1, total);
-    $("#tableInfo").html(
-      `<span class="text-sm text-gray-500">Showing <strong class="text-gray-600">${start}</strong> to <strong class="text-gray-600">${end}</strong> of <strong class="text-gray-600">${total}</strong> entries</span>`
-    );
-
-    const totalPages = Math.ceil(total / currentFilters.limit);
-    $("#prevPage").prop("disabled", currentFilters.page === 1);
-    $("#nextPage").prop("disabled", currentFilters.page === totalPages);
-
-    const maxButtons = 5;
-    const half = Math.floor(maxButtons / 2);
-    let startPage = Math.max(1, currentFilters.page - half);
-    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-    if (endPage - startPage + 1 < maxButtons)
-      startPage = Math.max(1, endPage - maxButtons + 1);
-
-    let buttons = [];
-    if (startPage > 1)
-      buttons.push(`<span class="px-4 py-2 text-gray-400">...</span>`);
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(`
-        <button onclick="changePage(${i})"
-          class="page-button w-10 h-10 rounded-full font-medium transition-all ${
-            i === currentFilters.page
-              ? "active-page bg-blue-500 text-white shadow"
-              : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-          }">
-          ${i}
-        </button>
-      `);
-    }
-    if (endPage < totalPages)
-      buttons.push(`<span class="px-4 py-2 text-gray-400">...</span>`);
-    $("#pageButtons").html(buttons.join(""));
+    // Attempts button handler (do not trigger row expand)
+    $('.attempts-button')
+      .off('click')
+      .on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number($(this).data('index'));
+        const t = (window.__currentTransactions || [])[idx];
+        openAttemptsPanel(t);
+      });
 
     // Click to expand
     $(".expandable-row")
       .off("click")
       .on("click", function (e) {
+        // keep existing behavior: clicking any button should not expand
         if ($(e.target).closest("button").length) return;
         const index = this.id.split("-")[1];
         toggleRow(index);
