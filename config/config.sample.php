@@ -1,10 +1,10 @@
 <?php
 
-define('APP_LIVE',true);
+define('APP_LIVE', false); 
 define('BASE_PATH','/paysafe/cmb');
 
-$host = $_SERVER['HTTP_HOST']; 
-$tenant = explode('.', $host)[0];
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$tenant = explode('.', (string)$host)[0];
 
 if ($tenant === 'localhost' || empty($tenant)) {
     $tenant = 'default';
@@ -33,6 +33,10 @@ if (APP_LIVE) {
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
 
+    define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/cmb/');
+    define('CC_LIST', ['milindum@gmail.com','accounts@malkey.lk','billing@malkey.lk','info@malkey.lk' ]);
+    define('BCC_LIST', ['piumal0713@gmail.com','viraj.abayarathna@gmail.com',]);
+
 } else {
     define('MERCHANT_ID_LKR', 'TESTMALKEYRENLKR'); // sandbox 
     define('API_USERNAME_LKR', 'merchant.TESTMALKEYRENLKR');
@@ -43,24 +47,19 @@ if (APP_LIVE) {
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
     define('REDIRECT_URL', "http://{$tenant}.paymentgateway.loc/cmb/status");
 
+    define('DATABASE_URL', "mongodb://root:example@{$mongoHost}:27017/malkey_paysafe?authSource=admin");
+    define('COLLECTION', 'payments');
+    define('DB', $databaseName);
 
-     define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
-     define('COLLECTION', 'payments');
-     define('DB', $databaseName);
-    
-}
-
-
-if (APP_LIVE) {
-
-    define('ASSET_PATH_URL', 'https://malkey.go.digitable.io/paysafe/cmb/');
-} else {
     define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/cmb/');
+    define('CC_LIST', []);
+    define('BCC_LIST', []);
+    
+
 }
+
 
 define('NAME', 'Malkey Rent A Car');
-define('CC_LIST', ['milindum@gmail.com','accounts@malkey.lk','billing@malkey.lk','info@malkey.lk' ]);
-define('BCC_LIST', ['piumal0713@gmail.com','viraj.abayarathna@gmail.com',]);
 define('MAIL_DRIVER', 'smtp');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
 define('MAIL_PORT', 465);
