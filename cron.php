@@ -165,13 +165,14 @@ function computeFinalStatus(array $data, ?array $paymentTxn): array
     $topResult = strtoupper((string)($data['result'] ?? ''));
     $capturedAmount = (float)($data['totalCapturedAmount'] ?? 0);
 
-    $isCaptured = ($orderStatus === 'CAPTURED') && ($capturedAmount > 0);
+    // Treat CAPTURED/REFUNDED/PARTIALLY_REFUNDED as a successful payment if any capture happened.
+    $isCapturedLike = in_array($orderStatus, ['CAPTURED', 'REFUNDED', 'PARTIALLY_REFUNDED'], true) && ($capturedAmount > 0);
 
     $paymentGatewayCode = strtoupper((string)($paymentTxn['response']['gatewayCode'] ?? ''));
     $paymentResult = strtoupper((string)($paymentTxn['result'] ?? ''));
     $isApprovedPayment = ($paymentResult === 'SUCCESS') && ($paymentGatewayCode === 'APPROVED');
 
-    $isPaidSuccess = ($topResult === 'SUCCESS') && ($isCaptured || $isApprovedPayment);
+    $isPaidSuccess = ($topResult === 'SUCCESS') && ($isCapturedLike || $isApprovedPayment);
 
     $mailStatus = $isPaidSuccess ? 'success' : 'payment error';
     if (in_array($topResult, ['CANCELLED', 'CANCELED'], true)) {
@@ -189,7 +190,7 @@ function computeFinalStatus(array $data, ?array $paymentTxn): array
         'isPaidSuccess' => $isPaidSuccess,
         'mailStatus' => $mailStatus,
         'finalPaymentStatus' => $uiStatusText,
-        'captured' => $isCaptured,
+        'captured' => $isCapturedLike,
         'capturedAmount' => $capturedAmount,
     ];
 }
@@ -313,6 +314,11 @@ function sendStatusEmail(
     }
 }
 
+function isValidEmail(string $email): bool
+{
+    return $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
 // ---- main ----
 
 $dryRun = in_array('--dry-run', $argv, true);
@@ -323,10 +329,15 @@ foreach ($argv as $arg) {
     }
 }
 
+
+
 $client = new Client(DATABASE_URL);
 $collection = $client->{DB}->{COLLECTION};
+$logCollection = $client->{DB}->cron_logs;
 
-$filter = ['cron' => false];
+$filter = [
+    'cron' => false,
+];
 $options = [];
 if ($limit > 0) {
     $options['limit'] = $limit;
@@ -352,7 +363,6 @@ foreach ($docs as $doc) {
         continue;
     }
 
-    // select merchant credentials by currency
     if ($currency === 'LKR') {
         $merchantId = MERCHANT_ID_LKR;
         $apiPassword = API_PASSWORD_LKR;
@@ -398,7 +408,6 @@ foreach ($docs as $doc) {
             'cardBrand' => $cardBrand,
             'orderId' => (string)($data['id'] ?? $orderId),
             'fundingMethord' => $fundingMethord,
-            'email' => $email,
             'updatedAt' => $lastUpdated,
             'cardNumber' => $cardNumber,
             'captured' => (bool)$statusInfo['captured'],
@@ -406,6 +415,10 @@ foreach ($docs as $doc) {
             'cron' => true,
             'attempts' => $attempts,
         ];
+
+        if (isValidEmail($email)) {
+            $updateData['email'] = $email;
+        }
 
         if ($dryRun) {
             echo "DRY RUN update uuid={$uuid}, orderId={$orderId}, status={$updateData['paymentStatus']} attempts=" . count($attempts) . "\n";
@@ -416,28 +429,88 @@ foreach ($docs as $doc) {
             ['uuid' => $uuid, 'cron' => false],
             ['$set' => $updateData]
         );
+        if (isValidEmail($email) && $orderId !== '') {
+            try {
+                $collection->updateMany(
+                    ['orderId' => $orderId],
+                    [
+                        '$set' => [
+                            'email' => $email,
+                            'updatedAt' => $updateData['updatedAt'] ?? new \MongoDB\BSON\UTCDateTime(),
+                        ],
+                    ]
+                );
+            } catch (Throwable $e2) {
+            }
+        }
 
-        $amountStr = number_format((float)($data['amount'] ?? 0), 2, '.', '');
-        $currencyStr = (string)($data['currency'] ?? $currency);
-        $emailMsg = sendStatusEmail(
-            (string)$statusInfo['mailStatus'],
-            // $email,
-            'piumal0713@gmail.com',
-            (string)($data['id'] ?? $orderId),
-            $transactionId,
-            $cardNumber,
-            $nameOnCard,
-            $amountStr,
-            $currencyStr,
-            $data
-        );
-        echo "Email: {$emailMsg}\n";
+        // Send emails if email is valid (no limit)
+        if (!isValidEmail($email)) {
+            echo "Email: skipped (missing/invalid email on uuid={$uuid})\n";
+        } else {
+            $amountStr = number_format((float)($data['amount'] ?? 0), 2, '.', '');
+            $currencyStr = (string)($data['currency'] ?? $currency);
+            $emailMsg = sendStatusEmail(
+                (string)$statusInfo['mailStatus'],
+                $email,
+                (string)($data['id'] ?? $orderId),
+                $transactionId,
+                $cardNumber,
+                $nameOnCard,
+                $amountStr,
+                $currencyStr,
+                $data
+            );
+            echo "Email: {$emailMsg}\n";
+        }
 
     } catch (Throwable $e) {
-        // Do not flip cron flag on failures.
+        try {
+            $httpCode = null;
+            if (preg_match('/httpCode=(\d+)/', $e->getMessage(), $m)) {
+                $httpCode = (int)$m[1];
+            }
+
+            $logCollection->insertOne([
+                'uuid' => $uuid,
+                'orderId' => $orderId,
+                'currency' => $currency,
+                'merchantId' => $merchantId ?? null,
+                'httpCode' => $httpCode,
+                'message' => (string)$e->getMessage(),
+                'createdAt' => new \MongoDB\BSON\UTCDateTime(),
+            ]);
+        } catch (Throwable $logErr) {
+            // ignore log failures
+        }
+
+        if (!$dryRun && $uuid !== '') {
+            try {
+                $collection->updateOne(
+                    ['uuid' => $uuid, 'cron' => false],
+                    [
+                        '$set' => [
+                            'cron' => true,
+                            'paymentStatus' => 'FAIL',
+                            'gatewayResult' => 'ERROR',
+                            'updatedAt' => new \MongoDB\BSON\UTCDateTime(),
+                            'lastCronError' => [
+                                'message' => (string)$e->getMessage(),
+                                'httpCode' => isset($httpCode) ? $httpCode : null,
+                                'at' => new \MongoDB\BSON\UTCDateTime(),
+                            ],
+                        ],
+                    ]
+                );
+            } catch (Throwable $updateErr) {
+                // ignore update failures
+            }
+        }
+
         fwrite(STDERR, "ERROR uuid={$uuid}, orderId={$orderId}: {$e->getMessage()}\n");
         continue;
     }
 }
 
 echo "Done\n";
+

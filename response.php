@@ -11,16 +11,39 @@ use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 
-if (isset($_COOKIE['userEmail'])) {
-    $email = filter_var($_COOKIE['userEmail'], FILTER_SANITIZE_EMAIL);
-    $_SESSION['email'] = $email;
-    error_log("Email retrieved from cookie: $email");
-} 
- else {
-    $email = 'example@example.com';
-    error_log("No email in cookie, session, or MongoDB, using fallback: $email");
+
+$email = isset($_SESSION['email']) ? filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL) : '';
+if ($email === '') {
+    $uuidFromSession = $_SESSION['uuid'] ?? null;
+    if (!empty($uuidFromSession)) {
+        try {
+            $mongoClient = new Client(DATABASE_URL);
+            $dbName = DB;
+            $collName = COLLECTION;
+            $coll = $mongoClient->$dbName->$collName;
+            $doc = $coll->findOne(['uuid' => $uuidFromSession]);
+            if ($doc && !empty($doc['email']) && filter_var($doc['email'], FILTER_VALIDATE_EMAIL)) {
+                $email = filter_var($doc['email'], FILTER_SANITIZE_EMAIL);
+                error_log("Email loaded from MongoDB for uuid $uuidFromSession: $email");
+            } else {
+                error_log("No valid email found in MongoDB for uuid $uuidFromSession");
+            }
+        } catch (Throwable $e) {
+            error_log('Error fetching email from MongoDB for uuid ' . $uuidFromSession . ': ' . $e->getMessage());
+        }
+    }
+
+    // fallback if still empty
+    if ($email === '') {
+        $email = 'example@example.com';
+        error_log("No email in session or MongoDB, using fallback: $email");
+    }
+} else {
+    error_log("Email retrieved from session: $email");
 }
 
+// Store sanitized email back into session so other pages can access it
+$_SESSION['email'] = $email;
 
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
 $currency = $_SESSION['currency'] ?? 'USD';

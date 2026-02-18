@@ -6,6 +6,116 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once('config/config.php');
 require 'vendor/autoload.php';
+
+
+use MongoDB\Client;
+use MongoDB\BSON\UTCDateTime;
+
+// Debug: show all errors and catch output
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ob_start();
+
+// Ensure fatal errors return JSON for save_email POSTs
+register_shutdown_function(function() {
+    $err = error_get_last();
+    if (!$err) return;
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'save_email')) {
+        // Log the fatal error
+        $msg = isset($err['message']) ? $err['message'] : 'shutdown';
+        $file = isset($err['file']) ? $err['file'] : '';
+        $line = isset($err['line']) ? $err['line'] : '';
+        error_log('save_email fatal: ' . $msg . ' in ' . $file . ' on line ' . $line);
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
+        // clear any output and return JSON
+        while (ob_get_level()) { ob_end_clean(); }
+        echo json_encode(['ok' => false, 'error' => 'FatalError', 'detail' => $msg . ' in ' . $file . ':' . $line]);
+    }
+});
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_email') {
+    // turn off display of errors during POST response to keep JSON clean
+    ini_set('display_errors', 0);
+
+    header('Content-Type: application/json');
+
+    $debugOutput = ob_get_clean();
+
+    $orderIdPost = trim((string)($_POST['orderId'] ?? ''));
+    $emailPost = (string)($_POST['email'] ?? '');
+    $emailPost = filter_var($emailPost, FILTER_SANITIZE_EMAIL);
+
+    // If orderId not provided in POST, try to get it from txnId in URL or from session
+    if ($orderIdPost === '') {
+        $txnIdFromGet = isset($_GET['txnId']) ? (string)$_GET['txnId'] : '';
+        if ($txnIdFromGet && isset($_SESSION['payments'][$txnIdFromGet]['orderId'])) {
+            $orderIdPost = (string)$_SESSION['payments'][$txnIdFromGet]['orderId'];
+            error_log('save_email: orderId taken from session payments for txnId ' . $txnIdFromGet . ' => ' . $orderIdPost);
+        } elseif (!empty($_SESSION['orderId'])) {
+            $orderIdPost = (string)$_SESSION['orderId'];
+            error_log('save_email: orderId taken from session.orderId => ' . $orderIdPost);
+        }
+    }
+
+    if ($orderIdPost === '') {
+        error_log('save_email: Missing orderId. POST=' . json_encode($_POST) . ' SESSION=' . json_encode(array_intersect_key($_SESSION, ['orderId'=>1,'payments'=>1])));
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Missing orderId']);
+        exit;
+    }
+
+    if ($emailPost === '' || filter_var($emailPost, FILTER_VALIDATE_EMAIL) === false) {
+        error_log('save_email: Invalid email "' . $emailPost . '" for orderId "' . $orderIdPost . '". POST=' . json_encode($_POST));
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Invalid email']);
+        exit;
+    }
+
+    try {
+        $client = new Client(DATABASE_URL);
+        $dbName = DB;
+        $collName = COLLECTION;
+        $collection = $client->$dbName->$collName;
+
+        $result = $collection->updateMany(
+            ['orderId' => $orderIdPost],
+            ['$set' => ['email' => $emailPost, 'updatedAt' => new UTCDateTime()]]
+        );
+
+        // Log success to error log for visibility
+        error_log(sprintf('save_email: Updated orderId=%s email=%s matched=%d modified=%d',
+            $orderIdPost, $emailPost, $result->getMatchedCount(), $result->getModifiedCount()
+        ));
+
+        echo json_encode([
+            'ok' => true,
+            'db' => $dbName,
+            'collection' => $collName,
+            'orderId' => $orderIdPost,
+            'matched' => $result->getMatchedCount(),
+            'modified' => $result->getModifiedCount(),
+            'debugOutput' => $debugOutput,
+        ]);
+        exit;
+    } catch (Throwable $e) {
+        http_response_code(500);
+        error_log('save_email: Error updating email for orderId ' . $orderIdPost . ' email ' . $emailPost . ': ' . $e->getMessage());
+        echo json_encode([
+            'ok' => false,
+            'error' => 'DB update failed',
+            'detail' => $e->getMessage(),
+            'db' => defined('DB') ? DB : null,
+            'collection' => defined('COLLECTION') ? COLLECTION : null,
+            'orderId' => $orderIdPost,
+            'debugOutput' => $debugOutput,
+        ]);
+        exit;
+    }
+}
+
+// include auth/render logic only after POST handling
 require 'cmb_hostedAuth.php';
 
 $errorMessage = null;
@@ -187,51 +297,98 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 
             function storePaymentDetails() {
                 const email = document.getElementById('email').value;
-                const amount = "<?php echo htmlspecialchars($amount); ?>";
-                const currency = "<?php echo htmlspecialchars($currency); ?>";
 
                 if (email && validateEmail(email)) {
-                    localStorage.setItem('email', email);
-                    localStorage.setItem('amount', amount);
-                    localStorage.setItem('currency', currency);
+                    // Do not store email in localStorage or cookies — only validate for now
                     document.getElementById('error-message').classList.add('hidden');
                 } else {
                     document.getElementById('error-message').classList.remove('hidden');
                 }
             }
 
+            document.getElementById('email').removeEventListener('blur', storePaymentDetails);
             document.getElementById('email').addEventListener('blur', storePaymentDetails);
 
-            function validateAndProceed() {
-                let email = document.getElementById("email").value;
-                let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                let errorMessage = document.getElementById("error-message");
-                let emailInput = document.getElementById("email");
-                let termsCheckbox = document.getElementById("termsCheckbox");
-                let termsErrorMessage = document.getElementById("terms-error-message");
+            // Update email in DB (POST to same page)
+            async function updateEmailInDB(orderId, email) {
+                // Build url-encoded body, send uuid instead of orderId if available
+                const uuid = <?php echo json_encode(isset($_SESSION['uuid']) ? $_SESSION['uuid'] : ($_SESSION['payments'][$txnId ?? ''] ?? null)); ?>;
+                const body = 'action=save_email&uuid=' + encodeURIComponent(uuid) + '&email=' + encodeURIComponent(email);
+
+                // Use dedicated endpoint to avoid HTML redirects
+                const endpoint = '/cmb/save_email.php';
+
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                    },
+                    body: body,
+                    credentials: 'same-origin'
+                });
+
+                // Read response text once
+                const text = await res.text();
+                let json = null;
+                if (text) {
+                    try {
+                        json = JSON.parse(text);
+                    } catch (err) {
+                        console.error('Invalid JSON response from server:', text);
+                        // Show full server response to user for debugging
+                        alert('Server returned invalid JSON (raw response shown):\n\n' + text);
+                        throw new Error('Invalid JSON response from server');
+                    }
+                }
+
+                console.log('save_email response:', res.status, json, text);
+
+                if (!res.ok || !json || !json.ok) {
+                    const errMsg = (json && (json.error || json.detail)) ? ((json.error || '') + (json.detail ? ': ' + json.detail : '')) : ('save_email failed: ' + (text ? text.substring(0,1000) : 'empty response'));
+                    throw new Error(errMsg);
+                }
+
+                return json;
+            }
+
+
+            async function validateAndProceed() {
+                const email = document.getElementById("email").value;
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const errorMessage = document.getElementById("error-message");
+                const emailInput = document.getElementById("email");
+                const termsCheckbox = document.getElementById("termsCheckbox");
+                const termsErrorMessage = document.getElementById("terms-error-message");
 
                 termsErrorMessage.classList.add("hidden");
                 if (!termsCheckbox.checked) {
                     termsErrorMessage.classList.remove("hidden");
                     return;
                 }
-                if (emailPattern.test(email)) {
-                    emailInput.classList.remove("border-red-500");
-                    emailInput.classList.add("border-green-500");
-                    errorMessage.classList.add("hidden");
 
-                    document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
-                    Checkout.showPaymentPage();
-                    console.log('Email stored in browser storage:', email);
-                   // Checkout.showPaymentPage();
-
-                } else {
+                if (!emailPattern.test(email)) {
                     emailInput.classList.remove("border-green-500");
                     emailInput.classList.add("border-red-500");
                     errorMessage.classList.remove("hidden");
                     errorMessage.textContent = 'Please enter a valid email address.';
+                    return;
                 }
 
+                emailInput.classList.remove("border-red-500");
+                emailInput.classList.add("border-green-500");
+                errorMessage.classList.add("hidden");
+
+                const orderId = <?php echo json_encode($orderId); ?>;
+
+                try {
+                    await updateEmailInDB(orderId, email);
+                } catch (e) {
+                    console.error('save_email error', e);
+                    alert('Unable to save email: ' + e.message);
+                    return;
+                }
+
+                Checkout.showPaymentPage();
             }
         </script>
     <?php endif; ?>
