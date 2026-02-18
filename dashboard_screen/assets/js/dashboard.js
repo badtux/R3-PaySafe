@@ -396,14 +396,14 @@ function updateStats(stats) {
           <div class="text-xs opacity-90 mt-1">Successful Transactions</div>
         </div>
 
-        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4">
+        <div class="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="success">
           <div class="text-2xl font-bold">LKR ${Number(
             stats.totalAmountLKR
           ).toLocaleString("en-US")}</div>
           <div class="text-xs opacity-90 mt-1">Total Amount (LKR)</div>
         </div>
 
-        <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-4">
+        <div class="bg-gradient-to-r from-cyan-500 to-cyan-700 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="success">
           <div class="text-2xl font-bold">USD ${Number(
             stats.totalAmountUSD
           ).toLocaleString("en-US")}</div>
@@ -474,15 +474,18 @@ $(document).ready(function () {
 
     const panelHtml = `
       <div id="attemptsPanelOverlay" class="fixed inset-0 bg-black/40 hidden z-50">
-        <div id="attemptsPanel" class="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
-          <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div>
+        <div id="attemptsPanel" class="absolute right-0 top-0 h-full w-full sm:w-[560px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+          <div class="px-5 py-4 border-b border-gray-200 flex items-start justify-between gap-4">
+            <div class="min-w-0">
               <div class="text-xs uppercase tracking-wider text-gray-400">Attempts</div>
-              <div id="attemptsPanelTitle" class="text-sm font-semibold text-gray-700">Order</div>
+              <div id="attemptsPanelTitle" class="text-base font-semibold text-gray-800 truncate">Order</div>
+              <div id="attemptsPanelSubtitle" class="mt-1 text-xs text-gray-500 truncate"></div>
             </div>
-            <button type="button" id="closeAttemptsPanel" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm">Close</button>
+            <div class="flex items-center gap-2">
+              <button type="button" id="closeAttemptsPanel" class="px-3 py-2 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm">Close</button>
+            </div>
           </div>
-          <div id="attemptsPanelBody" class="p-5 overflow-auto flex-1"></div>
+          <div id="attemptsPanelBody" class="p-5 overflow-auto flex-1 bg-gray-50"></div>
         </div>
       </div>
     `;
@@ -500,10 +503,12 @@ $(document).ready(function () {
       if (e.target && e.target.id === 'attemptsPanelOverlay') closePanel();
     });
 
-    // Expose close for ESC key
     window.__closeAttemptsPanel = closePanel;
   })();
 
+  // -----------------------------
+  // Attempts panel helpers
+  // -----------------------------
   function escapeHtml(v) {
     return String(v ?? '')
       .replace(/&/g, '&amp;')
@@ -513,79 +518,219 @@ $(document).ready(function () {
       .replace(/'/g, '&#39;');
   }
 
-  function pretty(obj) {
+  function pill(label, tone) {
+    const base = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border';
+    const map = {
+      green: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+      red: 'bg-red-50 text-red-700 border-red-100',
+      amber: 'bg-amber-50 text-amber-700 border-amber-100',
+      blue: 'bg-blue-50 text-blue-700 border-blue-100',
+      gray: 'bg-gray-100 text-gray-700 border-gray-200',
+    };
+    return `<span class="${base} ${map[tone] || map.gray}">${escapeHtml(label)}</span>`;
+  }
+
+  function fmtTime(v) {
+    if (!v) return '';
     try {
-      return escapeHtml(JSON.stringify(obj, null, 2));
+      const d = new Date(v);
+      if (isNaN(d.getTime())) return String(v);
+      return d.toLocaleString();
     } catch {
-      return escapeHtml(String(obj));
+      return String(v);
     }
+  }
+
+  function openPanel() {
+    $('#attemptsPanelOverlay').removeClass('hidden');
+    $('body').addClass('overflow-hidden');
+    requestAnimationFrame(() => {
+      $('#attemptsPanel').removeClass('translate-x-full');
+    });
+  }
+
+  // -----------------------------
+  // Attempts panel mappings
+  // -----------------------------
+  const ACQUIRER_CODE_MEANINGS = {
+    '00': 'Approved',
+    '05': 'Do not honor',
+    '12': 'Invalid transaction',
+    '14': 'Invalid card number',
+    '39': 'No credit account',
+    '51': 'Insufficient funds',
+    '54': 'Expired card',
+    '91': 'Issuer unavailable',
+    '': 'Not proceed',
+  };
+
+  function getAcquirerMeaning(code) {
+    const c = code == null ? '' : String(code).trim();
+    if (!c) return ACQUIRER_CODE_MEANINGS[''];
+    return ACQUIRER_CODE_MEANINGS[c] || 'Unknown';
+  }
+
+  function getProceedHint(a) {
+    const rec = a?.gatewayRecommendation || a?.response?.gatewayRecommendation || '';
+    const gwc = a?.gatewayCode || a?.response?.gatewayCode || '';
+    const auth = a?.authenticationStatus || a?.order?.authenticationStatus || '';
+    const status = a?.order?.status || '';
+
+    const parts = [];
+    if (rec) parts.push(String(rec));
+    else if (gwc) parts.push(String(gwc));
+    if (auth) parts.push(String(auth));
+    else if (status) parts.push(String(status));
+
+    return parts.length ? parts.join(' • ') : '';
+  }
+
+  function getTxnStatusTone(paymentStatus) {
+    const s = String(paymentStatus || 'UNKNOWN').toUpperCase();
+    if (s === 'SUCCESS') return 'green';
+    if (s === 'PENDING') return 'amber';
+    if (['FAILED', 'FAIL', 'ERROR'].includes(s)) return 'red';
+    return 'gray';
+  }
+
+  // -----------------------------
+  // Attempts panel rendering
+  // -----------------------------
+  function renderAttemptsHeader(t, attemptsLen) {
+    const statusLabel = String(t?.paymentStatus || 'UNKNOWN').toUpperCase();
+    const statusTone = getTxnStatusTone(statusLabel);
+
+    return `
+      <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+        <div class="flex flex-wrap items-center gap-2">
+          ${pill('Attempts: ' + attemptsLen, 'blue')}
+          ${pill('Status: ' + statusLabel, statusTone)}
+          ${t?.latestTotalRefunded > 0 ? pill('Refunded: ' + t.latestTotalRefunded, 'amber') : ''}
+        </div>
+        <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div>
+            <div class="text-[11px] uppercase tracking-wider text-gray-400">Customer</div>
+            <div class="text-gray-800 break-words">${escapeHtml(t?.email || 'N/A')}</div>
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-wider text-gray-400">Card</div>
+            <div class="text-gray-800">${escapeHtml(t?.cardBrand || 'N/A')} • ${escapeHtml(t?.cardNumber ? ('•••' + String(t.cardNumber).slice(-4)) : 'N/A')}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderNoAttempts(t) {
+    const parts = [];
+    if (t?.authenticationStatus) parts.push(String(t.authenticationStatus));
+    if (t?.order?.authenticationStatus) parts.push(String(t.order.authenticationStatus));
+    if (t?.order?.status) parts.push(String(t.order.status));
+    if (t?.gatewayRecommendation) parts.push(String(t.gatewayRecommendation));
+    if (t?.gatewayCode) parts.push(String(t.gatewayCode));
+
+    const hint = parts.filter(Boolean).join(' • ');
+
+    return `
+      <div class="bg-white border border-gray-200 rounded-xl p-5 text-sm text-gray-700">
+        <div class="text-base font-semibold text-gray-800">No payment attempts found</div>
+        <div class="mt-2 text-sm text-gray-600">${escapeHtml(hint || 'AUTHENTICATION FAILURE')}</div>
+      </div>
+    `;
+  }
+
+  function renderAttemptCard(a, idx) {
+    const final = String(a?.finalResult || '').toUpperCase();
+    const tone = final === 'SUCCESS' ? 'green' : (final === 'FAIL' || final === 'FAILED' || final === 'ERROR') ? 'red' : final === 'PENDING' ? 'amber' : 'gray';
+
+    const headerPills = [
+      (a?.type ? pill(a.type, 'blue') : ''),
+      (final ? pill(final === 'FAIL' ? 'FAILED' : final, tone) : pill('UNKNOWN', 'gray')),
+      (a?.gatewayCode ? pill(`GW: ${a.gatewayCode}`, 'gray') : ''),
+    ].filter(Boolean).join(' ');
+
+    const time = fmtTime(a?.timeOfRecord || a?.timeOfLastUpdate || a?.timestamp);
+
+    const rawCode = (
+      a?.acquirerCode ??
+      a?.response?.acquirerCode ??
+      a?.transaction?.acquirer?.code ??
+      a?.transaction?.acquirerCode ??
+      ''
+    );
+    const acqCode = String(rawCode ?? '').trim();
+    const acqMeaning = getAcquirerMeaning(acqCode);
+    const proceedHint = getProceedHint(a);
+
+    const kv = (k, v, mono = false) => `
+      <div>
+        <div class="text-[11px] uppercase tracking-wider text-gray-400">${escapeHtml(k)}</div>
+        <div class="${mono ? 'font-mono text-xs' : 'text-sm'} text-gray-800 break-words">${escapeHtml(v ?? 'N/A')}</div>
+      </div>
+    `;
+
+    return `
+      <div class="bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center flex-wrap gap-2">
+                <div class="text-sm font-semibold text-gray-800">Attempt #${idx + 1}</div>
+                <div class="flex flex-wrap gap-2">${headerPills}</div>
+              </div>
+              ${time ? `<div class="mt-1 text-xs text-gray-500">${escapeHtml(time)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            ${kv('Amount', `${a?.amount ?? 'N/A'} ${a?.currency || ''}`)}
+            ${kv('MPGS Txn ID', a?.mpgsTransactionId || 'N/A', true)}
+            ${kv('Acquirer Code', acqCode ? (acqCode + ' • ' + acqMeaning) : 'Not proceed', true)}
+            ${kv('Proceed Hint', proceedHint || 'N/A')}
+            ${kv('Acquirer Message', a?.acquirerMessage || a?.response?.acquirerMessage || 'N/A')}
+            ${kv('Acquirer Txn ID', a?.acquirerTransactionId || a?.transaction?.acquirer?.transactionId || 'N/A', true)}
+            ${kv('Authorization Code', a?.authorizationCode || a?.transaction?.authorizationCode || 'N/A', true)}
+          </div>
+
+          <div class="mt-4">
+            <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
+              <div class="text-[11px] uppercase tracking-wider text-gray-400">Order snapshot</div>
+              <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                ${kv('Status', a?.order?.status || 'N/A')}
+                ${kv('Captured', a?.order?.totalCapturedAmount ?? 'N/A')}
+                ${kv('Refunded', a?.order?.totalRefundedAmount ?? 'N/A')}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function openAttemptsPanel(t) {
     const attempts = Array.isArray(t?.attempts) ? t.attempts : [];
 
-    const title = `Order ${t?.orderId || 'N/A'} • ${attempts.length} attempt${attempts.length === 1 ? '' : 's'}`;
-    $('#attemptsPanelTitle').text(title);
+    $('#attemptsPanelTitle').text(
+      `Order ${t?.orderId || 'N/A'} • ${attempts.length} attempt${attempts.length === 1 ? '' : 's'}`
+    );
+
+    const subtitleParts = [];
+    if (t?.email) subtitleParts.push(t.email);
+    if (t?.currency && t?.amount != null) subtitleParts.push(`${t.amount} ${t.currency}`);
+    if (t?.transactionId) subtitleParts.push(`Txn: ${t.transactionId}`);
+    $('#attemptsPanelSubtitle').text(subtitleParts.join(' • '));
 
     if (!attempts.length) {
-      $('#attemptsPanelBody').html('<div class="text-sm text-gray-500">No attempts available.</div>');
-    } else {
-      const cards = attempts.map((a, idx) => {
-        const time = a?.timeOfRecord || a?.timeOfLastUpdate || a?.timestamp || '';
-        const headerRight = time ? `<span class="text-xs text-gray-400">${escapeHtml(time)}</span>` : '';
-
-        return `
-          <div class="border border-gray-200 rounded-lg mb-4 bg-white">
-            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-              <div class="text-sm font-semibold text-gray-700">Attempt #${idx + 1}</div>
-              ${headerRight}
-            </div>
-            <div class="p-4 grid grid-cols-1 gap-3 text-sm">
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <div class="text-xs uppercase tracking-wider text-gray-400">Type</div>
-                  <div class="font-medium text-gray-700">${escapeHtml(a?.type || 'N/A')}</div>
-                </div>
-                <div>
-                  <div class="text-xs uppercase tracking-wider text-gray-400">Final Result</div>
-                  <div class="font-medium text-gray-700">${escapeHtml(a?.finalResult || a?.resultRaw || 'N/A')}</div>
-                </div>
-                <div>
-                  <div class="text-xs uppercase tracking-wider text-gray-400">Gateway Code</div>
-                  <div class="font-medium text-gray-700">${escapeHtml(a?.gatewayCode || 'N/A')}</div>
-                </div>
-                <div>
-                  <div class="text-xs uppercase tracking-wider text-gray-400">Acquirer</div>
-                  <div class="font-medium text-gray-700">${escapeHtml(a?.acquirerMessage || a?.acquirerCode || 'N/A')}</div>
-                </div>
-                <div>
-                  <div class="text-xs uppercase tracking-wider text-gray-400">Amount</div>
-                  <div class="font-medium text-gray-700">${escapeHtml(a?.amount ?? 'N/A')} ${escapeHtml(a?.currency || '')}</div>
-                </div>
-                <div>
-                  <div class="text-xs uppercase tracking-wider text-gray-400">MPGS Transaction</div>
-                  <div class="font-medium text-gray-700">${escapeHtml(a?.mpgsTransactionId || 'N/A')}</div>
-                </div>
-              </div>
-
-              <details class="rounded bg-gray-50 border border-gray-100">
-                <summary class="cursor-pointer px-3 py-2 text-sm font-medium text-gray-700">Raw attempt payload</summary>
-                <pre class="px-3 pb-3 pt-2 text-xs overflow-auto text-gray-700">${pretty(a)}</pre>
-              </details>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      $('#attemptsPanelBody').html(cards);
+      $('#attemptsPanelBody').html(renderNoAttempts(t));
+      openPanel();
+      return;
     }
 
-    $('#attemptsPanelOverlay').removeClass('hidden');
-    $('body').addClass('overflow-hidden');
-    // animate in
-    requestAnimationFrame(() => {
-      $('#attemptsPanel').removeClass('translate-x-full');
-    });
+    const cardsHtml = attempts.map(renderAttemptCard).join('');
+    $('#attemptsPanelBody').html(renderAttemptsHeader(t, attempts.length) + cardsHtml);
+    openPanel();
   }
 
   // ESC closes panel
@@ -597,74 +742,76 @@ $(document).ready(function () {
       }
     });
 
-  function updateTable(transactions, total) {
-    console.log("Updating table with", transactions.length, "transactions");
+  // expose for row button click handler
+  window.openAttemptsPanel = openAttemptsPanel;
+});
 
-    // store current rows transactions for attempts panel access
-    window.__currentTransactions = Array.isArray(transactions) ? transactions : [];
+function updateTable(transactions, total) {
+  console.log("Updating table with", transactions.length, "transactions");
 
-    $("#transactionTable").html(
-      transactions.length > 0
-        ? transactions
-            .map((t, index) => {
-              const originalAmount = parseFloat(t.amount || 0);
-              const totalRefunded =
-                t.latestTotalRefunded != null
-                  ? parseFloat(t.latestTotalRefunded)
-                  : 0;
-              const isFullyRefunded = totalRefunded >= originalAmount;
+  // store current rows transactions for attempts panel access
+  window.__currentTransactions = Array.isArray(transactions) ? transactions : [];
 
-              // Refund Tag
-              let refundTag = "";
-              if (totalRefunded > 0) {
-                if (isFullyRefunded) {
-                  refundTag = `<span class="refund-tag-full inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">
-                    FULL REFUND
-                  </span>`;
-                } else {
-                  refundTag = `<span class="refund-tag-partial inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1.5 rounded-full">
-                    PARTIAL – ${totalRefunded.toFixed(2)} ${t.currency}
-                  </span>`;
-                }
+  $("#transactionTable").html(
+    transactions.length > 0
+      ? transactions
+          .map((t, index) => {
+            const originalAmount = parseFloat(t.amount || 0);
+            const totalRefunded =
+              t.latestTotalRefunded != null
+                ? parseFloat(t.latestTotalRefunded)
+                : 0;
+            const isFullyRefunded = totalRefunded >= originalAmount;
+
+            // Refund Tag
+            let refundTag = "";
+            if (totalRefunded > 0) {
+              if (isFullyRefunded) {
+                refundTag = `<span class="refund-tag-full inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">
+                  FULL REFUND
+                </span>`;
+              } else {
+                refundTag = `<span class="refund-tag-partial inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1.5 rounded-full">
+                  PARTIAL – ${totalRefunded.toFixed(2)} ${t.currency}
+                </span>`;
               }
+            }
 
-              const statusBadge = (() => {
-                const s = (t.paymentStatus || "UNKNOWN").toUpperCase();
-                switch (s) {
-                  case "SUCCESS":
-                    return `<span class="status-success inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
-                  case "FAILED":
-                  case "FAIL":
-                  case "ERROR":
-                    return `<span class="status-failed inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
-                  case "PENDING":
-                    return `<span class="status-pending inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-full">PENDING</span>`;
-                  default:
-                    return `<span class="status-default bg-gray-50 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full">${s}</span>`;
-                }
-              })();
+            const statusBadge = (() => {
+              const s = (t.paymentStatus || "UNKNOWN").toUpperCase();
+              switch (s) {
+                case "SUCCESS":
+                  return `<span class="status-success inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-full">SUCCESS</span>`;
+                case "FAILED":
+                case "FAIL":
+                case "ERROR":
+                  return `<span class="status-failed inline-flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full">FAILED</span>`;
+                case "PENDING":
+                  return `<span class="status-pending inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-full">PENDING</span>`;
+                default:
+                  return `<span class="status-default bg-gray-50 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full">${s}</span>`;
+              }
+            })();
 
-              const showRefundBtn =
-                t.paymentStatus === "SUCCESS" && !isFullyRefunded;
+            const showRefundBtn =
+              t.paymentStatus === "SUCCESS" && !isFullyRefunded;
 
-              const attemptsCount = Array.isArray(t.attempts) ? t.attempts.length : 0;
-              const attemptsBtn = attemptsCount
-                ? `<button type="button" class="attempts-button bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg shadow-sm transition-all duration-200 text-sm whitespace-nowrap" data-index="${index}">
-                     Attempts (${attemptsCount})
-                   </button>`
-                : '';
+            const attemptsCount = Array.isArray(t.attempts) ? t.attempts.length : 0;
+            const attemptsBtn = `<button type="button" class="attempts-button bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-2.5 px-5 rounded-lg shadow-sm transition-all duration-200 text-sm whitespace-nowrap" data-index="${index}">
+                   Attempts (${attemptsCount})
+                 </button>`;
 
-              const addressBlock =
-                (String(CURRENT_TENANT || '').toLowerCase() === 'helpage' && t.address)
-                  ? `
+            const addressBlock =
+              (String(CURRENT_TENANT || '').toLowerCase() === 'helpage' && t.address)
+                ? `
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-400">Address</span>
             <p class="font-medium text-gray-700">${t.address}</p>
           </div>
         `
-                  : '';
+                : '';
 
-              return `
+            return `
 <tr class="table-row expandable-row group bg-white border-b border-gray-100 hover:bg-gray-50 transition-all duration-200" id="row-${index}">
   <td colspan="8" class="px-6 py-4">
     <!-- Main Row -->
@@ -770,9 +917,9 @@ $(document).ready(function () {
   </td>
 </tr>
 `;
-            })
-            .join("")
-        : `<tr><td colspan="8" class="px-6 py-16 text-center text-gray-400 text-lg">
+          })
+          .join("")
+      : `<tr><td colspan="8" class="px-6 py-16 text-center text-gray-400 text-lg">
               <div class="flex flex-col items-center gap-3">
                 <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-2m3 2v-2m-9 7h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -780,51 +927,50 @@ $(document).ready(function () {
                 <p class="text-gray-500">No successful transactions found</p>
               </div>
             </td></tr>`
-    );
+  );
 
-    // Attempts button handler (do not trigger row expand)
-    $('.attempts-button')
-      .off('click')
-      .on('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const idx = Number($(this).data('index'));
-        const t = (window.__currentTransactions || [])[idx];
-        openAttemptsPanel(t);
-      });
+  // Attempts button handler (do not trigger row expand)
+  $('.attempts-button')
+    .off('click')
+    .on('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const idx = Number($(this).data('index'));
+      const t = (window.__currentTransactions || [])[idx];
+      openAttemptsPanel(t);
+    });
 
-    // Click to expand
-    $(".expandable-row")
-      .off("click")
-      .on("click", function (e) {
-        // keep existing behavior: clicking any button should not expand
-        if ($(e.target).closest("button").length) return;
-        const index = this.id.split("-")[1];
-        toggleRow(index);
-      });
+  // Click to expand
+  $(".expandable-row")
+    .off("click")
+    .on("click", function (e) {
+      // keep existing behavior: clicking any button should not expand
+      if ($(e.target).closest("button").length) return;
+      const index = this.id.split("-")[1];
+      toggleRow(index);
+    });
+}
+
+function toggleRow(index) {
+  const $row = $(`#row-${index}`);
+  const $content = $row.find(".expand-content");
+  $(".expand-content").not($content).slideUp(300).addClass("hidden");
+
+  if ($content.hasClass("hidden")) {
+    $content.removeClass("hidden").slideDown(350);
+    $row.addClass("border-l-4 border-blue-400");
+  } else {
+    $content.slideUp(300, () => $content.addClass("hidden"));
+    $row.removeClass("border-l-4 border-blue-400");
   }
+}
 
-  function toggleRow(index) {
-    const $row = $(`#row-${index}`);
-    const $content = $row.find(".expand-content");
-    $(".expand-content").not($content).slideUp(300).addClass("hidden");
-
-    if ($content.hasClass("hidden")) {
-      $content.removeClass("hidden").slideDown(350);
-      $row.addClass("border-l-4 border-blue-400");
-    } else {
-      $content.slideUp(300, () => $content.addClass("hidden"));
-      $row.removeClass("border-l-4 border-blue-400");
-    }
-  }
-
-  window.updateTable = updateTable;
-  window.changePage = function (page) {
-    if (page < 1) return;
-    currentFilters.page = page;
-    loadData();
-  };
-});
+window.updateTable = updateTable;
+window.changePage = function (page) {
+  if (page < 1) return;
+  currentFilters.page = page;
+  loadData();
+};
 
 async function exportToCSV() {
   try {

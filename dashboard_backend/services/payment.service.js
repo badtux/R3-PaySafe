@@ -59,8 +59,17 @@ async function fetchPayments(hostname, query) {
   // Base filter
   let baseFilter = {
     // Only include docs that actually have a paymentStatus
-    paymentStatus: { $exists: true, $ne: null }
+    paymentStatus: { $exists: true, $ne: null },
+
+    // Only show docs with a real email
+    email: { $exists: true, $ne: null, $ne: "" },
   };
+
+  // Apply cron:true restriction only for malkey tenant
+  if (String(tenant).toLowerCase() === 'malkey') {
+    baseFilter.cron = true;
+  }
+
   if (from || to) {
     baseFilter.createdAt = {};
     if (from) baseFilter.createdAt.$gte = new Date(from);
@@ -76,6 +85,10 @@ async function fetchPayments(hostname, query) {
     if (normalizedStatus === 'FAILED') {
       // Group FAILED to include gateway/processor error states (and legacy FAIL)
       baseFilter.paymentStatus = { $in: ['FAILED', 'FAIL', 'ERROR'] };
+    } else if (normalizedStatus === 'REFUNDED') {
+      // Safety: UI uses SUCCESS+refundOnly for refunded, but if a client sends REFUNDED,
+      // treat it as SUCCESS and refundOnly.
+      baseFilter.paymentStatus = 'SUCCESS';
     } else {
       baseFilter.paymentStatus = normalizedStatus;
     }
@@ -110,8 +123,6 @@ async function fetchPayments(hostname, query) {
     { $match: baseFilter },
     { $sort: { createdAt: -1, _id: -1 } },
   ];
-
-  // Helper: computes refundCount from dynamic refund-N fields
   const addRefundCountStage = {
     $addFields: {
       refundCount: {
@@ -125,8 +136,6 @@ async function fetchPayments(hostname, query) {
       },
     },
   };
-
-  // NOTE: we group after sorting so the first doc is the latest.
   const groupLatestPerOrderStage = {
     $group: {
       _id: "$orderId",
@@ -135,6 +144,18 @@ async function fetchPayments(hostname, query) {
   };
 
   const replaceRootStage = { $replaceRoot: { newRoot: "$doc" } };
+
+  // Stats should be computed on the same latest-per-orderId dataset as the table.
+  const countLatestPerOrder = async (extraMatch = null) => {
+    const pipeline = [
+      ...latestPerOrderPipelineBase,
+      groupLatestPerOrderStage,
+      replaceRootStage,
+    ];
+    if (extraMatch) pipeline.push({ $match: extraMatch });
+    pipeline.push({ $count: 'total' });
+    return (await collection.aggregate(pipeline).toArray())[0]?.total || 0;
+  };
 
   let transactions = [];
   let total = 0;
@@ -251,19 +272,24 @@ async function fetchPayments(hostname, query) {
     paymentStatus: "SUCCESS",
   };
 
-  const thisMonthCount = await collection.countDocuments(thisMonthFilter);
+  // Use de-duplicated counting for these stats
+  const thisMonthCount = await (async () => {
+    const pipeline = [
+      { $match: thisMonthFilter },
+      { $sort: { createdAt: -1, _id: -1 } },
+      groupLatestPerOrderStage,
+      { $count: 'total' },
+    ];
+    return (await collection.aggregate(pipeline).toArray())[0]?.total || 0;
+  })();
+
   const thisMonthAmountLKR = (await collection.aggregate(sumAmountPipeline(thisMonthAmountFilter, "LKR")).toArray())[0]?.total || 0;
   const thisMonthAmountUSD = (await collection.aggregate(sumAmountPipeline(thisMonthAmountFilter, "USD")).toArray())[0]?.total || 0;
 
-  const successful = await collection.countDocuments({
-    ...statsFilter,
-    paymentStatus: "SUCCESS",
-  });
+  const successful = await countLatestPerOrder({ paymentStatus: "SUCCESS" });
 
-  const failed = await collection.countDocuments({
-    ...statsFilter,
-    paymentStatus: { $in: ["FAILED", "FAIL", "ERROR"] },
-  });
+  // Failed should ONLY be hard-fail statuses; refunded-success must never be part of this.
+  const failed = await countLatestPerOrder({ paymentStatus: { $in: ["FAILED", "FAIL", "ERROR"] } });
 
   console.log(
     `Totals for tenant ${tenant}: totalLKR=${Number(totalLKR).toFixed(2)}, totalUSD=${Number(totalUSD).toFixed(2)}, thisMonthCount=${thisMonthCount}, thisMonthLKR=${Number(thisMonthAmountLKR).toFixed(2)}, thisMonthUSD=${Number(thisMonthAmountUSD).toFixed(2)}, transactions=${total}, successful=${successful}`
