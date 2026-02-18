@@ -329,7 +329,11 @@ foreach ($argv as $arg) {
     }
 }
 
-
+// NEW: skip sending emails for documents that existed before this run
+$skipExistingEmails = in_array('--skip-existing-emails', $argv, true);
+// Capture run start timestamp (ms) to compare with document createdAt
+$runStartMs = (int)(microtime(true) * 1000);
+$runStartUtc = new \MongoDB\BSON\UTCDateTime($runStartMs);
 
 $client = new Client(DATABASE_URL);
 $collection = $client->{DB}->{COLLECTION};
@@ -358,6 +362,7 @@ foreach ($docs as $doc) {
     $orderId = (string)($doc['orderId'] ?? '');
     $currency = (string)($doc['currency'] ?? '');
     $email = (string)($doc['email'] ?? '');
+    $docCron = $doc['cron'] ?? null;
 
     if ($uuid === '' || $orderId === '' || $currency === '') {
         continue;
@@ -425,8 +430,9 @@ foreach ($docs as $doc) {
             continue;
         }
 
+        // Update the document by uuid regardless of its current cron value so we can mark attempts/updatedAt
         $collection->updateOne(
-            ['uuid' => $uuid, 'cron' => false],
+            ['uuid' => $uuid],
             ['$set' => $updateData]
         );
         if (isValidEmail($email) && $orderId !== '') {
@@ -445,8 +451,29 @@ foreach ($docs as $doc) {
         }
 
         // Send emails if email is valid (no limit)
-        if (!isValidEmail($email)) {
-            echo "Email: skipped (missing/invalid email on uuid={$uuid})\n";
+        // Determine whether to send email. Optionally skip existing documents created before run start.
+        $shouldSendEmail = isValidEmail($email);
+        $createdAtMs = 0;
+        if (isset($doc['createdAt']) && $doc['createdAt'] instanceof \MongoDB\BSON\UTCDateTime) {
+            $createdAtMs = (int)$doc['createdAt']->toDateTime()->getTimestamp() * 1000 + (int)floor($doc['createdAt']->toDateTime()->format('v'));
+        } elseif (isset($doc['createdAt']) && is_numeric($doc['createdAt'])) {
+            // some records may store createdAt as numeric ms
+            $createdAtMs = (int)$doc['createdAt'];
+        }
+
+        if ($skipExistingEmails && $createdAtMs > 0 && $createdAtMs < $runStartMs) {
+            $shouldSendEmail = false;
+            $skipReason = 'existing document (created before this run)';
+        } else {
+            $skipReason = '';
+        }
+
+        // If document explicitly marked cron === -1, do not send email for it
+        if ($docCron === -1) {
+            echo "Email: skipped (cron=-1 on uuid={$uuid})\n";
+        } elseif (!$shouldSendEmail) {
+            $reasonText = $skipReason !== '' ? " skipped ({$skipReason} on uuid={$uuid})" : " skipped (missing/invalid email on uuid={$uuid})";
+            echo "Email:{$reasonText}\n";
         } else {
             $amountStr = number_format((float)($data['amount'] ?? 0), 2, '.', '');
             $currencyStr = (string)($data['currency'] ?? $currency);
@@ -487,7 +514,7 @@ foreach ($docs as $doc) {
         if (!$dryRun && $uuid !== '') {
             try {
                 $collection->updateOne(
-                    ['uuid' => $uuid, 'cron' => false],
+                    ['uuid' => $uuid],
                     [
                         '$set' => [
                             'cron' => true,
