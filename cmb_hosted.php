@@ -316,7 +316,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                 const body = 'action=save_email&uuid=' + encodeURIComponent(uuid) + '&email=' + encodeURIComponent(email);
 
                 // Use dedicated endpoint to avoid HTML redirects
-                const endpoint = '/cmb/save_email.php';
+                const endpoint = 'paysafe/cmb/save_email.php';
 
                 const res = await fetch(endpoint, {
                     method: 'POST',
