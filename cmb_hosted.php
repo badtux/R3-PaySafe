@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once('config/config.php');
 require 'vendor/autoload.php';
+require 'cmb_hostedAuth.php';
 
 
 use MongoDB\Client;
@@ -114,9 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
         exit;
     }
 }
-
-// include auth/render logic only after POST handling
-require 'cmb_hostedAuth.php';
 
 $errorMessage = null;
 $txnId = isset($_GET['txnId']) ? $_GET['txnId'] : null;
@@ -308,15 +306,16 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
 
             document.getElementById('email').removeEventListener('blur', storePaymentDetails);
             document.getElementById('email').addEventListener('blur', storePaymentDetails);
-
-            // Update email in DB (POST to same page)
             async function updateEmailInDB(orderId, email) {
-                // Build url-encoded body, send uuid instead of orderId if available
                 const uuid = <?php echo json_encode(isset($_SESSION['uuid']) ? $_SESSION['uuid'] : ($_SESSION['payments'][$txnId ?? ''] ?? null)); ?>;
                 const body = 'action=save_email&uuid=' + encodeURIComponent(uuid) + '&email=' + encodeURIComponent(email);
 
-                // Use dedicated endpoint to avoid HTML redirects
-                const endpoint = 'paysafe/cmb/save_email.php';
+                const basePath = <?php echo json_encode(
+                    (defined('BASEPATH') ? rtrim(BASEPATH, '/') : rtrim(dirname($_SERVER['SCRIPT_NAME']), '/'))
+                ); ?>;
+                const endpoint = (basePath === '' || basePath === '/') ?
+                    '/save_email.php' :
+                    basePath + '/save_email.php';
 
                 const res = await fetch(endpoint, {
                     method: 'POST',
