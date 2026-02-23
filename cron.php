@@ -530,6 +530,7 @@ foreach ($docs as $doc) {
         }
 
         fwrite(STDERR, "ERROR uuid={$uuid}, orderId={$orderId}: {$e->getMessage()}\n");
+        echo "ERROR uuid={$uuid}, orderId={$orderId}: {$e->getMessage()}\n";
         continue;
     }
 }
