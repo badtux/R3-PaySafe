@@ -321,7 +321,7 @@ function isValidEmail(string $email): bool
 }
 
 
-$dryRun = in_array('--dry-run', $cliArgv, true);
+$dryRun = in_array('--dry-run', $argv, true);
 $limit = 0;
 foreach ($cliArgv as $arg) {
     if (str_starts_with($arg, '--limit=')) {
@@ -521,7 +521,8 @@ foreach ($docs as $doc) {
             }
         }
 
-        fwrite(STDERR, "ERROR uuid={$uuid}, orderId={$orderId}: {$e->getMessage()}\n");
+        //fwrite(STDERR, "ERROR uuid={$uuid}, orderId={$orderId}: {$e->getMessage()}\n");
+        echo "ERROR uuid={$uuid}, orderId={$orderId}: {$e->getMessage()}\n";
         continue;
     }
 }
