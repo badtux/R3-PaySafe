@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    echo "This script must be run from CLI.\n";
+    exit(1);
+}
+
+$cliArgv = [];
+
 require __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/config.php';
 
@@ -158,8 +167,6 @@ function computeFinalStatus(array $data, ?array $paymentTxn): array
     $orderStatus = strtoupper((string)($data['status'] ?? ''));
     $topResult = strtoupper((string)($data['result'] ?? ''));
     $capturedAmount = (float)($data['totalCapturedAmount'] ?? 0);
-
-    // Treat CAPTURED/REFUNDED/PARTIALLY_REFUNDED as a successful payment if any capture happened.
     $isCapturedLike = in_array($orderStatus, ['CAPTURED', 'REFUNDED', 'PARTIALLY_REFUNDED'], true) && ($capturedAmount > 0);
 
     $paymentGatewayCode = strtoupper((string)($paymentTxn['response']['gatewayCode'] ?? ''));
@@ -313,19 +320,15 @@ function isValidEmail(string $email): bool
     return $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
-// ---- main ----
 
-$dryRun = in_array('--dry-run', $argv, true);
+$dryRun = in_array('--dry-run', $cliArgv, true);
 $limit = 0;
-foreach ($argv as $arg) {
+foreach ($cliArgv as $arg) {
     if (str_starts_with($arg, '--limit=')) {
         $limit = (int)substr($arg, strlen('--limit='));
     }
 }
-
-// NEW: skip sending emails for documents that existed before this run
-$skipExistingEmails = in_array('--skip-existing-emails', $argv, true);
-// Capture run start timestamp (ms) to compare with document createdAt
+$skipExistingEmails = in_array('--skip-existing-emails', $cliArgv, true);
 $runStartMs = (int)(microtime(true) * 1000);
 $runStartUtc = new \MongoDB\BSON\UTCDateTime($runStartMs);
 
@@ -334,7 +337,7 @@ $collection = $client->{DB}->{COLLECTION};
 $logCollection = $client->{DB}->cron_logs;
 
 $filter = [
-    'cron' => false,
+    'cron' => ['$in' => [false, -1]],
 ];
 $options = [];
 if ($limit > 0) {
@@ -345,11 +348,11 @@ $cursor = $collection->find($filter, $options);
 $docs = iterator_to_array($cursor, false);
 
 if (count($docs) === 0) {
-    echo "No records with cron=false\n";
+    echo "No records with cron=false or cron=-1\n";
     exit(0);
 }
 
-echo "Found " . count($docs) . " docs with cron=false\n";
+echo "Found " . count($docs) . " docs with cron=false or cron=-1\n";
 
 foreach ($docs as $doc) {
     $uuid = (string)($doc['uuid'] ?? '');
@@ -423,8 +426,6 @@ foreach ($docs as $doc) {
             echo "DRY RUN update uuid={$uuid}, orderId={$orderId}, status={$updateData['paymentStatus']} attempts=" . count($attempts) . "\n";
             continue;
         }
-
-        // Update the document by uuid regardless of its current cron value so we can mark attempts/updatedAt
         $collection->updateOne(
             ['uuid' => $uuid],
             ['$set' => $updateData]
@@ -443,15 +444,11 @@ foreach ($docs as $doc) {
             } catch (Throwable $e2) {
             }
         }
-
-        // Send emails if email is valid (no limit)
-        // Determine whether to send email. Optionally skip existing documents created before run start.
         $shouldSendEmail = isValidEmail($email);
         $createdAtMs = 0;
         if (isset($doc['createdAt']) && $doc['createdAt'] instanceof \MongoDB\BSON\UTCDateTime) {
-            $createdAtMs = (int)$doc['createdAt']->toDateTime()->getTimestamp() * 1000 + (int)floor($doc['createdAt']->toDateTime()->format('v'));
+            $createdAtMs = (int)$doc['createdAt']->toDateTime()->getTimestamp() * 1000 + (int)$doc['createdAt']->toDateTime()->format('v');
         } elseif (isset($doc['createdAt']) && is_numeric($doc['createdAt'])) {
-            // some records may store createdAt as numeric ms
             $createdAtMs = (int)$doc['createdAt'];
         }
 
@@ -461,8 +458,6 @@ foreach ($docs as $doc) {
         } else {
             $skipReason = '';
         }
-
-        // If document explicitly marked cron === -1, do not send email for it
         if ($docCron === -1) {
             echo "Email: skipped (cron=-1 on uuid={$uuid})\n";
         } elseif (!$shouldSendEmail) {
@@ -502,7 +497,6 @@ foreach ($docs as $doc) {
                 'createdAt' => new \MongoDB\BSON\UTCDateTime(),
             ]);
         } catch (Throwable $logErr) {
-            // ignore log failures
         }
 
         if (!$dryRun && $uuid !== '') {
@@ -524,7 +518,6 @@ foreach ($docs as $doc) {
                     ]
                 );
             } catch (Throwable $updateErr) {
-                // ignore update failures
             }
         }
 
