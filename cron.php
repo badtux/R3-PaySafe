@@ -315,6 +315,7 @@ function isValidEmail(string $email): bool
 
 // ---- main ----
 
+$argv = [];
 $dryRun = in_array('--dry-run', $argv, true);
 $limit = 0;
 foreach ($argv as $arg) {
