@@ -7,7 +7,7 @@ declare(strict_types=1);
 $cliArgv = [];
 
 require __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/config/config.sample.php';
 
 use MongoDB\Client;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -342,6 +342,16 @@ if ($limit > 0) {
 $cursor = $collection->find($filter, $options);
 $docs = iterator_to_array($cursor, false);
 
+$apiRequestLimit = 50;
+if (isset($argv) && is_array($argv)) {
+    foreach ($argv as $a) {
+        if (str_starts_with($a, '--api-limit=')) {
+            $apiRequestLimit = (int)substr($a, strlen('--api-limit='));
+        }
+    }
+}
+$apiRequestCount = 0;
+
 if (count($docs) === 0) {
     echo "No records with cron=false or cron=-1\n";
     exit(0);
@@ -369,6 +379,13 @@ foreach ($docs as $doc) {
     }
 
     echo "Processing uuid={$uuid}, orderId={$orderId}, currency={$currency}\n";
+
+    // enforce API request limit before calling gateway
+    if ($apiRequestCount >= $apiRequestLimit) {
+        echo "API request limit reached ({$apiRequestLimit}). Stopping.\n";
+        break;
+    }
+    $apiRequestCount++;
 
     try {
         $data = fetchGatewayOrder($merchantId, $orderId, $apiPassword);
