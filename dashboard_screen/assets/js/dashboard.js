@@ -164,6 +164,31 @@ function logout() {
   window.location.href = "login.html";
 }
 
+function copyToClipboard(value, label = "Value") {
+  if (!value) return;
+
+  navigator.clipboard.writeText(value).then(() => {
+    showToast(`${label} copied!`, "success");
+  }).catch(() => {
+    showToast("Failed to copy", "error");
+  });
+}
+
+// Add cursor pointer styling for copyable elements
+if (typeof document !== 'undefined' && !document.getElementById('copyOnClickStyle')) {
+  const style = document.createElement('style');
+  style.id = 'copyOnClickStyle';
+  style.innerHTML = `
+    .copy-on-click { cursor: pointer; }
+    .copy-on-click:hover { text-decoration: underline; }
+    .order-id { cursor: pointer; }
+  `;
+  document.head.appendChild(style);
+}
+
+
+
+
 let currentFilters = {
   from: "",
   to: "",
@@ -177,14 +202,19 @@ let currentFilters = {
 function setupEventListeners() {
   $("#applyFilters").on("click", applyFilters);
   $("#resetFilters").on("click", resetFilters);
-  $("#prevPage").on("click", () => changePage(currentFilters.page - 1));
-  $("#nextPage").on("click", () => changePage(currentFilters.page + 1));
+  $("#prevPage").off('click').on('click', () => {
+    if (currentFilters.page > 1) changePage(currentFilters.page - 1);
+  });
+  $("#nextPage").off('click').on('click', () => {
+    changePage(currentFilters.page + 1);
+  });
   $("#itemsPerPage").on("change", (e) => {
     const limit = parseInt($(e.target).val());
     localStorage.setItem("itemsPerPage", limit);
     currentFilters.limit = limit;
     currentFilters.page = 1;
-    loadData();
+    // Do not update top stats when user changes page size
+    loadData({ updateStats: false });
   });
   $("#exportData").on("click", exportToCSV);
 }
@@ -434,8 +464,8 @@ function updateStats(stats) {
         $('#fromDate').val('');
         $('#toDate').val('');
 
-        // Reset should refresh everything
-        loadData({ updateStats: true });
+        // Keep top stats fixed when cards are clicked
+        loadData({ updateStats: false });
         return;
       }
 
@@ -806,7 +836,7 @@ function updateTable(transactions, total) {
                 ? `
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-400">Address</span>
-            <p class="font-medium text-gray-700">${t.address}</p>
+            <p class="font-medium text-gray-700"><span class="copy-on-click">${t.address}</span></p>
           </div>
         `
                 : '';
@@ -822,14 +852,14 @@ function updateTable(transactions, total) {
 </div>
 
       <div class="order-id font-bold text-lg text-blue-500 truncate max-w-[220px]" title="${t.orderId || ''}">
-        ${t.orderId || "N/A"}
+        <span class="copy-on-click">${t.orderId || "N/A"}</span>
       </div>
 
      <div class="amount text-lg font-semibold text-gray-700">
-  ${Number(originalAmount).toLocaleString("en-US", {
+  <span class="copy-on-click">${Number(originalAmount).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-  })}
+  })}</span>
 </div>
 
      <div class="currency text-sm font-medium uppercase tracking-wider text-gray-600">
@@ -837,9 +867,7 @@ function updateTable(transactions, total) {
 </div>
 
      <div class="truncate max-w-[200px] text-sm" title="${t.email || ""}">
-  <span class="email text-sm font-medium text-gray-600">
-    ${t.email || "N/A"}
-  </span>
+  <span class="email text-sm font-medium text-gray-600"><span class="copy-on-click">${t.email || "N/A"}</span></span>
 </div>
 
 <div class="card-number text-sm font-medium text-gray-600 font-mono"
@@ -862,22 +890,20 @@ function updateTable(transactions, total) {
         <div class="flex flex-wrap items-center gap-x-8 gap-y-3">
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-400">Name on Card</span>
-            <p class="font-semibold text-gray-700">${
+            <p class="font-semibold text-gray-700"><span class="copy-on-click">${
               t.nameOnCard || "N/A"
-            }</p>
+            }</span></p>
           </div>
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-400">Reference</span>
-            <p class="font-medium text-gray-700">${
-              t.description || "N/A"
-            }</p>
+            <p class="font-medium text-gray-700"><span class="copy-on-click">${t.description || "N/A"}</span></p>
           </div>
 
           <div>
             <span class="text-xs uppercase tracking-wider text-gray-400">Transaction ID</span>
             <p class="font-mono text-xs bg-white text-gray-600 border border-gray-200 px-3 py-1.5 rounded mt-1 break-all" 
                title="${t.transactionId || ""}">
-              ${t.transactionId || "N/A"}
+              <span class="copy-on-click">${t.transactionId || "N/A"}</span>
             </p>
           </div>
 
@@ -946,9 +972,46 @@ function updateTable(transactions, total) {
     .on("click", function (e) {
       // keep existing behavior: clicking any button should not expand
       if ($(e.target).closest("button").length) return;
+      // NEW: clicking on copyable values should NOT toggle/scroll the row
+      if ($(e.target).closest('.copy-on-click').length) return;
       const index = this.id.split("-")[1];
       toggleRow(index);
     });
+
+  // Delegated copy-on-click handler
+  $(document).off('click', '.copy-on-click').on('click', '.copy-on-click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const text = $(this).text().trim();
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard', 'success');
+      }).catch(() => {
+        showToast('Copy failed', 'error');
+      });
+    } else {
+      // Fallback
+      const $temp = $('<textarea>').val(text).appendTo('body').select();
+      try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard', 'success');
+      } catch (err) {
+        showToast('Copy failed', 'error');
+      }
+      $temp.remove();
+    }
+  });
+
+  // Update pagination buttons state
+  try {
+    const limit = Math.max(1, parseInt(currentFilters.limit || 10));
+    const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+    $("#prevPage").prop('disabled', currentFilters.page <= 1);
+    $("#nextPage").prop('disabled', currentFilters.page >= totalPages);
+  } catch (err) {
+    // ignore UI update errors
+  }
 }
 
 function toggleRow(index) {
@@ -967,9 +1030,11 @@ function toggleRow(index) {
 
 window.updateTable = updateTable;
 window.changePage = function (page) {
-  if (page < 1) return;
-  currentFilters.page = page;
-  loadData();
+  const p = Math.max(1, parseInt(page) || 1);
+  if (p === currentFilters.page) return;
+  currentFilters.page = p;
+  // Do not update top stats when paginating
+  loadData({ updateStats: false });
 };
 
 async function exportToCSV() {
