@@ -3,11 +3,6 @@
 declare(strict_types=1);
 
 
-if (PHP_SAPI !== 'cli') {
-    http_response_code(403);
-    echo "This script must be run from CLI.\n";
-    exit(1);
-}
 
 $cliArgv = [];
 
