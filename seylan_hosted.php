@@ -1,16 +1,10 @@
 <?php
 // Write some logs
 $logger->info('in seylan_hosted.php file');
-// $logger->warning('Low disk space');
-// $logger->error('Something went wrong', [
-//     'exception' => 'ExampleException'
-// ]);
 
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
 use Ramsey\Uuid\Uuid;
-
-
 
 $isURLQueryRequest = ($_SERVER['REQUEST_METHOD'] === 'GET') ? true : false;
 $willAttemptInit = ($isURLQueryRequest 
@@ -25,7 +19,7 @@ $hasInitiated = ($isURLQueryRequest
     && isset($_SESSION['txnId']) 
     && isset($_SESSION['sessionId'])) ? true : false;
 
-function resetPaymentSession($amount, $currency, $orderId, $description, $address = null){
+function resetPaymentSession($amount, $currency, $orderId, $description, $address = null, $successUrl = null, $failedUrl = null){
     $_SESSION['payments'] = []; 
     unset($_SESSION['errorMessage']);
     $txnId = bin2hex(random_bytes(16)); 
@@ -38,8 +32,10 @@ function resetPaymentSession($amount, $currency, $orderId, $description, $addres
         'currency' => $currency,
         'description' => $description,
         'orderId' => $orderId,
-    'uuid' => $uuid,
-    'address' => $address
+        'uuid' => $uuid,
+        'address' => $address,
+        'successUrl' => $successUrl,
+        'failedUrl' => $failedUrl
     ];
             
     return $txnId;
@@ -62,6 +58,11 @@ function initiateCheckout($txnId, $logger) {
                 "email" => "helpage@sltnet.lk"
             ],
             "returnUrl" => REDIRECT_URL,
+            "displayControl" => [
+                "customerEmail" => "HIDE",
+                "billingAddress" => "HIDE",
+                "shipping" => "HIDE"
+            ]
         ],
         "order" => [
             "currency" => $_SESSION['payments'][$txnId]['currency'],
@@ -138,6 +139,16 @@ function saveTransactionToDatabase($txnId, $sessionId, $logger) {
             'createdAt'   => new UTCDateTime()
         ];
 
+        if (!empty($payment['successUrl']) || !empty($payment['failedUrl'])) {
+            if (!empty($payment['successUrl'])) {
+                $document['successUrl'] = $payment['successUrl'];
+            }
+            if (!empty($payment['failedUrl'])) {
+                $document['failedUrl'] = $payment['failedUrl'];
+            }
+            $document['eCardEmail'] = false;
+        }
+
         $result = $collection->insertOne($document);
 
         $insertedId = $result->getInsertedId();
@@ -175,7 +186,9 @@ try {
             $_GET['currency'] ?? 'LKR',
             $_GET['orderId'],
             $_GET['description'] ?? 'No description',
-            $_GET['address'] ?? null
+            $_GET['address'] ?? null,
+            $_GET['successUrl'] ?? null,
+            $_GET['failedUrl'] ?? null
         );
         $_SESSION['orderId']  = $_GET['orderId'];
         error_log("UUID: " . $_SESSION['uuid']);
@@ -254,15 +267,12 @@ catch (Exception $e) {
             box-shadow: 0 20px 25px -5px rgba(220, 38, 38, 0.1), 0 10px 10px -5px rgba(220, 38, 38, 0.04);
         }
     </style>
-    <?php if (!isset($errorMessage)) { ?>
-        <script>
-            <?php
-            $checkoutJsUrl = APP_LIVE
-                ? 'https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js'
-                : 'https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js';
-            ?>
-        </script>
-
+    <?php if (!isset($_SESSION['errorMessage'])) { ?>
+        <?php
+        $checkoutJsUrl = APP_LIVE
+            ? 'https://seylan.gateway.mastercard.com/static/checkout/checkout.min.js'
+            : 'https://test-seylan.mtf.gateway.mastercard.com/static/checkout/checkout.min.js';
+        ?>
         <script src="<?php echo $checkoutJsUrl; ?>"></script>
 
         <script>
@@ -282,7 +292,6 @@ catch (Exception $e) {
 <body class="bg-gradient-red-orange-light min-h-screen flex items-center justify-center p-4">
     <div id="main-container" class="bg-white rounded-2xl shadow-red-orange transition-all duration-300 hover:shadow-red-orange w-full max-w-lg overflow-hidden">
         <div class="bg-gradient-red-orange p-6 text-center">
-            <!-- <img src="assets/helpAge_logo.jpg" alt="Logo" class="w-20 h-10 mx-auto mb-2 shadow-2"> -->
             <h1 class="text-2xl font-bold text-white"><?php echo isset($_SESSION['errorMessage']) ? 'Payment Error' : 'Secure Payment'; ?></h1>
             <p class="text-white text-sm">Protected by Seylan Bank</p>
         </div>
@@ -341,8 +350,8 @@ catch (Exception $e) {
                             <i class='bx bx-envelope text-2xl text-orange-600'></i>
                             <div class="text-left w-full">
                                 <p class="text-sm text-gray-500">Your Email</p>
-                                <input type="text" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full focus:border-red-orange" placeholder="Enter your email">
-                                <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email.</p>
+                                <input type="email" id="email" class="border-2 border-gray-300 p-2 rounded-lg w-full focus:border-red-orange focus:ring-red-orange" placeholder="Enter your email" required>
+                                <p id="error-message" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email address.</p>
                             </div>
                         </div>
                         <label class="flex items-center space-x-2">
@@ -361,13 +370,17 @@ catch (Exception $e) {
                     <div class="g-recaptcha mb-5" data-sitekey="<?php echo ROBOT_SITE_KEY; ?>"></div>
                     <p id="recaptcha-error-message" class="text-red-500 text-sm hidden mb-5">Please verify you are not a robot.</p>
 
-                    <button onclick="validateAndProceed()"
+                    <button id="proceed-btn" onclick="validateAndProceed()"
                         class="w-full bg-gradient-red-orange hover:bg-gradient-red-orange-hover text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-200 flex items-center justify-center space-x-2">
                         <i class='bx bx-lock-alt text-xl'></i>
-                        <span>Proceed to Secure Payment</span>
+                        <span id="btn-text">Proceed to Secure Payment</span>
                     </button>
                 </div>
             </div>
+
+            <!-- Embedded Checkout Container -->
+                <div id="embedded-checkout" class="hidden min-h-[600px] h-auto w-full bg-white p-2 sm:p-6 pb-12"></div>
+            <div id="payment-error" class="hidden mt-6 text-center text-red-600 font-semibold p-4 bg-red-50 rounded-lg"></div>
             <div id="payment-status" class="hidden mt-6 text-center text-lg font-semibold"></div>
             <div class="flex justify-center">
                 <button onclick="window.location.href='https://www.helpagesl.org/'" id="return-to-merchant-btn"
@@ -389,102 +402,108 @@ catch (Exception $e) {
     </div>
 
     <?php if (!isset($_SESSION['errorMessage'])){ ?>
-        <script>
-            function validateEmail(email) {
-                const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                return re.test(email);
+    <script>
+        function validateEmail(email) {
+            const re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email.trim());
+        }
+
+        async function validateAndProceed() {
+            const email = document.getElementById("email").value.trim();
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const errorMessage = document.getElementById("error-message");
+            const termsCheckbox = document.getElementById("termsCheckbox");
+            const termsErrorMessage = document.getElementById("terms-error-message");
+            const recaptchaErrorMessage = document.getElementById("recaptcha-error-message");
+            const recaptchaResponse = grecaptcha.getResponse();
+
+            termsErrorMessage.classList.add("hidden");
+            errorMessage.classList.add("hidden");
+            recaptchaErrorMessage.classList.add("hidden");
+
+            if (!termsCheckbox.checked) {
+                termsErrorMessage.classList.remove("hidden");
+                return;
             }
 
-            function storePaymentDetails() {
-                const email = document.getElementById('email').value;
-                const amount = "<?php echo htmlspecialchars($amount); ?>";
-                const currency = "<?php echo htmlspecialchars($currency); ?>";
-
-                if (email && validateEmail(email)) {
-                    localStorage.setItem('email', email);
-                    localStorage.setItem('amount', amount);
-                    localStorage.setItem('currency', currency);
-                    document.getElementById('error-message').classList.add('hidden');
-                } else {
-                    document.getElementById('error-message').classList.remove('hidden');
-                }
+            if (recaptchaResponse.length === 0) {
+                recaptchaErrorMessage.classList.remove("hidden");
+                return;
             }
 
-            function storePaymentDetails() {
-                const email = document.getElementById('email').value;
-                const amount = "<?php echo htmlspecialchars($amount); ?>";
-                const currency = "<?php echo htmlspecialchars($currency); ?>";
-
-                if (email && validateEmail(email)) {
-                    localStorage.setItem('email', email);
-                    localStorage.setItem('amount', amount);
-                    localStorage.setItem('currency', currency);
-                    document.getElementById('error-message').classList.add('hidden');
-                } else {
-                    document.getElementById('error-message').classList.remove('hidden');
-                }
+            if (!emailPattern.test(email)) {
+                errorMessage.classList.remove("hidden");
+                errorMessage.textContent = 'Please enter a valid email address.';
+                return;
             }
-            document.getElementById('email').addEventListener('blur', storePaymentDetails);
 
-            function validateAndProceed() {
-                let email = document.getElementById("email").value;
-                let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                let errorMessage = document.getElementById("error-message");
-                let emailInput = document.getElementById("email");
-                let termsCheckbox = document.getElementById("termsCheckbox");
-                let termsErrorMessage = document.getElementById("terms-error-message");
-                let recaptchaErrorMessage = document.getElementById("recaptcha-error-message");
-                let recaptchaResponse = grecaptcha.getResponse();
+            // Save email to a cookie so response.php can pick it up
+            document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; max-age=3600";
 
-                termsErrorMessage.classList.add("hidden");
-                if (!termsCheckbox.checked) {
-                    termsErrorMessage.classList.remove("hidden");
-                    return;
+            try {
+                // Hide form
+                document.getElementById("main_2").style.display = "none";
+
+                // Show embedded area
+                const embedDiv = document.getElementById("embedded-checkout");
+                embedDiv.classList.remove("hidden");
+
+                // Safety check
+                if (typeof Checkout === 'undefined') {
+                    throw new Error("Checkout library not loaded. Check script URL and console errors.");
                 }
 
-                if (recaptchaResponse.length === 0) {
-                    recaptchaErrorMessage.classList.remove("hidden");
-                    return false;
-                }
-
-                if (emailPattern.test(email)) {
-                    emailInput.classList.remove("border-red-500");
-                    emailInput.classList.add("border-green-500");
-                    errorMessage.classList.add("hidden");
-
-                    console.log('Email stored in browser BEFORE');
-                    document.cookie = "userEmail=" + encodeURIComponent(email) + "; path=/; SameSite=Lax";
+                if (typeof Checkout.showEmbeddedPage === 'function') {
+                    // Preferred: Embedded mode inside your page
+                    Checkout.showEmbeddedPage("#embedded-checkout", {
+                        onError: function(error) {
+                            console.error("Gateway Error:", error);
+                            
+                            // Hide the embedded checkout as it might be broken/empty
+                            document.getElementById("embedded-checkout").classList.add("hidden");
+                            
+                            // Get the error message container
+                            const errorContainer = document.getElementById("payment-error");
+                            
+                            if (errorContainer) {
+                                errorContainer.classList.remove("hidden");
+                                
+                                // Surface the detailed explanation nicely to the user
+                                let errorMessage = "An error occurred while loading the payment form.";
+                                
+                                if (error && error.error && error.error.explanation) {
+                                    errorMessage = error.error.explanation;
+                                } else if (error && error.error && error.error.cause) {
+                                    errorMessage = error.error.cause;
+                                }
+                                
+                                errorContainer.textContent = errorMessage;
+                            }
+                            
+                            // Also show the "Return to Merchant" button so they aren't stuck
+                            const returnBtn = document.getElementById("return-to-merchant-btn");
+                            if (returnBtn) {
+                                returnBtn.classList.remove("hidden");
+                            }
+                        }
+                    });
+                } else if (typeof Checkout.showPaymentPage === 'function') {
+                    // Fallback: Lightbox / full payment page overlay
+                    console.warn("Embedded mode not supported → falling back to Payment Page");
                     Checkout.showPaymentPage();
-                    console.log('Email stored in browser storage:', email);
-
                 } else {
-                    emailInput.classList.remove("border-green-500");
-                    emailInput.classList.add("border-red-500");
-                    errorMessage.classList.remove("hidden");
-                    errorMessage.textContent = 'Please enter a valid email address.';
+                    throw new Error("Neither showEmbeddedPage nor showPaymentPage available. Wrong gateway version?");
                 }
-            }
-        </script>
 
-        <?php
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $recaptchaSecret = ROBOT_SECRET_KEY;
-            $recaptchaResponse = $_POST['g-recaptcha-response'];
-
-            $response = file_get_contents(
-                "https://www.google.com/recaptcha/api/siteverify?secret=$recaptchaSecret&response=$recaptchaResponse"
-            );
-
-            $responseKeys = json_decode($response, true);
-
-            if (!empty($responseKeys["success"]) && $responseKeys["success"] === true) {
-                echo "✅ Verification successful! You are not a robot.";
-            } else {
-                echo "❌ Please verify you are not a robot.";
+            } catch (err) {
+                console.error("Payment launch error:", err);
+                alert("Unable to launch payment: " + err.message);
+                // Optional: Show form again on error
+                document.getElementById("main_2").style.display = "block";
+                embedDiv.classList.add("hidden");
             }
         }
-        ?>
+    </script>
     <?php } ?>
 </body>
-
 </html>
