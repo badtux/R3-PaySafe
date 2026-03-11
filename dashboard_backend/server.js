@@ -9,6 +9,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const pdfRoutes = require("./routes/receiptRoutes");
 const gatewayRoutes = require("./routes/settingRouters");
 const { saveHardcodedGateways } = require("./services/setting.service");
+const { startECardCron } = require("./tenantSetting/helpage/eCardCron");
 require("dotenv").config();
 const PORT = process.env.PORT || 3008;
 const APP_FQDN = process.env.APP_FQDN;
@@ -72,6 +73,8 @@ async function startServer() {
     try {
         await connectToMongo();
         await saveHardcodedGateways();
+              startECardCron();
+
 if (LIVE) {
   const getCertForDomain = (hostname) => {
     const certDir = path.join(CERTS_BASE_DIR, hostname);
@@ -91,7 +94,7 @@ if (LIVE) {
   const defaultKey = path.join(CERTS_BASE_DIR, defaultDomain, 'privkey.pem');
   const defaultCert = path.join(CERTS_BASE_DIR, defaultDomain, 'fullchain.pem');
 
-  // ONLY ADDED THESE TWO LINES — NOTHING ELSE CHANGED
+
   console.log(`Default Key Path: ${defaultKey}`);
   console.log(`Default Cert Path: ${defaultCert}`);
   console.log(`Default domain Path: ${defaultDomain}`);
