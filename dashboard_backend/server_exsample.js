@@ -11,7 +11,7 @@ const gatewayRoutes = require("./routes/settingRouters");
 const { saveHardcodedGateways } = require("./services/setting.service");
 require("dotenv").config();
 
-const PORT = process.env.PORT || 3008;
+const PORT = process.env.PORT || 3009;
 const LIVE = process.env.LIVE === 'true';
 
 const CERTS_BASE_DIR = path.join(__dirname, '../../certs');

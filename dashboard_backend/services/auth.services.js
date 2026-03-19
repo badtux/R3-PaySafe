@@ -22,7 +22,7 @@ async function exchangeCodeForToken(tenant, code, verifier) {
     new URLSearchParams({
       grant_type: "authorization_code",
       code,
-      redirect_uri: "http://localhost:3008/api/oauth/callback",
+      redirect_uri: "http://localhost:3009/api/oauth/callback",
       client_id: `${tenant}_humanv2`,
       code_verifier: verifier,
     }),

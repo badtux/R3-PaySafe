@@ -26,8 +26,8 @@ $(document).ready(() => {
   if (checkAuth()) {
     const tenant = localStorage.getItem("tenant");
     BASE_URL = IS_LOCAL
-      ? `http://${tenant}.localhost:3008/api`
-      : `https://${tenant}.go.digitable.io:3008/api`;
+      ? `http://${tenant}.localhost:3009/api`
+      : `https://${tenant}.go.digitable.io:3009/api`;
     console.log("BASE_URL set to:", BASE_URL);
     $("#dashboard-icons").removeClass("hidden");
     $("#userName").text(tenant || "User");

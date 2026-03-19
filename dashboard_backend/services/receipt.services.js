@@ -7,7 +7,7 @@ const path = require('path');
 
 function validateTenantAndOrderId(tenant, orderId) {
     if (!tenant || tenant === 'localhost' || tenant === 'go' || !/^[a-zA-Z0-9-]+$/.test(tenant)) {
-        throw new Error('Invalid tenant. Use a valid subdomain (e.g., malkey.localhost:3008)');
+        throw new Error('Invalid tenant. Use a valid subdomain (e.g., malkey.localhost:3009)');
     }
     if (!orderId || !/^[a-zA-Z0-9]+$/.test(orderId)) {
         throw new Error('Invalid orderId format. Use alphanumeric characters only.');

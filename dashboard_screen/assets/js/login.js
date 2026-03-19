@@ -62,8 +62,8 @@
         localStorage.setItem("tenant", inputTenant);
 
         BASE_URL = IS_LOCAL
-          ? `http://${inputTenant}.localhost:3008/api`
-          : `https://${inputTenant}.go.digitable.io:3008/api`;
+          ? `http://${inputTenant}.localhost:3009/api`
+          : `https://${inputTenant}.go.digitable.io:3009/api`;
 
         console.log("Login successful, BASE_URL:", BASE_URL);
         return true;
