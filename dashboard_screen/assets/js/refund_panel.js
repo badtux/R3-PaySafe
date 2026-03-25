@@ -27,10 +27,12 @@ $(document).ready(function () {
 
   $('body').append(refundPanelHtml);
 
+
+
   // --- Resizable panel (persists user width) ---
   const WIDTH_STORAGE_KEY = 'refundPanelWidthPx';
   const MIN_W = 360;
-  const MAX_W_RATIO = 0.95; // 95vw
+  const MAX_W_RATIO = 0.95; 
 
   function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
@@ -185,6 +187,30 @@ $(document).ready(function () {
   function renderRefunds(filter = '') {
      const container = $('#refundPanelBody');
      let list = currentRefundData;
+
+     // Sort latest refunds first (newest -> oldest)
+     const getLatestRefundTs = (t) => {
+       // Prefer timestamp from latestRefundId's node if we can find it
+       if (t && t.latestRefundId) {
+         const key = Object.keys(t).find((k) => k.startsWith('refund-') && t[k] && t[k].refundTransactionId === t.latestRefundId);
+         if (key && t[key] && t[key].refundDate) return new Date(t[key].refundDate).getTime();
+       }
+
+       // Fallback: max refundDate among refund-* nodes
+       let max = 0;
+       for (const k of Object.keys(t || {})) {
+         if (!k.startsWith('refund-')) continue;
+         const rd = t[k]?.refundDate;
+         const ts = rd ? new Date(rd).getTime() : 0;
+         if (ts > max) max = ts;
+       }
+       // Final fallback: updatedAt/createdAt
+       if (!max && t?.updatedAt) return new Date(t.updatedAt).getTime();
+       if (!max && t?.createdAt) return new Date(t.createdAt).getTime();
+       return max;
+     };
+
+     list = [...list].sort((a, b) => getLatestRefundTs(b) - getLatestRefundTs(a));
      
      if(filter) {
         list = list.filter(t => 
