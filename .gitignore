@@ -3,3 +3,4 @@
 /dashboard_backend/vendor/
 vendor
 /dashboard_screen/test.js
+.DS_Store
