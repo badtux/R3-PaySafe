@@ -8,11 +8,11 @@ $router = new Router();
 $logger->info('Base path: ' . BASE_PATH);
 
 $router->addRoute('GET', BASE_PATH, function() use ($logger) {
-    require_once('seylan_hosted.php');
+    require_once('hosted.php');
 });
 
 $router->addRoute('GET', BASE_PATH . '/auth', function() use ($logger) {
-    require_once('seylan_hostedAuth.php');
+    require_once('hostedAuth.php');
 });
 
 $router->addRoute('GET', BASE_PATH . '/status', function() use ($logger){
