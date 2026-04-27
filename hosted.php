@@ -17,7 +17,7 @@ $willAttemptInit = ($isURLQueryRequest
 $hasInitiated = ($isURLQueryRequest 
     && !$willAttemptInit 
     && isset($_SESSION['txnId']) 
-    && isset($_SESSION['sessionId'])) ? true : false;
+    && isset($_SESSION['paymentPageUrl'])) ? true : false;
 
 function resetPaymentSession($amount, $currency, $orderId, $description, $address = null, $successUrl = null, $failedUrl = null){
     $_SESSION['payments'] = []; 
@@ -42,68 +42,92 @@ function resetPaymentSession($amount, $currency, $orderId, $description, $addres
 }
 
 function initiateCheckout($txnId, $logger) {
-    // Paycenter API initialization
-    $endPointUrl = defined('PAYCENTER_API_URL') ? PAYCENTER_API_URL : 'https://api.paycenter.com/paymentInit';
-    $clientId = defined('PAYCENTER_CLIENT_ID') ? PAYCENTER_CLIENT_ID : 12345;
-    $returnUrl = defined('REDIRECT_URL') ? REDIRECT_URL : BASE_PATH . '/status';
+    $endPointUrl = PAYCENTER_API_URL;
+    $clientId    = PAYCENTER_CLIENT_ID;
+    $returnUrl   = REDIRECT_URL;
 
-    $data = [
-        "clientId" => $clientId,
-        "type" => "PURCHASE",
-        "tokenize" => false,
-        "amount" => [
-            "paymentAmount" => (float)$_SESSION['payments'][$txnId]['amount'],
-            "currency" => $_SESSION['payments'][$txnId]['currency']
-        ],
-        "redirect" => [
-            "returnUrl" => $returnUrl,
-            "returnMethod" => "GET"
-        ],
-        "clientRef" => $_SESSION['payments'][$txnId]['orderId'],
-        "comment" => $_SESSION['payments'][$txnId]['description']
+    // Amount must be integer cents per doc §6.6
+    $amountInCents = (int) round((float)$_SESSION['payments'][$txnId]['amount'] * 100);
+
+    // Correct wrapper structure as per Paycenter Technical Guide sample request
+    $requestBody = [
+        "version"      => "1.5",
+        "msgId"        => strtoupper(bin2hex(random_bytes(16))),  // unique message ID
+        "operation"    => "PAYMENT_INIT",
+        "requestDate"  => date('Y-m-d\TH:i:s.000+0530'),
+        "validateOnly" => false,
+        "requestData"  => [
+            "clientId"          => (string) $clientId,
+            "clientIdHash"      => "",
+            "transactionType"   => "PURCHASE",
+            "transactionAmount" => [
+                "totalAmount"      => 0,
+                "paymentAmount"    => $amountInCents,
+                "serviceFeeAmount" => 0,
+                "currency"         => $_SESSION['payments'][$txnId]['currency']
+            ],
+            "redirect" => [
+                "returnUrl"    => $returnUrl,
+                "cancelUrl"    => "",
+                "returnMethod" => "GET"
+            ],
+            "clientRef"      => substr($_SESSION['payments'][$txnId]['orderId'], 0, 50),
+            "comment"        => substr($_SESSION['payments'][$txnId]['description'], 0, 100),
+            "tokenize"       => false,
+            "cssLocation1"   => "",
+            "cssLocation2"   => "",
+            "useReliability" => true,
+            "extraData"      => ""
+        ]
     ];
 
-    $jsonData = json_encode($data);
+    $jsonData  = json_encode($requestBody);
+    $signature = hash_hmac('sha256', $jsonData, PAYCENTER_HMAC_SECRET);
+
     $logger->info("Paycenter Init Request: " . $jsonData);
 
     $ch = curl_init();
     curl_setopt_array($ch, [
-        CURLOPT_URL => $endPointUrl,
+        CURLOPT_URL            => $endPointUrl,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => $jsonData,
-        CURLOPT_HTTPHEADER => [
-            "Content-Type: application/json",  
-            "Cache-Control: no-cache"
-            // Add HMAC or Auth Token headers here as per Paycorp docs
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $jsonData,
+        CURLOPT_HTTPHEADER     => [
+            "Content-Type: application/json",
+            "Accept: application/json",
+            "authtoken: " . PAYCENTER_AUTH_TOKEN,
+            "signature: "  . $signature,
         ],
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
 
     $response = curl_exec($ch);
-    $logger->info("Paycenter Init Response: " . $response);
+    $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $logger->info("Paycenter Init Response [HTTP $httpCode]: " . $response);
 
     if ($response === false) {
-        $logger->error("Error while cUrl: " . curl_error($ch));
-        // Mock successful response for demonstration without valid API endpoint
-        $mockUrl = "https://paycorp.com/mock-iframe?reqid=" . time();
-        return ["sessionId" => "mock_session", "paymentPageUrl" => $mockUrl];
+        $logger->error("cURL error communicating with Paycorp API.");
+        throw new Exception("Error connecting to payment gateway. Please try again.");
     }
 
     $result = json_decode($response, true);
 
-    if (json_last_error() === JSON_ERROR_NONE && isset($result['reqid']) && isset($result['paymentPageUrl'])) {
-        $logger->info("Checkout initiated successfully. Req ID: " . $result['reqid']);
+    // Response is wrapped: { "responseData": { "reqid": ..., "paymentPageUrl": ... } }
+    $responseData = $result['responseData'] ?? $result ?? [];
+
+    if (json_last_error() === JSON_ERROR_NONE && isset($responseData['reqid']) && isset($responseData['paymentPageUrl'])) {
+        $logger->info("Checkout initiated successfully. Req ID: " . $responseData['reqid']);
         return [
-            "sessionId" => $result['reqid'],
-            "paymentPageUrl" => $result['paymentPageUrl']
+            "sessionId"      => (string)$responseData['reqid'],
+            "paymentPageUrl" => $responseData['paymentPageUrl']
         ];
     }
-    
-    // For development without live API, mock the response
-    $logger->error("Failed to parse or missing fields in response: " . $response);
-    $mockUrl = "https://sandbox.paycorp.com/iframe?reqid=" . time();
-    return ["sessionId" => "mock_req_" . time(), "paymentPageUrl" => $mockUrl];
+
+    $errMsg = $result['responseText'] ?? $result['message'] ?? $result['error'] ?? $response;
+    $logger->error("PAYMENT_INIT failed: " . $errMsg);
+    throw new Exception("Payment initialisation failed: " . $errMsg);
 }
 
 
@@ -205,9 +229,8 @@ try {
 
     if ($hasInitiated) {
         if (isset($_SESSION['payments'][$_SESSION['txnId']]) && 
-            ($_SESSION['payments'][$_SESSION['txnId']]['sessionId'] == $_SESSION['sessionId'])) {
+            isset($_SESSION['sessionId'])) {
             $logger->info('Payment session found for txnId: ' . $_SESSION['txnId']);
-    
         } else {
             throw new Exception("Invalid transaction ID. Please try again.");
         }
@@ -424,20 +447,25 @@ catch (Exception $e) {
                 // Hide form
                 document.getElementById("main_2").style.display = "none";
 
-                // Show embedded area
+                // Show redirect area
                 const embedDiv = document.getElementById("embedded-checkout");
                 embedDiv.classList.remove("hidden");
 
-                // Safety check
-                
-                const embedDiv = document.getElementById("embedded-checkout");
-                embedDiv.classList.remove("hidden");
-                // Inject Paycorp Iframe
-                const paymentPageUrl = "<?php echo htmlspecialchars($_SESSION['paymentPageUrl'] ?? ''); ?>";
-                if(paymentPageUrl) {
-                    embedDiv.innerHTML = `<iframe src="${paymentPageUrl}" width="100%" height="600px" frameborder="0" style="border:none; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"></iframe>`;
+                // Redirect to Paycorp hosted payment page (X-Frame-Options blocks iframe)
+                const paymentPageUrl = <?php echo json_encode($_SESSION['paymentPageUrl'] ?? ''); ?>;
+                if (paymentPageUrl) {
+                    embedDiv.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-12 gap-4 text-gray-600">
+                            <svg class="animate-spin h-9 w-9 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <p class="text-sm font-medium">Redirecting to secure payment page…</p>
+                            <a href="${paymentPageUrl}" class="text-xs text-red-500 underline">Click here if not redirected</a>
+                        </div>`;
+                    setTimeout(() => { window.location.href = paymentPageUrl; }, 2000);
                 } else {
-                    embedDiv.innerHTML = `<p class="text-red-500 text-center">Failed to load payment iframe URL.</p>`;
+                    embedDiv.innerHTML = `<p class="text-red-500 text-center p-4">Failed to load payment URL. Please try again.</p>`;
                 }
 
             } catch (err) {

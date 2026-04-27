@@ -1,7 +1,7 @@
 <?php
 
-define('APP_LIVE',true);
-define('BASE_PATH','/paysafe/sey');
+define('APP_LIVE',false);
+define('BASE_PATH', APP_LIVE ? '/paysafe/sey' : '/sampath');
 
 
  define('LOGO', 'https://www.helpagesl.org/assets/images/logo-sri-lanka.webp');
@@ -39,7 +39,9 @@ if (APP_LIVE) {
      define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
      define('COLLECTION', 'payments');
      define('DB', $databaseName);
-
+     define('REDIRECT_URL', 'http://helpage.paymentgateway.loc/sampath/status');
+     define('ROBOT_SITE_KEY', '');
+     define('ROBOT_SECRET_KEY', '');
 }
 
 
@@ -48,7 +50,7 @@ if (APP_LIVE) {
 
     define('ASSET_PATH_URL', 'https://seylan.go.digitable.io/paysafe/seylan/');
 } else {
-    define('ASSET_PATH_URL', 'http://http://paymentgateway.loc/seylan/');
+    define('ASSET_PATH_URL', 'http://paymentgateway.loc/sampath/assets/');
 }
 
 define('NAME', 'HelpAge');

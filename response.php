@@ -1,290 +1,186 @@
 <?php
+// session already started in bootstrap.php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-error_log("Session ID: " . session_id());
-
-require 'vendor/autoload.php';
-
-
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
- 
-session_start();
 
+// ── Get email from cookie ─────────────────────────────────────────────────────
 if (isset($_COOKIE['userEmail'])) {
     $email = filter_var($_COOKIE['userEmail'], FILTER_SANITIZE_EMAIL);
     $_SESSION['email'] = $email;
-    error_log("Email retrieved from cookie: $email");
-} 
- else {
-    $email = 'example@example.com';
-    error_log("No email in cookie, session, or MongoDB, using fallback: $email");
+} else {
+    $email = $_SESSION['email'] ?? 'example@example.com';
 }
 
- error_log("UUID in session: " . ($_SESSION['uuid'] ?? 'not set'));
-
-
+$uuid    = $_SESSION['uuid']    ?? null;
 $orderId = $_SESSION['orderId'] ?? 'no-order-id';
-$currency = $_SESSION['currency'] ?? 'USD';
-$uuid = $_SESSION['uuid'] ?? null;
 
-$database_url = DATABASE_URL;
-$collection = COLLECTION;
-$database = DB;
+// ── Call 2: PAYMENT_COMPLETE (PDF §6.9) ───────────────────────────────────────
+// Paycorp redirects back to returnUrl via GET ?ReqID=
+$reqid = $_GET['ReqID'] ?? null;
 
+if (!$reqid) {
+    error_log("response.php: No ReqID in GET params.");
+}
 
-$merchantId = MERCHANT_ID;
-$apiUserName = API_USERNAME;
-$apiPassword = API_PASSWORD;
+$paymentStatus = 'UNKNOWN';
+$emailMessage  = '';
+$txnData       = [];
 
+// Paycorp PAYMENT_COMPLETE fields: operation + clientId + reqid
+$payload   = json_encode([
+    'operation' => 'PAYMENT_COMPLETE',
+    'clientId'  => (int) PAYCENTER_CLIENT_ID,
+    'reqid'     => (string) $reqid,
+]);
+$signature = hash_hmac('sha256', $payload, PAYCENTER_HMAC_SECRET);
 
-error_log($orderId);
-error_log($merchantId);
-
-$gatewayUrl = rtrim(IPG_API_URL, '/') . '/' . rawurlencode($merchantId) . '/order/' . rawurlencode($orderId);
-
-error_log('-------------' . $gatewayUrl);
+error_log("PAYMENT_COMPLETE payload: " . $payload);
 
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $gatewayUrl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-curl_setopt($ch, CURLOPT_USERPWD, "merchant.$merchantId:$apiPassword");
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+curl_setopt_array($ch, [
+    CURLOPT_URL            => PAYCENTER_API_URL,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST           => true,
+    CURLOPT_POSTFIELDS     => $payload,
+    CURLOPT_HTTPHEADER     => [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'authtoken: ' . PAYCENTER_AUTH_TOKEN,
+        'signature: '  . $signature,
+    ],
+    CURLOPT_SSL_VERIFYPEER => true,
+]);
 
 $response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-$paymentStatus = "";
-$emailMessage = "";
+error_log("PAYMENT_COMPLETE response [HTTP $httpCode]: " . $response);
 
-if ($httpCode == 200) {
-    $data = json_decode($response, true);
+// ── Parse response (PDF §6.10) ────────────────────────────────────────────────
+$responseCode = null;
+$responseText = null;
+$txnReference = null;
+$holderName   = null;
+$cardNumber   = null;
+$cardExpiry   = null;
+$amount       = '0.00';
+$currency     = $_SESSION['payments'][$_SESSION['txnId'] ?? '']['currency'] ?? 'LKR';
 
-    if (!empty($data)) {
-    // original gateway result
-    $paymentStatus = htmlspecialchars($data['result'] ?? 'N/A');
-        $transactionId = $data['authentication']['3ds']['transactionId'] ?? 'not-set';
-        $nameOnCard = $data['sourceOfFunds']['provided']['card']['nameOnCard'] ?? 'not-set';
-        $cardNumber     = $data['sourceOfFunds']['provided']['card']['number'] ?? 'N/A';
-        $merchant = $data['merchant'] ?? 'not-set';
-        $device = $data['device'] ?? [];
-        $cardBrand = $data['sourceOfFunds']['provided']['card']['brand'] ?? 'N/A';
-        $orderId = $data['id'] ?? $orderId;
-        $fundingMethord = $data['sourceOfFunds']['provided']['card']['fundingMethod'] ?? 'N/A';
-        $lastUpdated = $data['lastUpdatedTime'] ? new UTCDateTime(strtotime($data['lastUpdatedTime']) * 1000) : new UTCDateTime();
-        $amount = isset($data['amount']) ? number_format((float)$data['amount'], 2, '.', '') : '0.00';
-        $currency = htmlspecialchars($data['currency'] ?? 'N/A');
-        $status = strtolower($data['result'] ?? '');
-        // Determine mail status from result by default
-        $mailStatus = match ($status) {
-            'success' => 'success',
-            'error' => 'payment error',
-            'canceled' => 'payment canceled',
-            default => 'unknown',
-        };
+if ($response !== false) {
+    $txnData = json_decode($response, true) ?? [];
 
-        // --- New: Inspect captured amounts ---
-        // Prefer top-level totalCapturedAmount when provided (gateway aggregate).
-        // Otherwise sum per-transaction amounts but avoid double-counting by transaction id.
-        $capturedAmount = 0.0;
-        if (isset($data['totalCapturedAmount']) && floatval($data['totalCapturedAmount']) > 0.0) {
-            $capturedAmount = floatval($data['totalCapturedAmount']);
-        } else {
-            $seenTx = [];
-            if (!empty($data['transaction']) && is_array($data['transaction'])) {
-                foreach ($data['transaction'] as $t) {
-                    $txId = $t['transaction']['id'] ?? null;
-                    if ($txId && isset($seenTx[$txId])) {
-                        continue; // already counted
-                    }
+    $responseCode = $txnData['responseCode'] ?? null;   // "00" = success (PDF §7.1.3)
+    $responseText = $txnData['responseText'] ?? null;
+    $txnReference = (string)($txnData['txnReference'] ?? '');
+    $holderName   = $txnData['creditCard']['holderName'] ?? 'N/A';
+    $cardNumber   = $txnData['creditCard']['number']     ?? 'N/A';
+    $cardExpiry   = $txnData['creditCard']['expiry']     ?? 'N/A';
+    $amountCents  = $txnData['amount']['paymentAmount']  ?? 0;
+    $currency     = $txnData['amount']['currency']       ?? $currency;
+    $amount       = number_format($amountCents / 100, 2, '.', ',');
 
-                    // Prefer the canonical amount in the nested transaction object, fallback to order.totalCapturedAmount or transaction-level totalCapturedAmount
-                    $amt = 0.0;
-                    if (isset($t['transaction']) && isset($t['transaction']['amount'])) {
-                        $amt = floatval($t['transaction']['amount']);
-                    } elseif (isset($t['totalCapturedAmount'])) {
-                        $amt = floatval($t['totalCapturedAmount']);
-                    } elseif (isset($t['order']) && isset($t['order']['totalCapturedAmount'])) {
-                        $amt = floatval($t['order']['totalCapturedAmount']);
-                    }
+    // responseCode "00" = SUCCESS per PDF §7.1.3
+    $isSuccess    = ($responseCode === '00' || strtoupper($responseText ?? '') === 'SUCCESS');
+    $paymentStatus = $isSuccess ? 'SUCCESS' : 'ERROR';
+    $mailStatus    = $isSuccess ? 'success' : 'payment error';
 
-                    if ($txId) {
-                        $seenTx[$txId] = true;
-                    }
-                    $capturedAmount += $amt;
-                }
-            }
-
-            // Fallback: if still zero, consider order-level totalCapturedAmount
-            if ($capturedAmount == 0.0 && isset($data['order']) && isset($data['order']['totalCapturedAmount'])) {
-                $capturedAmount = floatval($data['order']['totalCapturedAmount']);
-            }
-        }
-        $isCaptured = ($capturedAmount > 0.0);
-        if ($isCaptured) {
-            $paymentStatus = 'SUCCESS';
-            $mailStatus = 'success';
-        } else {
-            $paymentStatus = 'ERROR';
-            $mailStatus = 'payment error';
-        }
-        error_log("Response: $response");
-        error_log("uuid:$uuid");
-      try {
-    $client = new Client($database_url);
-    $collection = $client->selectDatabase($database)->selectCollection($collection);
-
-    if (!$uuid) {
-        error_log("UUID not set in session! Cannot update MongoDB. OrderID: $orderId");
-    } else {
-        error_log("Attempting MongoDB update for UUID: $uuid | OrderID: $orderId");
+    // ── Update MongoDB ────────────────────────────────────────────────────────
+    try {
+        $client      = new Client(DATABASE_URL);
+        $mongoCol    = $client->selectDatabase(DB)->selectCollection(COLLECTION);
 
         $updateData = [
-            'paymentStatus'    => $paymentStatus,
-            'transactionId'    => $transactionId ?? 'not-set',
-            'nameOnCard'       => $nameOnCard ?? 'not-set',
-            'merchantId'       => $merchant ?? MERCHANT_ID,
-            'device'           => $device ?? [],
-            'cardBrand'        => $cardBrand ?? 'N/A',
-            'fundingMethod'    => $fundingMethord ?? 'N/A', 
-            'email'            => $email,
-            'amount'           => $amount,
-            'currency'         => $currency,
-            'updatedAt'        => $lastUpdated,
-            'captureChecked'   => true,
-            'capturedAmount'   => $capturedAmount,
-            'captureStatus'    => ($isCaptured ? 'SUCCESS' : 'ERROR'),
-            'gatewayResponse'  => $data, 
-            'cardNumber'    => $cardNumber,
-            //'cardLast4'        => !empty($cardNumber) ? substr($cardNumber, -4) : 'N/A',
-        ];
-        $attemptEntry = [
-            'time' => new UTCDateTime(),
-            'orderId' => $orderId,
-            'capturedAmount' => $capturedAmount,
-            'captureStatus' => ($isCaptured ? 'SUCCESS' : 'ERROR'),
-            'gatewayResponse' => $data,
+            'paymentStatus'  => $paymentStatus,
+            'responseCode'   => $responseCode,
+            'responseText'   => $responseText,
+            'txnReference'   => $txnReference,
+            'holderName'     => $holderName,
+            'cardNumber'     => $cardNumber,
+            'cardExpiry'     => $cardExpiry,
+            'amount'         => $amount,
+            'currency'       => $currency,
+            'email'          => $email,
+            'gatewayResponse'=> $txnData,
+            'updatedAt'      => new UTCDateTime(),
         ];
 
-        $updateOps = [
-            '$set' => $updateData,
-            '$push' => ['paymentAttempts' => $attemptEntry],
-        ];
-
-        $result = $collection->updateOne(
-            ['uuid' => $uuid],
-            $updateOps
+        $mongoCol->updateOne(
+            ['reqid' => (string)$reqid],
+            ['$set'  => $updateData]
         );
 
-        error_log("MongoDB Update Result - Matched: " . $result->getMatchedCount() .
-                  " | Modified: " . $result->getModifiedCount() .
-                  " | Upserted: " . ($result->getUpsertedCount() ? $result->getUpsertedId() : 'none'));
-
-        if ($result->getMatchedCount() === 0) {
-            error_log("WARNING: No document found with UUID $uuid in database!");
-        }
+        error_log("MongoDB updated for reqid: $reqid");
+    } catch (Exception $e) {
+        error_log("MongoDB Error: " . $e->getMessage());
     }
-} catch (Exception $e) {
-    error_log("MongoDB Fatal Error: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
-}
-        $subject = "Payment Status Update for - OID:$orderId ";
-        if ($mailStatus == 'payment error') {
-            $body = '
-            <div style="font-family: Arial, sans-serif; color: #721c24; background-color: #f8d7da; padding: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
-                <h2 style="color: #721c24; margin-top: 0;">❌ Payment Error </h2>
-                <div style="background-color: white; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin: 0 0 10px 0;">Order Details</h3>
-                    <table>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Number:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
-                        
-                    </table>
-                    <div style="margin-top: 15px; color: #856404; background-color: #fff3cd; padding: 10px; border-radius: 4px;">
-                        <h4 style="margin: 0 0 5px 0;">Error Details:</h4>
-                        <pre style="margin: 0; font-family: Consolas, monospace;">' . htmlspecialchars($data['error'] ?? 'Unknown error') . '</pre>
-                    </div>
-                </div>
-            </div>';
-        } elseif ($mailStatus == 'payment canceled') {
-            $body = '
-            <div style="font-family: Arial, sans-serif; color: #856404; background-color: #fff3cd; padding: 20px; border-radius: 5px; border: 1px solid #ffeeba;">
-                <h2 style="color: #BB6E2F; margin-top: 0;">⚠️ Payment Canceled </h2>
-                <div style="background-color: white; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin: 0 0 10px 0;">Order Details</h3>
-                    <table>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
-                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Number:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
-                          <tr><td style="padding: 5px 10px 5px 0;"><strong>  Card Holder Name:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
-                        
-                         
-                    </table>
-                </div>
-            </div>';
-        } elseif ($mailStatus == 'success') {
-            $body = '
-            <div style="font-family: Arial, sans-serif; color: #155724; background-color: #d4edda; padding: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
-                <h2 style=" margin-right:10 color:#155724; margin-top: 0;">✅ Payment Successful <img src=https://www.seylan.lk/images/web/icons/logo-2025.png alt="Bank Icon" style="width: 50px; height: 30px; vertical-align: middle;"></h2>
-                <div style="background-color: white; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin: 0 0 10px 0;">Order Details</h3>
-                    <table>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Transaction ID:</strong></td><td>' . htmlspecialchars($transactionId) . '</td></tr>
-                         <tr><td style="padding: 5px 10px 5px 0;"><strong> Card Number:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
-                          <tr><td style="padding: 5px 10px 5px 0;"><strong>  Card Holder Name:</strong></td><td>' . htmlspecialchars($nameOnCard) . '</td></tr>
-                        <tr><td style="padding: 5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($amount) . ' ' . htmlspecialchars($currency) . '</td></tr>
-                    </table>
-                    <p style="margin: 15px 0 0 0; color: #155724;">Thank you for  Donations to HelpAge.</p>
-                </div>
-            </div>';
-        } else {
-            $body = '<p>Unknown payment status: ' . htmlspecialchars($status) . '</p>';
-        }
 
-        $mail = new PHPMailer(true);
-        try {
+    // ── Send email ────────────────────────────────────────────────────────────
+    $subject = "Payment Status Update - OID: $orderId";
 
-            $mail->SMTPDebug = 0;
-            $mail->isSMTP();
-            $mail->Host = MAIL_HOST;
-            $mail->SMTPAuth = true;
-            $mail->Username = MAIL_USERNAME;
-            $mail->Password = MAIL_PASSWORD;
-            $mail->SMTPSecure = MAIL_ENCRYPTION;
-            $mail->Port = MAIL_PORT;
-            $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
-            $mail->addAddress($email);
-            foreach (CC_LIST as $cc) {
-                $mail->addCC($cc);
-            }
-             foreach (BCC_LIST as $bcc) {
-             $mail->addBCC($bcc);
-            }
-            $mail->isHTML(true);
-            $mail->Subject = $subject;
-            $mail->Body = $body;
-
-            $mail->send();
-            $emailMessage = "Email sent successfully.";
-        } catch (Exception $e) {
-            $emailMessage = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-        }
+    if ($mailStatus === 'success') {
+        $body = '
+        <div style="font-family:Arial,sans-serif;color:#155724;background-color:#d4edda;padding:20px;border-radius:5px;border:1px solid #c3e6cb;">
+            <h2 style="margin-top:0;">✅ Payment Successful</h2>
+            <div style="background-color:white;padding:15px;border-radius:4px;">
+                <h3 style="margin:0 0 10px 0;">Order Details</h3>
+                <table>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Paycorp Txn Ref:</strong></td><td>' . htmlspecialchars($txnReference) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Card Number:</strong></td><td>' . htmlspecialchars($cardNumber) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Card Holder:</strong></td><td>' . htmlspecialchars($holderName) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($currency) . ' ' . htmlspecialchars($amount) . '</td></tr>
+                </table>
+                <p style="margin:15px 0 0 0;">Thank you for your donation to HelpAge Sri Lanka.</p>
+            </div>
+        </div>';
     } else {
-        $paymentStatus = "Unable to decode response";
+        $body = '
+        <div style="font-family:Arial,sans-serif;color:#721c24;background-color:#f8d7da;padding:20px;border-radius:5px;border:1px solid #f5c6cb;">
+            <h2 style="margin-top:0;">❌ Payment Failed</h2>
+            <div style="background-color:white;padding:15px;border-radius:4px;">
+                <h3 style="margin:0 0 10px 0;">Order Details</h3>
+                <table>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Order ID:</strong></td><td>' . htmlspecialchars($orderId) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Response Code:</strong></td><td>' . htmlspecialchars((string)$responseCode) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Response Text:</strong></td><td>' . htmlspecialchars((string)$responseText) . '</td></tr>
+                    <tr><td style="padding:5px 10px 5px 0;"><strong>Amount:</strong></td><td>' . htmlspecialchars($currency) . ' ' . htmlspecialchars($amount) . '</td></tr>
+                </table>
+            </div>
+        </div>';
+    }
+
+    $mail = new PHPMailer(true);
+    try {
+        $mail->SMTPDebug = 0;
+        $mail->isSMTP();
+        $mail->Host       = MAIL_HOST;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = MAIL_USERNAME;
+        $mail->Password   = MAIL_PASSWORD;
+        $mail->SMTPSecure = MAIL_ENCRYPTION;
+        $mail->Port       = MAIL_PORT;
+        $mail->setFrom(MAIL_ADDRESS, MAIL_NAME);
+        $mail->addAddress($email);
+        foreach (CC_LIST as $cc) { $mail->addCC($cc); }
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+        $emailMessage = "Email sent successfully.";
+    } catch (Exception $e) {
+        $emailMessage = "Email could not be sent: {$mail->ErrorInfo}";
+        error_log($emailMessage);
     }
 } else {
-    $paymentStatus = "Error retrieving order details (HTTP Code: $httpCode)";
+    $paymentStatus = "Error connecting to payment gateway.";
+    error_log("PAYMENT_COMPLETE cURL failed.");
 }
 ?>
 
