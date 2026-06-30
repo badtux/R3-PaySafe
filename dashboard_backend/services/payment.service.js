@@ -99,7 +99,15 @@ async function fetchPayments(hostname, query) {
       { orderId: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
+      { cardNumber: { $regex: search, $options: "i" } },
     ];
+
+    // If searching for last 4 digits (e.g. "1234", "****1234", "••••1234", "xxxx1234")
+    const last4Match = search.trim().match(/(?:[•*xX\s]*(\d{4}))$/);
+    if (last4Match) {
+      const last4Digits = last4Match[1];
+      baseFilter.$or.push({ cardNumber: { $regex: last4Digits + "\\s*$", $options: "i" } });
+    }
   }
 
   // Make a dedicated stats filter.
