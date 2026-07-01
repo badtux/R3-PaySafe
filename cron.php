@@ -18,7 +18,7 @@ use PHPMailer\PHPMailer\Exception as MailException;
  */
 function fetchGatewayOrder(string $merchantId, string $orderId, string $apiPassword): array
 {
-    $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/merchant/{$merchantId}/order/{$orderId}";
+    $gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/100/merchant/{$merchantId}/order/{$orderId}";
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $gatewayUrl);

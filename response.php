@@ -64,7 +64,7 @@ if ($currency == 'LKR') {
 error_log($orderId);
 error_log($merchantId);
 
-$gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/57/merchant/$merchantId/order/$orderId";
+$gatewayUrl = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/100/merchant/$merchantId/order/$orderId";
 error_log('-------------'.$gatewayUrl);
 
 $ch = curl_init();

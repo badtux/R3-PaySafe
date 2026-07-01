@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once "cmb_hostedAuth.php";
 require "vendor/autoload.php";
-require_once 'config/config.php';
+
 
 use MongoDB\Client;
 use MongoDB\BSON\UTCDateTime;
@@ -85,22 +85,29 @@ if (!$txnId) {
         } catch (Exception $e) {
             error_log("MongoDB Tenant Error: " . $e->getMessage());
         }
-        $url = "https://cbcmpgs.gateway.mastercard.com/api/nvp/version/57";
-        $data = http_build_query([
-            'apiOperation' => 'CREATE_CHECKOUT_SESSION',
-            'apiUsername' => $apiUserName,
-            'apiPassword' => $apiPassWord,
-            'merchant' => $merchantId,
-            'order.id' => $orderId,
-            'order.amount' => $amount,
-            'order.currency' => $currency,
-            'order.description' => $description,
-            'interaction.operation' => 'PURCHASE',
-            'interaction.returnUrl' => REDIRECT_URL,
-            'interaction.cancelUrl' => REDIRECT_URL,
-            'interaction.timeoutUrl' => REDIRECT_URL,
-           // 'interaction.errorUrl' => REDIRECT_URL,
-            'interaction.merchant.name' => NAME
+        $url = "https://cbcmpgs.gateway.mastercard.com/api/rest/version/100/merchant/{$merchantId}/session";
+        $data = json_encode([
+            "apiOperation" => "INITIATE_CHECKOUT",
+            "interaction" => [
+                "merchant" => [
+                    "name" => NAME
+                ],
+                "operation" => "PURCHASE",
+                "displayControl" => [
+                    "billingAddress" => "HIDE",
+                    "customerEmail" => "HIDE",
+                    "shipping" => "HIDE"
+                ],
+                "returnUrl" => REDIRECT_URL,
+                "cancelUrl" => REDIRECT_URL,
+                "timeoutUrl" => REDIRECT_URL
+            ],
+            "order" => [
+                "id" => $orderId,
+                "currency" => $currency,
+                "description" => $description,
+                "amount" => number_format((float)$amount, 2, '.', '')
+            ]
         ]);
 
         $options = [
@@ -109,9 +116,11 @@ if (!$txnId) {
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_HTTPHEADER => [
-                "Content-Type: application/x-www-form-urlencoded",
+                "Content-Type: application/json",
                 "Cache-Control: no-cache"
             ],
+            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+            CURLOPT_USERPWD => "merchant.{$merchantId}:{$apiPassWord}",
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_FAILONERROR => true
         ];
@@ -127,12 +136,12 @@ if (!$txnId) {
             $errorMessage = "Error: Failed to connect to payment gateway. Please try again.";
         } else {
             curl_close($ch);
-            parse_str($response, $result);
+            $result = json_decode($response, true);
 
-            if (!isset($result['session_id'])) {
+            if (!isset($result['session']['id'])) {
                 $errorMessage = "Error: Failed to create session. Please try again.";
             } else {
-                $sessionId = $result['session_id'];
+                $sessionId = $result['session']['id'];
 
                 try {
                     $client = new Client($database_url);

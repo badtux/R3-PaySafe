@@ -1,7 +1,8 @@
 <?php
 
-define('APP_LIVE', false); 
+define('APP_LIVE', true); 
 define('BASE_PATH','/paysafe/cmb');
+
 
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $tenant = explode('.', (string)$host)[0];
@@ -47,7 +48,7 @@ if (APP_LIVE) {
     define('API_PASSWORD_USD', 'a0524267d0593d281975c7e69bed8bd4');
     define('REDIRECT_URL', "http://{$tenant}.paymentgateway.loc/cmb/status");
 
-    define('DATABASE_URL', "mongodb://root:example@{$mongoHost}:27017/malkey_paysafe?authSource=admin");
+  define('DATABASE_URL', 'mongodb+srv://piumal0713:Adyp%400713@cluster0.8bv15.mongodb.net/?retryWrites=true&w=majority&authSource=admin');
     define('COLLECTION', 'payments');
     define('DB', $databaseName);
 
@@ -60,11 +61,12 @@ if (APP_LIVE) {
 
 
 define('NAME', 'Malkey Rent A Car');
-define('MAIL_DRIVER', 'smtp');
+define('MAIL_DRIVER', 'ses');
 define('MAIL_HOST', 'email-smtp.us-east-1.amazonaws.com');
-define('MAIL_PORT', 465);
-define('MAIL_ENCRYPTION', 'ssl');
-define('MAIL_USERNAME', 'AKIA5K7Q37VYYJEFNMN2');
-define('MAIL_PASSWORD', 'BHwtncYWVjdoVtd5Y9Epu1/UBPV7fRi+zbblftJlqabg');
-define('MAIL_ADDRESS', 'rype3-dtaas-platform@rype3.com');
+define('MAIL_PORT', 587);
+define('MAIL_USERNAME', 'AKIA5K7Q37VY26UOCQ64');
+define('MAIL_PASSWORD', 'BIEtWDDtnqIBa5tSGSHQm9Bfi+m6i6iu6wcYRnqbxB2O');
+define('MAIL_ENCRYPTION', 'tls');
+define('MAIL_SECURE', false);
+define('MAIL_ADDRESS', 'no-reply@go.digitable.io');
 define('MAIL_NAME', 'Malkey Rent A Car');

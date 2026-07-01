@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 
-require_once('config/config.php');
+
 require 'vendor/autoload.php';
 require 'cmb_hostedAuth.php';
 
@@ -147,31 +147,28 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" rel="stylesheet">
     <?php if (!isset($errorMessage)): ?>
-        <!-- <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"></script> -->
+        <!-- <script src="https://cbcmpgs.gateway.mastercard.com/static/checkout/checkout.min.js"></script> -->
 
-        <script src="https://cbcmpgs.gateway.mastercard.com/checkout/version/57/checkout.js"
-            data-error="errorCallback"
-            data-cancel="cancelCallback"
-            data-timeout="timeoutCallback"></script>
+        <script src="https://cbcmpgs.gateway.mastercard.com/static/checkout/checkout.min.js"></script>
 
         <script type="text/javascript">
-            function errorCallback(error) {
-                console.log(JSON.stringify(error));
-                alert('An error occurred during the payment process. Please try again.');
-                window.location.href = "https://www.malkey.lk";
-            }
+            // function errorCallback(error) {
+            //     console.log(JSON.stringify(error));
+            //     alert('An error occurred during the payment process. Please try again.');
+            //     window.location.href = "https://www.malkey.lk";
+            // }
 
-            function cancelCallback() {
-                console.log("Payment cancelled");
-                alert("Payment process was cancelled.");
-                window.location.href = "https://www.malkey.lk";
-            }
+            // function cancelCallback() {
+            //     console.log("Payment cancelled");
+            //     alert("Payment process was cancelled.");
+            //     window.location.href = "https://www.malkey.lk";
+            // }
 
-            function timeoutCallback() {
-                console.log("Payment timed out");
-                alert("The payment session has expired.");
-                window.location.href = "http://paymentgateway.loc/cmb?#__hc-action-timeout";
-            }
+            // function timeoutCallback() {
+            //     console.log("Payment timed out");
+            //     alert("The payment session has expired.");
+            //     window.location.href = "http://paymentgateway.loc/cmb?#__hc-action-timeout";
+            // }
 
             const sessionId = "<?php echo htmlspecialchars($sessionId ?? ''); ?>";
 
@@ -179,14 +176,7 @@ if (!$txnId || !isset($_SESSION['payments'][$txnId])) {
                 session: {
                     id: sessionId
                 },
-                interaction: {
-                    displayControl: {
-                        billingAddress: 'HIDE',
-                        customerEmail: 'HIDE',
-                        orderSummary: 'SHOW',
-                        shipping: 'HIDE'
-                    }
-                }
+              
             });
         </script>
 
