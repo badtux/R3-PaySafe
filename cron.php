@@ -7,7 +7,7 @@ declare(strict_types=1);
 $cliArgv = [];
 
 require __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/config/config.sample.php';
+require_once __DIR__ . '/config/config.php';
 
 use MongoDB\Client;
 use PHPMailer\PHPMailer\PHPMailer;
