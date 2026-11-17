@@ -1,5 +1,6 @@
 
 const paymentService = require('../services/payment.service');
+const bankService = require('../services/bank.service');
 const {sendRefundEmail} =require('../services/send.mail')
 
 exports.healthCheck = async (req, res) => {
@@ -88,6 +89,22 @@ exports.refundPayment = async (req, res) => {
         validationType: gatewayError.validationType || null,
       },
     });
+  }
+};
+
+exports.queryBankOrder = async (req, res) => {
+  try {
+    const reference = req.body.reference || req.body.orderId || req.body.search || req.query.reference || req.query.orderId;
+    if (!reference) {
+      return res.status(400).json({ success: false, message: 'Reference or Order ID is required' });
+    }
+
+    console.log(`[queryBankOrder] Received request to query bank for reference: ${reference}`);
+    const result = await bankService.queryAndSyncBankOrder(req.hostname, reference);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Error in queryBankOrder controller:', error.message);
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 

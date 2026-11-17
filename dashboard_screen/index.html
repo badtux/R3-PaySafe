@@ -251,11 +251,11 @@
 
     <div id="dashboard-content">
       <div
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-4"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
         id="statsCards"
       ></div>
 
-      <div id="filterSection" class="bg-white rounded-lg shadow p-2 mb-4">
+      <div id="filterSection" class="bg-white rounded-lg shadow p-4 md:p-6 mb-6 mt-6">
         <h2 class="text-lg font-semibold mb-4 text-gray-700">
           <i class=" mr-2 text-primary"></i>Filter Transactions
         </h2>
@@ -332,6 +332,15 @@
             </button>
 
             <button
+              id="queryBankBtn"
+              type="button"
+              class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md flex items-center shadow-sm transition-all"
+              title="Fetch transaction from Bank Gateway and save to database"
+            >
+              <i class="fas fa-university mr-2"></i> Fetch from Bank
+            </button>
+
+            <button
               id="resetFilters"
               class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center"
             >
@@ -340,6 +349,58 @@
           </div>
          </div>
       </div>
+
+    <!-- Bank Fetch Modal -->
+    <div
+      id="bankFetchModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity"
+    >
+      <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm relative border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+            <i class="fas fa-university text-orange-500 mr-2"></i> Fetch from Bank
+          </h3>
+          <button
+            id="closeBankFetchModal"
+            type="button"
+            class="text-gray-400 hover:text-gray-600 focus:outline-none text-lg"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="mb-4">
+          <label for="bankOrderIdInput" class="block text-sm font-medium text-gray-700 mb-1">
+            Order ID
+          </label>
+          <input
+            type="text"
+            id="bankOrderIdInput"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            placeholder="Enter Order ID"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancelBankFetchBtn"
+            type="button"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            id="submitBankFetchBtn"
+            type="button"
+            class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md flex items-center shadow-sm transition text-sm font-medium"
+          >
+            <i class="fas fa-cloud-download-alt mr-2"></i> Submit
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Refund Modal -->
 <div id="refundModal" class="fixed inset-0 bg-opacity-50 hidden flex items-center justify-center z-50 bg-gray-800">
   <div class="bg-white rounded-lg p-6 w-full max-w-md relative border border-gray-300 shadow-lg">

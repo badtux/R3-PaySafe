@@ -202,6 +202,24 @@ let currentFilters = {
 function setupEventListeners() {
   $("#applyFilters").on("click", applyFilters);
   $("#resetFilters").on("click", resetFilters);
+  $("#queryBankBtn").on("click", openBankFetchModal);
+  $("#closeBankFetchModal, #cancelBankFetchBtn").on("click", closeBankFetchModal);
+  $("#submitBankFetchBtn").on("click", submitBankFetch);
+  $("#bankOrderIdInput").on("keypress", function (e) {
+    if (e.which === 13) {
+      submitBankFetch();
+    }
+  });
+  $("#bankFetchModal").on("click", function (e) {
+    if (e.target === this) {
+      closeBankFetchModal();
+    }
+  });
+  $("#searchQuery").on("keypress", function (e) {
+    if (e.which === 13) {
+      applyFilters();
+    }
+  });
   $("#prevPage").off('click').on('click', () => {
     if (currentFilters.page > 1) changePage(currentFilters.page - 1);
   });
@@ -217,6 +235,69 @@ function setupEventListeners() {
     loadData({ updateStats: false });
   });
   $("#exportData").on("click", exportToCSV);
+}
+
+function openBankFetchModal() {
+  const currentSearch = $("#searchQuery").val().trim();
+  $("#bankOrderIdInput").val(currentSearch);
+  $("#bankFetchModal").removeClass("hidden");
+  setTimeout(() => {
+    $("#bankOrderIdInput").focus().select();
+  }, 100);
+}
+
+function closeBankFetchModal() {
+  $("#bankFetchModal").addClass("hidden");
+}
+
+async function submitBankFetch() {
+  const orderId = $("#bankOrderIdInput").val().trim();
+  if (!orderId) {
+    showToast("Please enter an Order ID", "error");
+    $("#bankOrderIdInput").focus();
+    return;
+  }
+
+  const $btn = $("#submitBankFetchBtn");
+  const origHtml = $btn.html();
+  $btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...');
+
+  try {
+    const url = `${BASE_URL}/bank/query-order`;
+    console.log("Querying Bank API at:", url, "for Order ID:", orderId);
+
+    const response = await $.ajax({
+      url: url,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ reference: orderId }),
+    });
+
+    console.log("Bank query response:", response);
+    if (response.alreadyExists) {
+      showToast(response.message || "This order is already in the database", "warning");
+      closeBankFetchModal();
+      currentFilters.search = orderId;
+      currentFilters.page = 1;
+      $("#searchQuery").val(orderId);
+      loadData();
+    } else if (response.success) {
+      showToast(response.message || `Order ${orderId} found in Bank API and copied!`, "success");
+      closeBankFetchModal();
+      currentFilters.search = orderId;
+      currentFilters.page = 1;
+      $("#searchQuery").val(orderId);
+      loadData();
+    } else {
+      showToast(response.message || "Order not found in Bank API", "error");
+    }
+  } catch (err) {
+    console.error("Bank query error:", err);
+    const msg = err.responseJSON?.message || err.responseText || err.message || "Failed to query Bank API";
+    showToast(msg, "error");
+  } finally {
+    $btn.prop("disabled", false).html(origHtml);
+  }
 }
 
 //let showRefundOnly = true;
@@ -381,7 +462,7 @@ function updateStats(stats) {
   // Ensure the cards container uses a responsive grid so cards can sit on one row on large screens
   $("#statsCards")
     .removeClass()
-    .addClass("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4");
+    .addClass("grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6");
 
   $("#statsCards").html(`
         <div class="bg-red-400 rounded-lg shadow text-white p-4 cursor-pointer hover:opacity-90 transition" data-card-filter="thisMonth">
@@ -841,8 +922,10 @@ function updateTable(transactions, total) {
         `
                 : '';
 
+            const isBankSynced = !!(t.bankSynced || t.copiedFromBank || t.isBankSync);
+
             return `
-<tr class="table-row expandable-row group bg-white border-b border-gray-100 hover:bg-gray-50 transition-all duration-200" id="row-${index}">
+<tr class="table-row expandable-row group bg-white border-b border-gray-100 hover:bg-gray-50 transition-all duration-200 ${isBankSynced ? 'border-l-4 border-l-orange-500 bg-orange-50/20' : ''}" id="row-${index}">
   <td colspan="8" class="px-6 py-4">
     <!-- Main Row -->
     <div class="main-row grid grid-cols-8 gap-6 items-center">
@@ -852,7 +935,7 @@ function updateTable(transactions, total) {
 </div>
 
       <div class="order-id font-bold text-lg text-blue-500 truncate max-w-[220px]" title="${t.orderId || ''}">
-        <span class="copy-on-click">${t.orderId || "N/A"}</span>
+        <span class="copy-on-click truncate">${t.orderId || "N/A"}</span>
       </div>
 
      <div class="amount text-lg font-semibold text-gray-700">
@@ -910,6 +993,14 @@ function updateTable(transactions, total) {
           ${addressBlock}
 
           ${refundTag ? `<div class="mt-1">${refundTag}</div>` : ""}
+
+          ${isBankSynced ? `
+            <div class="mt-1">
+              <span class="inline-flex items-center gap-1.5 bg-orange-100 text-orange-800 border border-orange-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+                <i class="fas fa-bell text-orange-500"></i> Copied from MPGS
+              </span>
+            </div>
+          ` : ""}
 
         </div>
 
@@ -1225,6 +1316,8 @@ function showToast(message, type = "info") {
       ? "bg-green-600"
       : type === "error"
       ? "bg-red-600"
+      : type === "warning"
+      ? "bg-amber-600"
       : "bg-gray-600";
 
   const toast = $(`

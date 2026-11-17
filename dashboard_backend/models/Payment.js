@@ -17,7 +17,9 @@ const paymentSchema = {
     paymentStatus: String,
     refundpaymentStatus :String,
     transactionId: String,
-    bank:String,
+    bank: String,
+    bankSynced: Boolean,
+    cron: Boolean,
     updatedAt: Date
 };
 

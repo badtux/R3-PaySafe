@@ -3,9 +3,10 @@ const { getGatewayCredentials } = require("./refund.setting.services");
 const refundService = require("./refund.service");
 
 function extractTenant(hostname) {
+  if (!hostname) return 'malkey';
   const tenant = hostname.split(".")[0];
-  if (!tenant || tenant === "localhost" || tenant === "go") {
-    throw new Error("Invalid tenant");
+  if (!tenant || tenant === "localhost" || tenant === "go" || tenant === "127") {
+    return 'malkey';
   }
   return tenant;
 }
