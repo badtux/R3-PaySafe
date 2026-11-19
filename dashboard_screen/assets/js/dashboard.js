@@ -12,6 +12,9 @@ $(document).ready(() => {
   CURRENT_TENANT = tenant;
   const savedTheme = localStorage.getItem("theme") || "light";
   const savedItemsPerPage = localStorage.getItem("itemsPerPage") || "10";
+  const defaultDates = getDefaultDateRange();
+  $("#fromDate").val(defaultDates.from);
+  $("#toDate").val(defaultDates.to);
 
   console.log("Hostname:", hostname, "IS_LOCAL:", IS_LOCAL, "Tenant:", tenant);
 
@@ -67,7 +70,8 @@ $(document).ready(() => {
   });
 
   $("#toggleFilter").click(function () {
-    $("#filterSection").toggleClass("show");
+    const isShown = $("#filterSection").toggleClass("show").hasClass("show");
+    $(this).toggleClass("active text-green-600 bg-green-50", isShown);
   });
 });
 
@@ -189,9 +193,27 @@ if (typeof document !== 'undefined' && !document.getElementById('copyOnClickStyl
 
 
 
+function getDefaultDateRange() {
+  const now = new Date();
+  const past = new Date();
+  past.setDate(past.getDate() - 7);
+  const formatDate = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  return {
+    from: formatDate(past),
+    to: formatDate(now),
+  };
+}
+
+const defaultDateRange = getDefaultDateRange();
+
 let currentFilters = {
-  from: "",
-  to: "",
+  from: defaultDateRange.from,
+  to: defaultDateRange.to,
   status: "ALL", // allow showing SUCCESS + FAILED + PENDING + etc
   search: "",
   page: 1,
@@ -266,11 +288,15 @@ async function submitBankFetch() {
     const url = `${BASE_URL}/bank/query-order`;
     console.log("Querying Bank API at:", url, "for Order ID:", orderId);
 
+    const tenant = CURRENT_TENANT || localStorage.getItem("tenant") || "malkey";
     const response = await $.ajax({
       url: url,
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({ reference: orderId }),
+      headers: {
+        "x-tenant": tenant
+      },
+      data: JSON.stringify({ reference: orderId, tenant: tenant }),
     });
 
     console.log("Bank query response:", response);
@@ -431,15 +457,16 @@ function applyFilters() {
   loadData();
 }
 function resetFilters() {
-  $("#fromDate").val("");
-  $("#toDate").val("");
+  const defaultDates = getDefaultDateRange();
+  $("#fromDate").val(defaultDates.from);
+  $("#toDate").val(defaultDates.to);
   $("#transactionType").val("ALL");
   $("#searchQuery").val("");
   $("#itemsPerPage").val(localStorage.getItem("itemsPerPage") || "10");
 
   currentFilters = {
-    from: "",
-    to: "",
+    from: defaultDates.from,
+    to: defaultDates.to,
     status: "ALL",
     search: "",
     page: 1,
@@ -449,7 +476,7 @@ function resetFilters() {
 
   delete currentFilters.refundOnly;
 
-  console.log("All filters reset");
+  console.log("All filters reset to default 7-day range");
   loadData();
 }
 

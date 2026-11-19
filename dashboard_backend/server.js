@@ -29,12 +29,14 @@ let CertPath = null;
 const corsOptions = {
   origin: function (origin, callback) {
     console.log("CORS Origin:", origin);
-       if (allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       try {
-        CertPath = new URL(origin).hostname;
-        process.env.CERT_PATH = CertPath;
-        global.CERT_PATH_DIR = path.join(CERTS_BASE_DIR, CertPath);
-        console.log(`[CORS] Origin matched → CERT_PATH set to: ${CertPath}`);
+        if (origin) {
+          CertPath = new URL(origin).hostname;
+          process.env.CERT_PATH = CertPath;
+          global.CERT_PATH_DIR = path.join(CERTS_BASE_DIR, CertPath);
+          console.log(`[CORS] Origin matched → CERT_PATH set to: ${CertPath}`);
+        }
         return callback(null, true);
       } catch (e) {
         console.error('[CORS] Invalid origin URL:', e.message);

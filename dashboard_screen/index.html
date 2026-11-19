@@ -95,20 +95,25 @@
         padding: 0.25rem 0.5rem;
       }
     }
-    /* Filter section toggle */
+    /* Filter section toggle inside Transaction History */
     #filterSection {
-      transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+      transition: max-height 0.3s ease-in-out, opacity 0.25s ease-in-out, padding 0.3s ease-in-out;
       max-height: 0;
       opacity: 0;
       overflow: hidden;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      border-bottom-width: 0 !important;
     }
     #filterSection.show {
-      max-height: 600px; /* Increased to accommodate content */
+      max-height: 180px;
       opacity: 1;
+      padding-top: 0.625rem !important;
+      padding-bottom: 0.625rem !important;
+      border-bottom-width: 1px !important;
     }
-    /* Filter icon color when filter section is open */
-    #filterSection.show + .bg-white #toggleFilter {
-      color: #348b1a; /* Change to accent color when open */
+    #toggleFilter.active {
+      color: #16a34a;
     }
   </style>
 </head>
@@ -255,100 +260,7 @@
         id="statsCards"
       ></div>
 
-      <div id="filterSection" class="bg-white rounded-lg shadow p-4 md:p-6 mb-6 mt-6">
-        <h2 class="text-lg font-semibold mb-4 text-gray-700">
-          <i class=" mr-2 text-primary"></i>Filter Transactions
-        </h2>
-        <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4"
-        >
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >From Date</label
-            >
-            <input
-              type="date"
-              id="fromDate"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Select start date"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >To Date</label
-            >
-            <input
-              type="date"
-              id="toDate"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Select end date"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Payment Status</label
-            >
-       <select id="transactionType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-  <option value="">All Statuses</option>
-  <option value="SUCCESS">Success</option>
-  <option value="PENDING">Pending</option>
-  <option value="FAILED">Failed</option>
-  <option value="REFUNDED">Refunded Only</option>  
-</select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Items Per Page</label
-            >
-            <select
-              id="itemsPerPage"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Search</label
-            >
-            <input
-              type="text"
-              id="searchQuery"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Search by order ID, email, reference, or card number..."
-            />
-          </div>
-          <div class="flex items-end space-x-2">
-            <button
-              id="applyFilters"
-              class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-            >
-              <i class="fas fa-filter mr-2"></i> Apply Filters
-            </button>
 
-            <button
-              id="queryBankBtn"
-              type="button"
-              class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md flex items-center shadow-sm transition-all"
-              title="Fetch transaction from Bank Gateway and save to database"
-            >
-              <i class="fas fa-university mr-2"></i> Fetch from Bank
-            </button>
-
-            <button
-              id="resetFilters"
-              class="border border-gray-300 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-md flex items-center"
-            >
-              <i class="fas fa-redo mr-2"></i> Reset
-            </button>
-          </div>
-         </div>
-      </div>
 
     <!-- Bank Fetch Modal -->
     <div
@@ -510,7 +422,7 @@
           <div class="flex items-center">
             <button
               id="toggleFilter"
-              class="mr-2 text-primary hover:text-green-600 focus:outline-none"
+              class="mr-2 text-primary hover:text-green-600 focus:outline-none p-1.5 rounded hover:bg-blue-50 transition"
               title="Toggle Filters"
             >
               <i class="fas fa-filter"></i>
@@ -521,6 +433,101 @@
             >
               <i class="fas fa-download mr-2"></i> Export
             </button>
+          </div>
+        </div>
+
+        <!-- Filter Row inside Transaction History -->
+        <div id="filterSection" class="border-b border-gray-200 bg-gray-50/70 px-5 py-3">
+          <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full text-sm">
+            <!-- Search Input -->
+            <div class="relative w-52 sm:w-64 shrink-0">
+              <input
+                type="text"
+                id="searchQuery"
+                class="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-white text-gray-700 placeholder-gray-400"
+                placeholder="Search order, email, card..."
+              />
+              <i class="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+            </div>
+
+            <!-- From Date -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <label for="fromDate" class="text-sm font-medium text-gray-600 whitespace-nowrap">From:</label>
+              <input
+                type="date"
+                id="fromDate"
+                class="px-2.5 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-[135px] bg-white text-gray-700"
+              />
+            </div>
+
+            <!-- To Date -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <label for="toDate" class="text-sm font-medium text-gray-600 whitespace-nowrap">To:</label>
+              <input
+                type="date"
+                id="toDate"
+                class="px-2.5 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-[135px] bg-white text-gray-700"
+              />
+            </div>
+
+            <!-- Payment Status -->
+            <div class="shrink-0">
+              <select
+                id="transactionType"
+                class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-[125px] bg-white text-gray-700"
+              >
+                <option value="">All Statuses</option>
+                <option value="SUCCESS">Success</option>
+                <option value="PENDING">Pending</option>
+                <option value="FAILED">Failed</option>
+                <option value="REFUNDED">Refunded</option>
+              </select>
+            </div>
+
+            <!-- Items Per Page (Show Filter in position) -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <label for="itemsPerPage" class="text-sm font-medium text-gray-600 whitespace-nowrap">Show:</label>
+              <select
+                id="itemsPerPage"
+                class="px-2 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-[62px] bg-white text-gray-700"
+              >
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+
+            <!-- Apply and Reset Buttons near Show Filter -->
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                id="applyFilters"
+                type="button"
+                class="bg-primary hover:bg-blue-600 text-white px-3.5 py-2 rounded-md text-sm font-medium flex items-center shadow-sm transition whitespace-nowrap"
+              >
+                <i class="fas fa-filter mr-1.5"></i> Apply
+              </button>
+
+              <button
+                id="resetFilters"
+                type="button"
+                class="border border-gray-300 hover:bg-gray-100 bg-white text-gray-700 px-3.5 py-2 rounded-md text-sm font-medium flex items-center shadow-sm transition whitespace-nowrap"
+              >
+                <i class="fas fa-redo mr-1.5"></i> Reset
+              </button>
+            </div>
+
+            <!-- Fetch from Bank Button (Right Side) -->
+            <div class="flex items-center shrink-0 md:ml-auto">
+              <button
+                id="queryBankBtn"
+                type="button"
+                class="bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-2 rounded-md text-sm font-medium flex items-center shadow-sm transition whitespace-nowrap"
+                title="Fetch transaction from Bank Gateway and save to database"
+              >
+                <i class="fas fa-university mr-1.5"></i> Fetch from Bank
+              </button>
+            </div>
           </div>
         </div>
         <div class="table-container overflow-x-auto">

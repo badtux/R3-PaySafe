@@ -99,8 +99,12 @@ exports.queryBankOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Reference or Order ID is required' });
     }
 
-    console.log(`[queryBankOrder] Received request to query bank for reference: ${reference}`);
-    const result = await bankService.queryAndSyncBankOrder(req.hostname, reference);
+    const explicitTenant = req.body.tenant || req.query.tenant || req.headers['x-tenant'];
+    const originHint = req.headers.origin || req.headers.referer || '';
+    const tenant = bankService.extractTenant(req.hostname, explicitTenant || originHint);
+
+    console.log(`[queryBankOrder] Received request to query bank for reference: ${reference}, tenant: ${tenant}`);
+    const result = await bankService.queryAndSyncBankOrder(req.hostname, reference, { tenant });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Error in queryBankOrder controller:', error.message);
